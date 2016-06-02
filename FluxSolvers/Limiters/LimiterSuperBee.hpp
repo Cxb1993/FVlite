@@ -12,9 +12,11 @@ namespace FVTD{
 
 class LimiterSuperBee : public Limiter{
 public:
-    LimiterSuperBee() : Limiter() {}
+    LimiterSuperBee(){}
     virtual StateVector exec(StateVector& r, double omega);
 };
+
+REGISTER(Limiter,SuperBee)
 
 StateVector LimiterSuperBee::exec(StateVector& r, double omega){
     StateVector Xi;

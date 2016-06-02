@@ -5,10 +5,14 @@
 #ifndef INITIALISERABSTRACT_HPP
 #define INITIALISERABSTRACT_HPP
 
+#include "Utils/ObjectFactory.hpp"
+
 #include "Vectors/Grid.hpp"
 #include "Timer/Timer.hpp"
 
 namespace FVTD{
+
+// Class delcaration
 
 class Initialiser{
 
@@ -18,17 +22,23 @@ protected:
 
 public:
 
-    Initialiser( Grid* pGrid);
-    virtual ~Initialiser();
+    Initialiser(){}
+    virtual ~Initialiser(){}
 
+    void init( Grid* pGrid);
     virtual void exec() = 0;
     void setup_boundary_geometry();
 };
 
-Initialiser::Initialiser( Grid* pGrid) : pGrid(pGrid){
-}
+// Factory declaration
 
-Initialiser::~Initialiser(){
+ObjectFactory<Initialiser> InitialiserFactory;
+
+// Function definitions
+
+void Initialiser::init( Grid* pGrid){
+    (*this).pGrid = pGrid;
+    return;
 }
 
 void Initialiser::setup_boundary_geometry(){

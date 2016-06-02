@@ -11,13 +11,17 @@
 
 #include"FluxSolverAbstract.hpp"
 
+using std::string;
+
 namespace FVTD{
 
 class FluxSolverHLLCfirst : public FluxSolver{
 public:
-    FluxSolverHLLCfirst( Grid* pGrid, Source* pSource, LIMIT_TYPE LTYPE=NONE) : FluxSolver(pGrid,pSource,LTYPE) {}
+    FluxSolverHLLCfirst(){}
     virtual void solve( char dim, double dt);
 };
+
+REGISTER(FluxSolver,HLLCfirst)
 
 void FluxSolverHLLCfirst::solve( char dim, double dt){
     (void) dt;

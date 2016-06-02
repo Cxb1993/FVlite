@@ -12,9 +12,11 @@ namespace FVTD{
 
 class LimiterVanLeer : public Limiter{
 public:
-    LimiterVanLeer() : Limiter() {}
+    LimiterVanLeer(){}
     virtual StateVector exec(StateVector& r, double omega);
 };
+
+REGISTER(Limiter,VanLeer)
 
 StateVector LimiterVanLeer::exec(StateVector& r, double omega){
     StateVector Xi;

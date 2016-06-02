@@ -9,12 +9,4 @@
 #include "BoundaryUpdaterTransmissive.hpp"
 #include "BoundaryUpdaterConstant.hpp"
 
-namespace FVTD{
-
-enum B_UPDATE_TYPE{
-    TRANSMISSIVE,
-    CONSTANT
-};
-
-}// Namespace closure
 #endif /* BUPDATERS_HPP */

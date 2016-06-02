@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <string>
 #include <cmath>
 #include <ctgmath>
 
@@ -14,6 +15,8 @@
 #include "Timer/Timer.hpp"
 #include "Sources/Sources.hpp"
 #include "Limiters/Limiters.hpp"
+
+using std::string;
 
 namespace FVTD{
 
@@ -28,9 +31,10 @@ protected:
 
 public:
 
-    FluxSolver( Grid* pGrid, Source* pSource, LIMIT_TYPE LTYPE=NONE);
+    FluxSolver(){}
     virtual ~FluxSolver();
 
+    void init( Grid* pGrid, Source* pSource, string LimitString);
     void exec( char dim, double t, double dt);
     virtual void solve(char dim, double dt) = 0;
     void inject_source( char dim, double t, double dt);
@@ -47,24 +51,17 @@ public:
 
 };
 
-FluxSolver::FluxSolver( Grid* pGrid, Source* pSource, LIMIT_TYPE LTYPE)
-        : pGrid(pGrid), pSource(pSource){
-    switch(LTYPE){
-        case(SUPERBEE):
-            pLimiter = new LimiterSuperBee;
-            break;
-        case(MINBEE):
-            pLimiter = new LimiterMinBee;
-            break;
-        case(VANLEER):
-            pLimiter = new LimiterVanLeer;
-            break;
-        case(NONE):
-            pLimiter = new LimiterNone;
-            break;
-        default:
-            pLimiter = new LimiterMinBee;
-    }
+// Factory declaration
+
+ObjectFactory<FluxSolver> FluxSolverFactory;
+
+
+// Function defintions
+
+void FluxSolver::init( Grid* pGrid, Source* pSource, string LimitString){
+    (*this).pGrid = pGrid;
+    (*this).pSource = pSource;
+    pLimiter = LimiterFactory.create(LimitString);
 }
 
 FluxSolver::~FluxSolver(){

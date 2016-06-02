@@ -8,13 +8,17 @@
 
 #include"FluxSolverAbstract.hpp"
 
+using std::string;
+
 namespace FVTD{
 
 class FluxSolverFORCE : public FluxSolver{
 public:
-    FluxSolverFORCE( Grid* pGrid, Source* pSource, LIMIT_TYPE LTYPE=NONE) : FluxSolver(pGrid,pSource,LTYPE) {}
+    FluxSolverFORCE(){}
     virtual void solve(char dim, double dt);
 };
+
+REGISTER(FluxSolver,FORCE)
 
 void FluxSolverFORCE::solve( char dim, double dt){
     double ds;

@@ -12,9 +12,11 @@ namespace FVTD{
 
 class LimiterNone : public Limiter{
 public:
-    LimiterNone() : Limiter() {}
+    LimiterNone(){}
     virtual StateVector exec(StateVector& r, double omega);
 };
+
+REGISTER(Limiter,None)
 
 StateVector LimiterNone::exec(StateVector& r, double omega){
     (void)r; // Prevents unused parameter warnings

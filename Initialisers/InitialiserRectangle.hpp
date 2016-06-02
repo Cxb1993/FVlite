@@ -14,9 +14,12 @@ namespace FVTD{
 
 class InitialiserRectangle : public Initialiser{
 public:
-    InitialiserRectangle( Grid* pGrid) : Initialiser(pGrid) {}
+    InitialiserRectangle(){}
     virtual void exec();
 };
+
+REGISTER(Initialiser,Rectangle)
+
 
 void InitialiserRectangle::exec(){
 

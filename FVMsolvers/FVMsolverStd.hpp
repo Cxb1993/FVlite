@@ -19,9 +19,11 @@ class FVMsolverStd : public FVMsolver{
 
 public:
 
-    FVMsolverStd( Grid* pGrid, FluxSolver* pFlux, Source* pSource) : FVMsolver(pGrid,pFlux,pSource){}
+    FVMsolverStd(){}
     virtual void exec( char dim, double t, double dt);
 };
+
+REGISTER(FVMsolver,Std)
 
 void FVMsolverStd::exec( char dim, double t, double dt){
     int startX = pGrid->startX();

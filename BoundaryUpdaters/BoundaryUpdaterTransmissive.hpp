@@ -12,9 +12,11 @@ namespace FVTD{
 
 class BoundaryUpdaterTransmissive : public BoundaryUpdater{
 public:
-    BoundaryUpdaterTransmissive(Grid* pGrid) : BoundaryUpdater(pGrid) {}
+    BoundaryUpdaterTransmissive(){}
     virtual void exec();
 };
+
+REGISTER(BoundaryUpdater,Transmissive)
 
 void BoundaryUpdaterTransmissive::exec(){
     int bound  = pGrid->bound();

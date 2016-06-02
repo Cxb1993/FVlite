@@ -8,11 +8,4 @@
 #include"FVMsolverAbstract.hpp"
 #include"FVMsolverStd.hpp"
 
-namespace FVTD{
-
-enum FVM_TYPE{
-    FVMSTD,
-};
-
-}// Namespace closure
 #endif /* FVMSOLVERS_HPP */

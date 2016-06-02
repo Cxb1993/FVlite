@@ -12,9 +12,11 @@ namespace FVTD{
 
 class LimiterMinBee : public Limiter{
 public:
-    LimiterMinBee() : Limiter() {}
+    LimiterMinBee(){}
     virtual StateVector exec( StateVector& r, double omega);
 };
+
+REGISTER(Limiter,MinBee)
 
 StateVector LimiterMinBee::exec(StateVector& r, double omega){
     StateVector Xi;

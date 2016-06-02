@@ -14,6 +14,8 @@
 
 #include"FluxSolverAbstract.hpp"
 
+using std::string;
+
 namespace FVTD{
 
 typedef std::pair<StateVector,StateVector> StatePair;
@@ -22,7 +24,7 @@ class FluxSolverMUSCLbase : public FluxSolver{
 
 public:
 
-    FluxSolverMUSCLbase( Grid* pGrid, Source* pSource, LIMIT_TYPE LTYPE) : FluxSolver(pGrid,pSource,LTYPE) {}
+    FluxSolverMUSCLbase(){}
 
     StatePair linear_reconstruction( StateVector& StateL, StateVector& StateCL, StateVector& CR, StateVector& StateR, char dim, double dt);
     StateVector getLimitedSlope(StateVector& StateL, StateVector& StateC, StateVector& StateR, double tol=1e-10, double omega=0.);

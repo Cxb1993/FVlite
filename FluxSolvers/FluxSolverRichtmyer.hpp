@@ -8,13 +8,17 @@
 
 #include"FluxSolverAbstract.hpp"
 
+using std::string;
+
 namespace FVTD{
 
 class FluxSolverRichtmyer : public FluxSolver{
 public:
-    FluxSolverRichtmyer( Grid* pGrid, Source* pSource, LIMIT_TYPE LTYPE=NONE) : FluxSolver(pGrid,pSource,LTYPE) {}
+    FluxSolverRichtmyer(){}
     virtual void solve( char dim, double dt);
 };
+
+REGISTER(FluxSolver,Richtmyer)
 
 void FluxSolverRichtmyer::solve( char dim, double dt){
     double ds;

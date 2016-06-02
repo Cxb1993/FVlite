@@ -14,13 +14,17 @@
 
 #include"FluxSolverMUSCLbase.hpp"
 
+using std::string;
+
 namespace FVTD{
 
 class FluxSolverHLLC : public FluxSolverMUSCLbase{
 public:
-    FluxSolverHLLC( Grid* pGrid, Source* pSource, LIMIT_TYPE LTYPE) : FluxSolverMUSCLbase(pGrid,pSource,LTYPE) {}
+    FluxSolverHLLC(){}
     virtual void solve( char dim, double dt);
 };
+
+REGISTER(FluxSolver,HLLC)
 
 void FluxSolverHLLC::solve( char dim, double dt){
     int startX = pGrid->startX();

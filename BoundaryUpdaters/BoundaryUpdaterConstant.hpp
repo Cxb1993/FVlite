@@ -12,9 +12,11 @@ namespace FVTD{
 
 class BoundaryUpdaterConstant : public BoundaryUpdater{
 public:
-    BoundaryUpdaterConstant(Grid* pGrid) : BoundaryUpdater(pGrid) {}
+    BoundaryUpdaterConstant(){}
     virtual void exec();
 };
+
+REGISTER(BoundaryUpdater,Constant)
 
 void BoundaryUpdaterConstant::exec(){
     static bool boundariesSet = false;

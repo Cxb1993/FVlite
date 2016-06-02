@@ -14,29 +14,30 @@
 #endif
 
 using namespace FVTD;
+using std::string;
 
 int main( void){
 
-    std::string runName("data/results");
-    int           Nx = 5;
-    int           Ny = Nx;
-    double        Lx = 1.0;
-    double        Ly = Lx;
-    double        CFL = 0.9;
+    string  runName("data/results");
+    int     Nx = 200;
+    int     Ny = Nx;
+    double  Lx = 2.0;
+    double  Ly = Lx;
+    double  CFL = 0.9;
 #ifdef MAXWELL
-    double        tmax = 5e-9;
+    double  tmax = 5e-9;
 #endif
 #ifdef EULER
-    double        tmax = 1.0;
+    double  tmax = 1.0;
 #endif
-    INIT_TYPE     ITYPE = SLOPE;
-    FLUX_TYPE     FTYPE = HLLC;
-    FVM_TYPE      FVMTYPE = FVMSTD;
-    B_UPDATE_TYPE BTYPE = TRANSMISSIVE;
-    LIMIT_TYPE    LTYPE = VANLEER;
+    string InitString = "ExplosiveTest";
+    string FluxString = "HLLC";
+    string FvmString = "Std";
+    string buString = "Transmissive";
+    string LimitString = "VanLeer";
     SOURCE_TYPE   STYPE = SINE;
 
-    Solver mySolver( runName, Nx, Ny, Lx, Ly, CFL, tmax, ITYPE, FVMTYPE, FTYPE, BTYPE, LTYPE, STYPE);
+    Solver mySolver( runName, Nx, Ny, Lx, Ly, CFL, tmax, InitString, FvmString, FluxString, buString, LimitString, STYPE);
     mySolver.printData();
     mySolver.printGeometry();
 //    mySolver.printLevelSetVertices();

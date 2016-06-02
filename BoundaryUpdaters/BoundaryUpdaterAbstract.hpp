@@ -20,21 +20,28 @@ protected:
 
 public:
 
-    BoundaryUpdater( Grid* pGrid);
-    virtual ~BoundaryUpdater();
+    BoundaryUpdater(){}
+    virtual ~BoundaryUpdater(){}
 
+    void init( Grid* pGrid);
     virtual void exec() = 0;
 };
 
-BoundaryUpdater::BoundaryUpdater( Grid* pGrid) : pGrid(pGrid){
+// Factory declaration
+
+ObjectFactory<BoundaryUpdater> BoundaryUpdaterFactory;
+
+
+// Function definitions
+
+void BoundaryUpdater::init( Grid* pGrid){
+    (*this).pGrid = pGrid;
+    return;
 }
 
-BoundaryUpdater::~BoundaryUpdater(){
-}
 
-
-
-// General boundaries
+// General boundary functions.
+// Not associated with any class.
 
 StateVector BoundaryReflective( const StateVector& Reference, const char dim){
     StateVector Boundary;

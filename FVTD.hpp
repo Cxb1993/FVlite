@@ -15,6 +15,8 @@
 #include "Updaters/Updater.hpp"
 #include "Sources/Sources.hpp"
 
+using std::string;
+
 namespace FVTD{
 
 // TEMPORARY CONSTANTS
@@ -42,7 +44,7 @@ private:
 
 public:
 
-    Solver( std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, INIT_TYPE ITYPE, FVM_TYPE FVMTYPE, FLUX_TYPE FTYPE, B_UPDATE_TYPE BTYPE, LIMIT_TYPE LTYPE= NONE, SOURCE_TYPE STYPE=GAUSSDER);
+    Solver( std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, string InitString, string FvmString, string FluxString, string BuString, string LimitString, SOURCE_TYPE STYPE=GAUSSDER);
     ~Solver();
 
     bool complete();
@@ -58,70 +60,30 @@ public:
 };
 
 
-Solver::Solver( std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, INIT_TYPE ITYPE, FVM_TYPE FVMTYPE, FLUX_TYPE FTYPE, B_UPDATE_TYPE BTYPE, LIMIT_TYPE LTYPE, SOURCE_TYPE STYPE){ 
+Solver::Solver( std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, string InitString, string FvmString, string FluxString, string BuString, string LimitString, SOURCE_TYPE STYPE){ 
 
-    std::cout << "Getting grid params..." << std::endl;
 
     // Determine grid parameters
-    int bound;
-    switch(FTYPE){
-        case FORCE :
-            bound = 1;
-        case RICHT:
-            bound = 1;
-            break;
-        case SLIC:
-            bound = 2;
-            break;
-#ifdef EULER
-        case HLLC:
-            bound = 2;
-            break;
-        case HLLCFIRST:
-            bound = 1;
-            break;
-#endif
-        default:
-            bound = 1;
-    }
-
+    std::cout << "Getting grid params..." << std::endl;
+    int bound=2;
     std::cout << "Boundary size: " << bound << std::endl;
-    std::cout << "Building grid.." << std::endl;
 
     // Set up grid
+    std::cout << "Building grid.." << std::endl;
     pGrid   = new Grid(Nx,Ny,Lx,Ly,bound);
- 
-    std::cout << "Building timer..." << std::endl;
 
     // Set up timer
+    std::cout << "Building timer..." << std::endl;
     pTimer  = new Timer(CFL,tmax,pGrid);
 
+    // Set up Initialiser
     std::cout << "Building initialiser..." << std::endl;
-
-    // Set up initialiser
-    switch(ITYPE){
-        case ZERO:
-            pInit = new InitialiserZero(pGrid);
-            break;
-        case CIRCLE:
-            pInit = new InitialiserCircle(pGrid);
-            break;
-        case RECTANGLE:
-            pInit = new InitialiserRectangle(pGrid);
-            break;
-        case SLOPE:
-            pInit = new InitialiserSlope(pGrid);
-            break;
-        case EXPLODE:
-            pInit = new InitialiserExplosiveTest(pGrid);
-            break;
-        default:
-            pInit = new InitialiserZero(pGrid);
-    }
+    pInit = InitialiserFactory.create(InitString);
+    pInit->init(pGrid);
     
-    std::cout << "Building PDE solver..." << std::endl;
 
     // Set up source
+    std::cout << "Building PDE solver..." << std::endl;
 
     Source* pSource;
     bool TE    = true;
@@ -152,75 +114,30 @@ Solver::Solver( std::string runName, int Nx, int Ny, double Lx, double Ly, doubl
     }
 
     // Set up flux solver
-    FluxSolver* pFlux;
-
-    switch(FTYPE){
-        case FORCE:
-            pFlux = new FluxSolverFORCE( pGrid, pSource);
-            break;
-        case RICHT:
-            pFlux = new FluxSolverRichtmyer(pGrid, pSource);
-            break;
-        case SLIC:
-            pFlux = new FluxSolverSLIC( pGrid, pSource, LTYPE);
-            break;
-#ifdef EULER
-        case HLLC:
-            pFlux = new FluxSolverHLLC( pGrid, pSource, LTYPE);
-            break;
-        case HLLCFIRST:
-            pFlux = new FluxSolverHLLCfirst( pGrid, pSource, LTYPE);
-            break;
-#endif
-        default:
-            pFlux = new FluxSolverRichtmyer( pGrid, pSource);
-            break;
-    }
+    FluxSolver* pFlux = FluxSolverFactory.create(FluxString);
+    pFlux->init(pGrid,pSource,LimitString);
 
     // Set up finite volume solver
-    FVMsolver* pFVM;
-    switch(FVMTYPE){
-        case FVMSTD:
-            pFVM = new FVMsolverStd( pGrid, pFlux, pSource);
-            break;
-        default:
-            pFVM = new FVMsolverStd( pGrid, pFlux, pSource);
-            break;
-    }
-
-    std::cout << "Building boundary updater..." << std::endl;
+    FVMsolver* pFVM = FVMsolverFactory.create(FvmString);
+    pFVM->init(pGrid,pFlux,pSource);
 
     // Set up boundary update method
-    BoundaryUpdater* pBUpdate;
-    switch(BTYPE){
-        case TRANSMISSIVE:
-            pBUpdate = new BoundaryUpdaterTransmissive(pGrid);
-            break;
-        case CONSTANT:
-            pBUpdate = new BoundaryUpdaterConstant(pGrid);
-            break;
-        default:
-            pBUpdate = new BoundaryUpdaterTransmissive(pGrid);
-    }
-
-    std::cout << "Building complete time marching system..." << std::endl;
+    std::cout << "Building boundary updater..." << std::endl;
+    BoundaryUpdater* pBUpdate = BoundaryUpdaterFactory.create(BuString);
+    pBUpdate->init(pGrid);
 
     // Set up updater
+    std::cout << "Building complete time marching system..." << std::endl;
     pUpdate = new Updater(pGrid,pTimer,pFVM,pBUpdate);
 
-    std::cout << "Setting up output..." << std::endl;
-
     // Set up output
+    std::cout << "Setting up output..." << std::endl;
     std::string datSuffix(".dat");
-//    std::string logSuffix(".log");
     std::string datName = runName + datSuffix;
-//    std::string logName = runName + logSuffix;
     datFile.open( datName.c_str());
-//    logFile.open( logName.c_str());
-
-    std::cout << "Initialising..." << std::endl;
 
     // Initialise
+    std::cout << "Initialising..." << std::endl;
     pInit->exec();
 
     std::cout << "Solver built successfully (probably)" << std::endl;
@@ -232,7 +149,6 @@ Solver::~Solver(){
   delete pTimer;
   delete pGrid;
   datFile.close();
-//  logFile.close();
 }
 
 bool Solver::complete(){
@@ -255,7 +171,6 @@ void Solver::solve(){
 void Solver::exec(){
     solve();
     printData();
-//    printLog();
     return;
 }
 
@@ -337,12 +252,6 @@ void Solver::printData(){
     printData(datFile);
     return;
 }
-/*
-void Solver::printLog(){
-    logFile << "Code in progress, log files not ready!" << std::endl;
-    return;
-}
-*/
 
 }// Namespace closure
 #endif /* SOLVER_HPP */

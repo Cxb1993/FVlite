@@ -15,9 +15,11 @@ namespace FVTD{
 
 class InitialiserZero : public Initialiser{
 public:
-    InitialiserZero( Grid* pGrid) : Initialiser(pGrid) {}
+    InitialiserZero(){}
     virtual void exec();
 };
+
+REGISTER(Initialiser,Zero)
 
 void InitialiserZero::exec(){
     for( int ii=pGrid->startX(); ii<pGrid->endX(); ii++){

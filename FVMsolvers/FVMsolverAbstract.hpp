@@ -24,13 +24,25 @@ protected:
 
 public:
 
-    FVMsolver( Grid* pGrid, FluxSolver* pFlux, Source* pSource);
+    FVMsolver(){}
     virtual ~FVMsolver();
 
+    void init( Grid* pGrid, FluxSolver* pFlux, Source* pSource);
     virtual void exec( char dim, double t, double dt)=0;
 };
 
-FVMsolver::FVMsolver( Grid* pGrid, FluxSolver* pFlux, Source* pSource) : pGrid(pGrid), pFlux(pFlux), pSource(pSource){}
+// Declare object factory
+
+ObjectFactory<FVMsolver> FVMsolverFactory;
+
+// Function definitions
+
+void FVMsolver::init( Grid* pGrid, FluxSolver* pFlux, Source* pSource){
+    (*this).pGrid = pGrid;
+    (*this).pFlux = pFlux;
+    (*this).pSource =pSource;
+    return;
+}
 
 FVMsolver::~FVMsolver(){
     delete pFlux;

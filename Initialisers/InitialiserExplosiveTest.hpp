@@ -17,9 +17,11 @@ namespace FVTD{
 
 class InitialiserExplosiveTest : public Initialiser{
 public:
-    InitialiserExplosiveTest( Grid* pGrid) : Initialiser(pGrid) {}
+    InitialiserExplosiveTest(){}
     virtual void exec();
 };
+
+REGISTER(Initialiser,ExplosiveTest)
 
 void InitialiserExplosiveTest::exec(){
 

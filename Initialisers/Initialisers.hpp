@@ -12,15 +12,4 @@
 #include "InitialiserSlope.hpp"
 #include "InitialiserExplosiveTest.hpp"
 
-namespace FVTD{
-
-enum INIT_TYPE{
-   ZERO,
-   CIRCLE,
-   RECTANGLE,
-   SLOPE,
-   EXPLODE
-};
-
-}// Namespace closure
 #endif /* INITIALISERS_HPP */

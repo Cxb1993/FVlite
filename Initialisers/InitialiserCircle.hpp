@@ -14,9 +14,11 @@ namespace FVTD{
 
 class InitialiserCircle : public Initialiser{
 public:
-    InitialiserCircle( Grid* pGrid) : Initialiser(pGrid) {}
+    InitialiserCircle(){}
     virtual void exec();
 };
+
+REGISTER(Initialiser,Circle)
 
 void InitialiserCircle::exec(){
 

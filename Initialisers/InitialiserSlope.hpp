@@ -14,10 +14,12 @@ namespace FVTD{
 
 class InitialiserSlope : public Initialiser{
 public:
-    InitialiserSlope( Grid* pGrid) : Initialiser(pGrid) {}
+    InitialiserSlope(){}
     virtual void exec();
     void cut_cell_params( double x, double y, double slope_gradient, double slope_intersect);
 };
+
+REGISTER(Initialiser,Slope)
 
 void InitialiserSlope::exec(){
 

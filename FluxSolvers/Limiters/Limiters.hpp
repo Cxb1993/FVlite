@@ -11,14 +11,5 @@
 #include"LimiterMinBee.hpp"
 #include"LimiterNone.hpp"
 
-namespace FVTD{
-
-enum LIMIT_TYPE{
-    NONE,
-    SUPERBEE,
-    VANLEER,
-    MINBEE
-};
-
 }// Namespace closure
 #endif /* LIMITERS_HPP */

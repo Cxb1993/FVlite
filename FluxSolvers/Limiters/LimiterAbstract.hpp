@@ -12,19 +12,20 @@ namespace FVTD{
 class Limiter{
 public:
 
-    Limiter();
-    virtual ~Limiter();
+    Limiter(){}
+    virtual ~Limiter(){}
 
     virtual StateVector exec( StateVector& r, double omega)=0;
 
     StateVector Xi_R( StateVector & r, double omega);
 };
 
-Limiter::Limiter(){
-}
+// Factory declaration
 
-Limiter::~Limiter(){
-}
+ObjectFactory<Limiter> LimiterFactory;
+
+
+// function definitions
 
 StateVector Limiter::Xi_R( StateVector& r, double omega){
     StateVector denom;
