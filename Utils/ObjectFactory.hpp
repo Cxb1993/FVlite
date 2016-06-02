@@ -5,7 +5,24 @@
 // Assumes the use of std::string to identify types. This could also be templated out, but I'm not aware
 // of a better identifier.
 //
-//  TODO Error handling that doesn't amount to throwing a tantrum
+// See below the function definitions for a pre-processor macro that automatically registers new classes.
+// Using this, each class that needs to be added to the factory requires only the line:
+//
+// REGISTER(parent,childpart)
+//
+// This requires that children of the parent class follow the naming convention of "parent"+"childpart"
+// e.g.
+// Parent: FluxSolver
+// Child:  FluxSolverSLIC
+// Here, we register by calling:
+//
+// REGISTER(FluxSolver,SLIC)
+//
+// We also require that the factory is named "parent"+"Factory", so in this case:
+//
+// FluxSolverFactory
+//
+// TODO Error handling that doesn't amount to throwing a tantrum
 //
 // See "Modern C++ Design", Andrei Alexandrescu
 
@@ -17,7 +34,7 @@
 #include <string>
 #include <map>
 
-template<class AbstractProduct, typename ProductCreator>
+template<class AbstractProduct, typename ProductCreator = AbstractProduct* (*)()>
 class ObjectFactory{
 
 private:
@@ -62,5 +79,12 @@ template<class AbstractProduct, typename ProductCreator>
 bool ObjectFactory<AbstractProduct,ProductCreator>::eraseBlueprint( const std::string& Id){
     return mIdMap.erase(Id) == 1;
 }
+
+// REGISTERING MACRO
+/* a is parent, b is child */
+#define REGISTER(a,b) namespace a##b##unique { \
+    a * create(){ return new a##b ;}}          \
+    const bool a##b##reg = a##Factory.addBlueprint( #b , a##b##unique::create);
+
 
 #endif /* OBJECTFACTORY_HPP */
