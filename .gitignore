@@ -2,3 +2,6 @@
 *.png
 *.mpeg4
 *.txt
+*.exe
+toam*
+*.C
