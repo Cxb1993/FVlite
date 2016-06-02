@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <string>
 
+#include <libconfig.h++>
+
 #include "FVTD.hpp"
 
 #ifdef MAXWELL
@@ -18,26 +20,10 @@ using std::string;
 
 int main( void){
 
-    string  runName("data/results");
-    int     Nx = 200;
-    int     Ny = Nx;
-    double  Lx = 2.0;
-    double  Ly = Lx;
-    double  CFL = 0.9;
-#ifdef MAXWELL
-    double  tmax = 5e-9;
-#endif
-#ifdef EULER
-    double  tmax = 1.0;
-#endif
-    string InitString = "ExplosiveTest";
-    string FluxString = "HLLC";
-    string FvmString = "Std";
-    string buString = "Transmissive";
-    string LimitString = "VanLeer";
-    SOURCE_TYPE   STYPE = SINE;
+    libconfig::Config cfg;
+    cfg.readFile("Default.cfg");
 
-    Solver mySolver( runName, Nx, Ny, Lx, Ly, CFL, tmax, InitString, FvmString, FluxString, buString, LimitString, STYPE);
+    Solver mySolver(cfg);
     mySolver.printData();
     mySolver.printGeometry();
 //    mySolver.printLevelSetVertices();

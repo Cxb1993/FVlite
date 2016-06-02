@@ -1,8 +1,8 @@
 #!/bin/bash
 
-datafile="data/results.dat"
+datafile="data/Default.dat"
 #datafile="steady_state.dat"
-outfile="results.png"
+outfile="Default.png"
 #outfile="ScatteringPECsteadystate.png"
 
 gnuplot -e "datafile='${datafile}'"   \

@@ -10,22 +10,18 @@
 #include <iostream>
 #include <fstream>
 
+#include <libconfig.h++>
+
 #include "Vectors/Grid.hpp"
 #include "Initialisers/Initialisers.hpp"
 #include "Updaters/Updater.hpp"
 #include "Sources/Sources.hpp"
 
 using std::string;
+using libconfig::Config;
+using libconfig::Setting;
 
 namespace FVTD{
-
-// TEMPORARY CONSTANTS
-// REPLACE CODE, THIS IS BAD PRACTICE!
-
-const double omega  = 1e10;  // Input frequency
-const double radius = 0.125; // PEC circle radius
-const double sigma = 1e-10;  // Gaussian source sigma
-const double mean  = 4e-10;  // Gaussian source mean
 
 class FT_Controller;
 
@@ -35,7 +31,6 @@ friend class FT_Controller;
 private:
 
     std::ofstream datFile;
-//    std::ofstream logFile;
  
     Grid*             pGrid;
     Timer*            pTimer;
@@ -44,8 +39,12 @@ private:
 
 public:
 
+    Solver(){}
     Solver( std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, string InitString, string FvmString, string FluxString, string BuString, string LimitString, SOURCE_TYPE STYPE=GAUSSDER);
+    Solver( Config& cfg);
     ~Solver();
+
+    void init(std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, string InitString, string FvmString, string FluxString, string BuString, string LimitString, SOURCE_TYPE STYPE=GAUSSDER);
 
     bool complete();
     void advance();
@@ -56,12 +55,41 @@ public:
     void printData(std::ofstream& file);
     void printGeometry();
     void printLevelSetVertices();
-    //void printLog();
 };
 
 
 Solver::Solver( std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, string InitString, string FvmString, string FluxString, string BuString, string LimitString, SOURCE_TYPE STYPE){ 
+    init(runName,Nx,Ny,Lx,Ly,CFL,tmax,InitString,FvmString,FluxString,BuString,LimitString,STYPE);
+}
 
+Solver::Solver( Config& cfg){
+
+    string runName = cfg.lookup("RunName");
+    int Nx = cfg.lookup("Grid.cells.x");
+    int Ny = cfg.lookup("Grid.cells.y");
+    double Lx = cfg.lookup("Grid.size.x");
+    double Ly = cfg.lookup("Grid.size.y");
+    double CFL = cfg.lookup("Timing.CFL");
+    double tmax = cfg.lookup("Timing.tmax");
+    string InitString  = cfg.lookup("Init.type");
+    string FvmString   = cfg.lookup("FVM.type");
+    string FluxString  = cfg.lookup("FVM.scheme");
+    string LimitString = cfg.lookup("FVM.limiter");
+    string BuString    = cfg.lookup("Boundaries.type");
+    SOURCE_TYPE STYPE = NOSOURCE;
+
+    init(runName, Nx, Ny, Lx, Ly, CFL, tmax, InitString, FvmString, FluxString, BuString, LimitString, STYPE);
+}
+
+Solver::~Solver(){
+  delete pUpdate;
+  delete pInit;
+  delete pTimer;
+  delete pGrid;
+  datFile.close();
+}
+
+void Solver::init( std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, string InitString, string FvmString, string FluxString, string BuString, string LimitString, SOURCE_TYPE STYPE){ 
 
     // Determine grid parameters
     std::cout << "Getting grid params..." << std::endl;
@@ -141,14 +169,7 @@ Solver::Solver( std::string runName, int Nx, int Ny, double Lx, double Ly, doubl
     pInit->exec();
 
     std::cout << "Solver built successfully (probably)" << std::endl;
-}
-
-Solver::~Solver(){
-  delete pUpdate;
-  delete pInit;
-  delete pTimer;
-  delete pGrid;
-  datFile.close();
+    return;
 }
 
 bool Solver::complete(){

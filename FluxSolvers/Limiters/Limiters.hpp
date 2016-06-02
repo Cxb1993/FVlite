@@ -11,5 +11,4 @@
 #include"LimiterMinBee.hpp"
 #include"LimiterNone.hpp"
 
-}// Namespace closure
 #endif /* LIMITERS_HPP */

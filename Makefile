@@ -5,21 +5,20 @@
 
 COMP = g++-4.9
 CFLAGS = -Wall -Wextra -pedantic -O3 -std=c++11
-TYPE = -DMAXWELL
 DEBUG  = ${CFLAGS} -pedantic -g -pg
-LIBLOCS = -L/usr/lib/
-INCLOCS = -I/usr/include/ -I.
+LIBLOCS = -L/usr/lib/ -L/home/cdt1507/lib/libconfig/lib
+INCLOCS = -I/usr/include/ -I. -I/home/cdt1507/lib/libconfig/include
 FILES = FVTD.cpp
 EXEC = FVTD.exe
-LIBS = -lfftw3 -lm
+LIBS = -lfftw3 -lm -lconfig++
 TESTFILES = test.cpp
 TESTEXEC  = test.exe
 
-build: ${FILES}
-	${COMP} ${CFLAGS} ${TYPE}  ${LIBLOCS} ${INCLOCS} -o ${EXEC} ${FILES} ${LIBS}
-
 euler: ${FILES}
 	${COMP} ${CFLAGS} -DEULER  ${LIBLOCS} ${INCLOCS} -o ${EXEC} ${FILES} ${LIBS}
+
+maxwell: ${FILES}
+	${COMP} ${CFLAGS} -DMAXWELL  ${LIBLOCS} ${INCLOCS} -o ${EXEC} ${FILES} ${LIBS}
 
 debug: ${FILES}
 	${COMP} ${DEBUG} ${TYPE} ${LIBLOCS} ${INCLOCS} -o ${EXEC} ${FILES} ${LIBS}
