@@ -5,7 +5,9 @@
 #ifndef TIMER_HPP
 #define TIMER_HPP
 
+#include <cstdlib>
 #include <cmath>
+#include <iostream>
 
 #include "Vectors/Grid.hpp"
 
@@ -20,72 +22,50 @@ private:
     double mCFL;
     double mTmax;
 
+    Grid* pGrid;
+
 public:
 
-    Timer( double CFL, double tmax, const Grid* pGrid);
+    Timer( double CFL, double tmax, Grid* pGrid);
 
     // Access functions
-    double t();
-    double dt();
-    double CFL();
-    double tmax();
+    inline double t(){ return mT;}
+    inline double dt(){ return mDt;}
+    inline double CFL(){ return mCFL;}
+    inline double tmax(){ return mTmax;}
 
     // Setters (shouldn't be needed, but for some problems this allows greater flexibility)
-    void setTmax( double tmax);
-    void setCFL( double CFL);
+    inline void setDt( double dt){ mDt = dt; return;}
+    inline void setTmax( double tmax){ mTmax = tmax; return;}
+    inline void setCFL( double CFL){ mCFL = CFL; return;}
 
     // Incrementers
-    void advance();
-    void advance(double ratio); // incremenets by ratio*dt
+    inline void advance(double ratio); // incremenets by ratio*dt
+    inline void advance(){ advance(1.0); return;}
 
     // Test whether t>tmax
-    bool complete();
+    inline bool complete(){ return (mT>=mTmax);}
 
+    // Set timestep according to maximum grid speed
+    inline void calibrate_timestep();
 };
 
-Timer::Timer( double CFL, double tmax, const Grid* pGrid) : mT(0), mCFL(CFL), mTmax(tmax){
+Timer::Timer( double CFL, double tmax, Grid* pGrid) : mT(0), mDt(0), mCFL(CFL), mTmax(tmax), pGrid(pGrid){}
+
+void Timer::advance(double ratio){ 
+    if( mDt == 0.0 ){
+        std::cerr << "ERROR: TIMESTEP SET TO ZERO" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    mT+=ratio*mDt;
+    return;
+}
+
+void Timer::calibrate_timestep(){
+    double maxSpeed = pGrid->maxSpeed();
     double ds = (pGrid->dx() < pGrid->dy()) ? pGrid->dx() : pGrid->dy();
-    mDt = (ds*CFL) / (c_c*sqrt(2)); // Courant condition. c_c is speed of light, root 2 accounts for 2 dimensions
-}
-
-double Timer::t(){
-    return mT;
-}
-
-double Timer::dt(){
-    return mDt;
-}
-
-double Timer::CFL(){
-    return mCFL;
-}
-
-double Timer::tmax(){
-    return mTmax;
-}
-
-void Timer::setTmax(double tmax){
-    mTmax = tmax;
+    mDt = (ds*mCFL) / (maxSpeed*sqrt(2)); // Courant condition, root 2 accounts for 2 dimensions
     return;
-}
-
-void Timer::setCFL( double CFL){
-    mCFL=CFL;
-    return;
-}
-
-void Timer::advance(){
-    mT += mDt;
-    return;
-}
-
-void Timer::advance(double ratio){
-    mT += ratio*mDt;
-    return;
-}
-
-bool Timer::complete(){
-    return ( mT >= mTmax);
 }
 
 }// Namespace closure

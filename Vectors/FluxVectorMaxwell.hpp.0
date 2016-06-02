@@ -1,0 +1,64 @@
+// FluxVector.hpp
+//
+// Uses MathVector to define a flux vector for use in a finite volume scheme.
+
+#ifndef FLUXVECTOR_HPP
+#define FLUXVECTOR_HPP
+
+#include <iostream>
+#include <cstdlib>
+
+#include "MathVector.hpp"
+#include "StateVector.hpp"
+#include "constants.hpp"
+
+// constant SIZE defined in StateVector.hpp
+
+namespace FVTD{
+
+class FluxVector : public MathVector<SIZE>{
+
+public:
+    using MathVector<SIZE>::operator=;
+
+    FluxVector() : MathVector() {}
+    FluxVector( const StateVector& State, const Material& Mat, const char dim);
+
+    inline void set( const StateVector& State, const Material& Mat, const char dim);
+};
+
+FluxVector::FluxVector( const StateVector& State, const Material& Mat, const char dim){
+    set(State,Mat,dim);
+}
+
+void FluxVector::set( const StateVector& State, const Material& Mat, const char dim){
+    switch(dim){
+        case 'x' :
+            mX[0] = 0;
+            mX[1] = Mat.epsRecip()*State.Hz();
+            mX[2] = -Mat.epsRecip()*State.Hy();
+            mX[3] = 0;
+            mX[4] = -Mat.muRecip()*State.Ez();
+            mX[5] = Mat.muRecip()*State.Ey();
+            break;
+        case 'y' :
+            mX[0] = -Mat.epsRecip()*State.Hz();
+            mX[1] = 0;
+            mX[2] = Mat.epsRecip()*State.Hx();
+            mX[3] = Mat.muRecip()*State.Ez();
+            mX[4] = 0;
+            mX[5] = -Mat.muRecip()*State.Ex();
+            break;
+        case 'z' :
+            std::cerr << "Error, z direction not implemented" << std::endl;
+            exit(EXIT_FAILURE);
+            break;
+        default:
+            std::cerr << "Error, invalid flux direction" << std::endl;
+            exit(EXIT_FAILURE);
+    }
+    return;
+}
+
+}// Namespace closure
+#endif /* FLUXVECTOR_HPP */

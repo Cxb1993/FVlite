@@ -40,9 +40,8 @@ void PointSource::exec( double t){
     double sigma = 2e-10;
     double mean  = sigma*4;
     double Hz = Gaussian( t, mean, sigma);
-    double Ex = -0.5*c_eta0 * Hz;
-    double Ey = -0.5*c_eta0 * Hz;
-    StateVector State(Ex,Ey,0,0,0,Hz);
+    double Ex = c_eta0 * Hz;
+    StateVector State(Ex,0,0,0,0,Hz);
     pGrid->state(midX,midY) += State;
     return;
 }

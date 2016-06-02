@@ -7,11 +7,19 @@
 
 #include "InitialiserAbstract.hpp"
 #include "InitialiserZero.hpp"
+#include "InitialiserCircle.hpp"
+#include "InitialiserRectangle.hpp"
+#include "InitialiserSlope.hpp"
+#include "InitialiserExplosiveTest.hpp"
 
 namespace FVTD{
 
 enum INIT_TYPE{
-   ZERO
+   ZERO,
+   CIRCLE,
+   RECTANGLE,
+   SLOPE,
+   EXPLODE
 };
 
 }// Namespace closure

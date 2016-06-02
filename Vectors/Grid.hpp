@@ -8,6 +8,8 @@
 #include "StateVector.hpp"
 #include "FluxVector.hpp"
 #include "Material.hpp"
+#include "BoundaryGeometry.hpp"
+#include "LevelSet.hpp"
 
 #include <vector>
 
@@ -31,10 +33,14 @@ private:
     int mStartX, mEndX;  // Start and end of real grid (i.e. no boundary cells), x direction
     int mStartY, mEndY;  // Start and end of real grid (i.e. no boundary cells), y direction
 
-    vector<Material>*    pDomain;
     vector<StateVector>* pState;
-    vector<StateVector>* pStateAlt; // Secondary storage, needed for predictor/corrector time stepping
     vector<FluxVector>*  pFlux;
+
+    vector<StateVector>* pStateAux; // Auxiliary state, used for cut cell method
+    vector<FluxVector>*  pFluxAux;  // Auxiliary flux, used for cut cell method
+    vector<BoundaryGeometry>* pGeometry; // Contains geometry information for cut cell method
+
+    LevelSet* pLevelSet; // Contains level set function
 
 public:
 
@@ -42,25 +48,38 @@ public:
     ~Grid();
 
     // Access functions
-    inline Material&    material( int ii, int jj);
-    inline StateVector& state( int ii, int jj);
-    inline StateVector& stateAlt( int ii, int jj);
-    inline FluxVector&  flux( int ii, int jj);
-
-    double dx() const;
-    double dy() const;
-    double Lx() const;
-    double Ly() const;
-    int Nx() const;
-    int Ny() const;
-    int bound() const;
-    int startX() const;
-    int startY() const;
-    int endX() const;
-    int endY() const;
+    inline StateVector& state( int ii, int jj){ return (*pState)[jj*mSizeX+ii];}
+    inline StateVector& state_aux( int ii, int jj){ return (*pStateAux)[jj*mSizeX+ii];}
+    inline FluxVector&  flux( int ii, int jj){ return (*pFlux)[jj*mSizeX+ii];}
+    inline FluxVector&  flux_aux( int ii, int jj){ return (*pFluxAux)[jj*mSizeX+ii];}
+    inline BoundaryGeometry& boundary( int ii, int jj){ return (*pGeometry)[jj*mSizeX+ii];}
     
-    void swapStateVectors();
+    inline LevelSet* levelset(){ return pLevelSet;}
+    inline double levelset(int ii,int jj) const{ return (*pLevelSet)(ii,jj);}
+    inline double levelset_workspace(int ii,int jj) const{ return pLevelSet->workspace(ii,jj);}
+    inline double& levelset(int ii,int jj){ return (*pLevelSet)(ii,jj);}
+    inline double& levelset_workspace(int ii,int jj){ return levelset()->workspace(ii,jj);}
 
+    // Cell center locations
+    double x( int ii) const{ return (ii-mBound+0.5)*dx();}
+    double y( int jj) const{ return (jj-mBound+0.5)*dy();}
+
+    double dx() const { return mDx;}
+    double dy() const { return mDy;}
+    double Lx() const { return mLx;}
+    double Ly() const { return mLy;}
+    int Nx() const { return mNx;}
+    int Ny() const { return mNy;}
+    int bound() const { return mBound;}
+    int startX() const { return mStartX;}
+    int startY() const { return mStartY;}
+    int endX() const { return mEndX;}
+    int endY() const { return mEndY;}
+    int sizeX() const { return mSizeX;}
+    int sizeY() const { return mSizeY;}
+
+    // Get max speed
+    double maxSpeed();
 };
 
 
@@ -77,85 +96,52 @@ Grid::Grid( int Nx, int Ny, double Lx, double Ly, int bound) :
 
     // Initialise pointers
     int size  = mSizeX * mSizeY;
-    pDomain   = new vector<Material>(size);
     pState    = new vector<StateVector>(size);
-    pStateAlt = new vector<StateVector>(size);
+    pStateAux = new vector<StateVector>(size);
     pFlux     = new vector<FluxVector>(size);
+    pFluxAux  = new vector<FluxVector>(size);
+    pGeometry = new vector<BoundaryGeometry>(size);
 
+    // Initialise LevelSet
+    pLevelSet = new LevelSet(mNx,mNy,mBound,mDx,mDy,mLx,mLy);
+    pLevelSet->init();
 }
 
 Grid::~Grid(){
-    delete pDomain;
     delete pState;
-    delete pStateAlt;
     delete pFlux;
+    delete pStateAux;
+    delete pFluxAux;
+    delete pGeometry;
+    delete pLevelSet;
 }
 
-Material& Grid::material( int ii, int jj){
-    return (*pDomain)[jj*mSizeX+ii];
-}
-
-StateVector& Grid::state( int ii, int jj){
-    return (*pState)[jj*mSizeX+ii];
-}
-
-StateVector& Grid::stateAlt( int ii, int jj){
-    return (*pStateAlt)[jj*mSizeX+ii];
-}
-
-FluxVector& Grid::flux( int ii, int jj){
-    return (*pFlux)[jj*mSizeX+ii];
-}
-
-double Grid::dx() const{
-    return mDx;
-}
-
-double Grid::dy() const{
-    return mDy;
-}
-
-double Grid::Lx() const{
-    return mLx;
-}
-
-double Grid::Ly() const{
-    return mLx;
-}
-
-int Grid::Nx() const{
-    return mNx;
-}
-
-int Grid::Ny() const{
-    return mNy;
-}
-
-int Grid::bound() const{
-    return mBound;
-}
-
-int Grid::startX() const{
-    return mStartX;
-}
-
-int Grid::startY() const{
-    return mStartY;
-}
-
-int Grid::endX() const{
-    return mEndX;
-}
-
-int Grid::endY() const{
-    return mEndY;
-}
-
-void Grid::swapStateVectors(){
-    vector<StateVector>* tmp = pState;
-    pState = pStateAlt;
-    pStateAlt = tmp;
-    return;
+double Grid::maxSpeed(){
+    double max = 0.;
+    double local_sound_speed;
+    double max_local_speed;
+    double total_local_speed;
+#ifdef MAXWELL
+    (void)local_sound_speed;
+    (void)max_local_speed;
+    (void)total_local_speed;
+    max = c_c; // Speed of light
+#else
+    for( int jj=mStartY; jj<mEndY; jj++){
+        for( int ii=mStartX; ii<mEndX; ii++){
+            max_local_speed = fabs(state(ii,jj).ux());
+            max_local_speed = (fabs(state(ii,jj).uy()) > max_local_speed) ? fabs(state(ii,jj).uy()) : max_local_speed; 
+            local_sound_speed = state(ii,jj).a();
+            total_local_speed = max_local_speed + local_sound_speed;
+            if( fabs(total_local_speed) > 3e8 ){
+                std::cerr << "ERROR: SOUND SPEED BROKEN SPEED OF LIGHT! GRID CELL: (" << ii << "," <<jj<<")"<<std::endl;
+                exit(EXIT_FAILURE);
+            }
+            max = (total_local_speed > max) ? total_local_speed : max;
+        }
+    }
+#endif
+    return max;
 }
 
 }// Namespace closure

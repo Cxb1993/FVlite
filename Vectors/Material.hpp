@@ -1,3 +1,6 @@
+
+// DEPRECATED
+
 // Material.hpp
 //
 // Describes material parameters
@@ -25,6 +28,8 @@ protected:
     double mMuRecip;  // Magnetic permeability reciprocal
     //double mSigma;  // Conductivity (coming soon!)
 
+    bool mPEC; // Set true to enforce PEC behaviour
+
 public:
 
     Material();
@@ -37,13 +42,18 @@ public:
     inline double muRel() const{ return 1./(mMuRecip*c_mu0);}
 
     inline void set( double epsRel, double muRel);
+    inline void set_recip( double epsRecip, double muRecip);
     inline double speed();
+
+    inline void set_PEC();
+    inline bool PEC() const;
 };
 
-Material::Material(){}
+Material::Material() : Material(1.,1.){}
 
 Material::Material( double epsRel, double muRel){
     set(epsRel,muRel);
+    mPEC = false;
     return;
 }
 
@@ -54,8 +64,23 @@ void Material::set( double epsRel, double muRel){
     return;
 }
 
+void Material::set_recip( double epsRecip, double muRecip){
+    mEpsRecip = epsRecip*c_eps0;
+    mMuRecip  = muRecip*c_mu0;
+    return;
+}
+
 double Material::speed(){
     return c_c * sqrt(mEpsRecip*mMuRecip);
+}
+
+void Material::set_PEC(){
+    mPEC = true;
+    return;
+}
+
+bool Material::PEC() const{
+    return mPEC;
 }
 
 } // Namespace closure

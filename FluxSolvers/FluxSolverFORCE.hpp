@@ -1,31 +1,28 @@
-// PDEsolverRichtmyer.hpp
+// FluxSolverFORCE.hpp
 //
-// Finite volume PDE solver.
-// Applies Richtmyer's method.
+// Finite volume flux solver.
+// Applies FORCE method.
 
-#ifndef PDERICHT_HPP
-#define PDERICHT_HPP
+#ifndef FLUXFORCE_HPP
+#define FLUXFORCE_HPP
 
-#include"PDEsolverAbstract.hpp"
+#include"FluxSolverAbstract.hpp"
 
 namespace FVTD{
 
-class PDEsolverRichtmyer : public PDEsolver{
+class FluxSolverFORCE : public FluxSolver{
 public:
-    PDEsolverRichtmyer( Grid* pGrid, LIMIT_TYPE LTYPE=NONE) : PDEsolver(pGrid,LTYPE) {}
-    virtual void updateFlux( char dim, double dt);
+    FluxSolverFORCE( Grid* pGrid, Source* pSource, LIMIT_TYPE LTYPE=NONE) : FluxSolver(pGrid,pSource,LTYPE) {}
+    virtual void solve(char dim, double dt);
 };
 
-void PDEsolverRichtmyer::updateFlux( char dim, double dt){
+void FluxSolverFORCE::solve( char dim, double dt){
     double ds;
     int startX = pGrid->startX();
     int startY = pGrid->startY();
     int endX   = pGrid->endX();
     int endY   = pGrid->endY();
-    StateVector StateL;
-    StateVector StateR;
-    Material MatL;
-    Material MatR;
+    StateVector StateL, StateR;
     switch(dim){
         case 'x' :
             ds = pGrid->dx();
@@ -33,9 +30,7 @@ void PDEsolverRichtmyer::updateFlux( char dim, double dt){
                 for( int jj=startY; jj<endY; jj++){
                     StateL = pGrid->state(ii,jj);
                     StateR = pGrid->state(ii+1,jj);
-                    MatL   = pGrid->material(ii,jj);
-                    MatR   = pGrid->material(ii+1,jj);
-                    pGrid->flux(ii,jj) = Richtmyer_flux(ds,dt,dim,StateL,StateR,MatL,MatR);
+                    pGrid->flux(ii,jj) = FluxSolver::FORCE_flux(ds,dt,dim,StateL,StateR);
                 }
             }
             break;
@@ -45,9 +40,7 @@ void PDEsolverRichtmyer::updateFlux( char dim, double dt){
                 for( int jj=startY-1; jj<endY; jj++){
                     StateL = pGrid->state(ii,jj);
                     StateR = pGrid->state(ii,jj+1);
-                    MatL   = pGrid->material(ii,jj);
-                    MatR   = pGrid->material(ii,jj+1);
-                    pGrid->flux(ii,jj) = Richtmyer_flux(ds,dt,dim,StateL,StateR,MatL,MatR);
+                    pGrid->flux(ii,jj) = FluxSolver::FORCE_flux(ds,dt,dim,StateL,StateR);
                 }
             }
             break;
@@ -59,4 +52,4 @@ void PDEsolverRichtmyer::updateFlux( char dim, double dt){
 }
 
 }// Namespace closure
-#endif /* PDERICHT_HPP */
+#endif /* FLUXFORCE_HPP */

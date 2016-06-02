@@ -12,12 +12,8 @@
 
 #include "Vectors/Grid.hpp"
 #include "Timer/Timer.hpp"
-#include "PDEsolvers/PDEsolvers.hpp"
 #include "BoundaryUpdaters/BoundaryUpdaters.hpp"
-
-// Temp includes for testing
-#include "Sources/point_source.hpp"
-
+#include "FVMsolvers/FVMsolvers.hpp"
 
 namespace FVTD{
 class Updater{
@@ -26,44 +22,40 @@ protected:
 
     Grid*             pGrid;
     Timer*            pTimer;
-    PDEsolver*        pPDE;
+    FVMsolver*        pFVM;
     BoundaryUpdater*  pBUpdate;
-
-    // Testing
-    PointSource* pSource;
 
 public:
 
-    Updater( Grid* pGrid, Timer* pTimer, PDEsolver* pPDE, BoundaryUpdater* pBUpdate);
+    Updater( Grid* pGrid, Timer* pTimer, FVMsolver* pFVM, BoundaryUpdater* pBUpdate);
     virtual ~Updater();
 
     void exec();
 };
 
-Updater::Updater( Grid* pGrid, Timer* pTimer, PDEsolver* pPDE, BoundaryUpdater* pBUpdate)
-        : pGrid(pGrid), pTimer(pTimer), pPDE(pPDE), pBUpdate(pBUpdate){
-    pSource = new PointSource(pGrid);
+Updater::Updater( Grid* pGrid, Timer* pTimer, FVMsolver* pFVM, BoundaryUpdater* pBUpdate)
+        : pGrid(pGrid), pTimer(pTimer), pFVM(pFVM), pBUpdate(pBUpdate){
 }
 
 Updater::~Updater(){
-    delete pPDE;
+    delete pFVM;
     delete pBUpdate;
-    delete pSource;
 }
 
 void Updater::exec(){
-    // Makes use of directional splitting. Fluxes are computed and solved for in the
-    // directions x, y, then z.
+    // Must first calibrate time step using largest speed on the grid
+    pBUpdate->exec();
+    pTimer->calibrate_timestep();
     double t  = pTimer->t();
     double dt = pTimer->dt();
-    std::cout << "Time: " << t << std::endl;
+    std::cout << "\rTime: " << t << std::flush;
+    // Makes use of Strang directional splitting. 
+    pFVM->exec('x',t,0.5*dt); 
     pBUpdate->exec();
-    pSource->exec(t);
-    pPDE->exec('x',dt); 
+    pFVM->exec('y',t+0.5*dt,dt);
     pBUpdate->exec();
-    pPDE->exec('y',dt);
-    //pBUpdate->exec();
-    //pPDE->exec('z',dt);
+    pFVM->exec('x',t+0.5*dt,0.5*dt);
+    // Increment time
     pTimer->advance();
     return;
 }
