@@ -18,14 +18,24 @@
 using namespace FVTD;
 using std::string;
 
-int main( void){
+int main( int argc, char* argv[]){
+
+    string cfgname;
+
+    if( argc > 1){
+        cfgname = argv[1];
+    }else{
+        cfgname = "Default";
+    }
+
+    cfgname = cfgname + ".cfg";
 
     libconfig::Config cfg;
-    cfg.readFile("Default.cfg");
+    cfg.readFile(cfgname.c_str());
 
     Solver mySolver(cfg);
     mySolver.printData();
-    mySolver.printGeometry();
+//    mySolver.printGeometry();
 //    mySolver.printLevelSetVertices();
 //    mySolver.exec();
 

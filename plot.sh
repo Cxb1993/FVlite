@@ -2,7 +2,7 @@
 
 datafile="data/Default.dat"
 #datafile="steady_state.dat"
-outfile="Default.png"
+outfile="plots/Default.png"
 #outfile="ScatteringPECsteadystate.png"
 
 gnuplot -e "datafile='${datafile}'"   \

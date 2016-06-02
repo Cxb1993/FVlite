@@ -15,5 +15,5 @@ do
     i=$[$i+1]
 done
 
-ffmpeg -i "./plots/plot%d.png" -t 20 -b 5000k -vcodec mpeg4 movie.mp4
-mv movie.mp4 movie.mpeg4
+#ffmpeg -i "./plots/plot%d.png" -t 20 -b 5000k -vcodec mpeg4 movie.mp4
+#mv movie.mp4 movie.mpeg4
