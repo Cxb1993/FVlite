@@ -7,7 +7,7 @@
 
 #include "Utils/ObjectFactory.hpp"
 
-#include "Vectors/Grid.hpp"
+#include "Grid/Grid.hpp"
 #include "Timer/Timer.hpp"
 
 namespace FVlite{

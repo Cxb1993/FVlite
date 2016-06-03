@@ -5,9 +5,8 @@
 #ifndef GRID_HPP
 #define GRID_HPP
 
-#include "StateVector.hpp"
-#include "FluxVector.hpp"
-#include "Material.hpp"
+#include "Vectors/StateVector.hpp"
+#include "Vectors/FluxVector.hpp"
 #include "BoundaryGeometry.hpp"
 #include "LevelSet.hpp"
 

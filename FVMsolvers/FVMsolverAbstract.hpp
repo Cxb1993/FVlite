@@ -1,6 +1,7 @@
 // FVMsolverAbstract.hpp
 //
 // Abstract finite volume solver.
+// FVM stands for 'Finite Volume Method'
 
 #ifndef FVMABSTRACT_HPP
 #define FVMABSTRACT_HPP
@@ -8,7 +9,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "Vectors/Grid.hpp"
+#include "Grid/Grid.hpp"
 #include "FluxSolvers/FluxSolvers.hpp"
 #include "Sources/Sources.hpp"
 

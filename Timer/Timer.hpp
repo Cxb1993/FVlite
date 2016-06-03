@@ -9,7 +9,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "Vectors/Grid.hpp"
+#include "Grid/Grid.hpp"
 
 namespace FVlite{
 

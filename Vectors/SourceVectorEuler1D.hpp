@@ -1,3 +1,11 @@
+
+// ##########################################
+// Not in use
+// This code was used in an earlier solver.
+// The functionality has not been worked into
+// FVlite. Keeping it here as a reference.
+// ##########################################
+
 // SourceVector.hpp
 //
 // Uses MathVector to define a source vector for use in a finite volume scheme.

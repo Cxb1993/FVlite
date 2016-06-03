@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "Vector3.hpp"
+#include "Vectors/Vector3.hpp"
 
 namespace FVlite{
 

@@ -11,7 +11,7 @@
 #include <cmath>
 #include <ctgmath>
 
-#include "Vectors/Grid.hpp"
+#include "Grid/Grid.hpp"
 #include "Timer/Timer.hpp"
 #include "Sources/Sources.hpp"
 #include "Limiters/Limiters.hpp"

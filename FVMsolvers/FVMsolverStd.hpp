@@ -9,9 +9,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "Vectors/Grid.hpp"
-#include "FluxSolvers/FluxSolvers.hpp"
-#include "Sources/Sources.hpp"
+#include "FVMsolverAbstract.hpp"
 
 namespace FVlite{
 

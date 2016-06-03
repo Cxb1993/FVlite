@@ -1,5 +1,8 @@
 
+// ########################################################
 // DEPRECATED
+// May work something similar back into code in the future.
+// ########################################################
 
 // Material.hpp
 //

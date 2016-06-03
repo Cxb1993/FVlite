@@ -5,8 +5,6 @@
 #ifndef LIMITERABSTRACT_HPP
 #define LIMITERABSTRACT_HPP
 
-#include"Vectors/Grid.hpp"
-
 namespace FVlite{
 
 class Limiter{

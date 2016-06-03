@@ -7,7 +7,7 @@
 #ifndef BUPDATERABSTRACT_HPP
 #define BUPDATERABSTRACT_HPP
 
-#include "Vectors/Grid.hpp"
+#include "Grid/Grid.hpp"
 #include <iostream>
 
 namespace FVlite{

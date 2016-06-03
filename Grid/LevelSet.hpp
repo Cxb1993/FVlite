@@ -8,8 +8,7 @@
 #include <cmath>
 #include <vector>
 
-#include "Vector3.hpp"
-#include "Grid.hpp"
+#include "Vectors/Vector3.hpp"
 
 namespace FVlite{
 

@@ -12,7 +12,7 @@
 
 #include <libconfig.h++>
 
-#include "Vectors/Grid.hpp"
+#include "Grid/Grid.hpp"
 #include "Initialisers/Initialisers.hpp"
 #include "Updaters/Updater.hpp"
 #include "Sources/Sources.hpp"

@@ -10,7 +10,7 @@
 
 #include <iostream> // for testing
 
-#include "Vectors/Grid.hpp"
+#include "Grid/Grid.hpp"
 #include "Timer/Timer.hpp"
 #include "BoundaryUpdaters/BoundaryUpdaters.hpp"
 #include "FVMsolvers/FVMsolvers.hpp"
