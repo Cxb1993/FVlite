@@ -4,21 +4,21 @@
 # Date: 01/04/16
 
 COMP = g++-4.9
-CFLAGS = -Wall -Wextra -pedantic -O3 -std=c++11
+CFLAGS = -Wall -Wextra -pedantic -O3 -std=c++11 -fmax-errors=1
 DEBUG  = ${CFLAGS} -pedantic -g -pg
-LIBLOCS = -L/usr/lib/ -L/home/cdt1507/lib/libconfig/lib
-INCLOCS = -I/usr/include/ -I. -I/home/cdt1507/lib/libconfig/include
+LIBLOCS = -L/home/cdt1507/lib/libconfig/lib/ -L/usr/lib/ 
+INCLOCS = -I. -I/home/cdt1507/lib/libconfig/include/ -I/usr/include/ 
 FILES = FVlite.cpp
 EXEC = FVlite.exe
-LIBS = -lfftw3 -lm -lconfig++
+LIBS = -lfftw3 -lm -lconfig++ 
 TESTFILES = test.cpp
 TESTEXEC  = test.exe
 
 euler: ${FILES}
-	${COMP} ${CFLAGS} -DEULER  ${LIBLOCS} ${INCLOCS} -o ${EXEC} ${FILES} ${LIBS}
+	${COMP} ${CFLAGS} -DEULER  ${INCLOCS} -o ${EXEC} ${FILES} ${LIBLOCS} ${LIBS}
 
 maxwell: ${FILES}
-	${COMP} ${CFLAGS} -DMAXWELL  ${LIBLOCS} ${INCLOCS} -o ${EXEC} ${FILES} ${LIBS}
+	${COMP} ${CFLAGS} -DMAXWELL ${INCLOCS} -o ${EXEC} ${FILES} ${LIBLOCS} ${LIBS}
 
 debug: ${FILES}
 	${COMP} ${DEBUG} ${TYPE} ${LIBLOCS} ${INCLOCS} -o ${EXEC} ${FILES} ${LIBS}

@@ -44,7 +44,7 @@ public:
     inline void advance(){ advance(1.0); return;}
 
     // Test whether t>tmax
-    inline bool complete(){ return (mT>=mTmax);}
+    inline bool is_complete(){ return (mT>=mTmax);}
 
     // Set timestep according to maximum grid speed
     inline void calibrate_timestep();

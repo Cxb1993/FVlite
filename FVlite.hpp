@@ -16,6 +16,7 @@
 #include "Initialisers/Initialisers.hpp"
 #include "Updaters/Updater.hpp"
 #include "Sources/Sources.hpp"
+#include "Output/Output.hpp"
 
 using std::string;
 using libconfig::Config;
@@ -30,81 +31,68 @@ friend class FT_Controller;
 
 private:
 
-    std::ofstream datFile;
- 
-    Grid*             pGrid;
-    Timer*            pTimer;
-    Initialiser*      pInit;
-    Updater*          pUpdate;
+    Grid*        pGrid;
+    Timer*       pTimer;
+    Initialiser* pInit;
+    Updater*     pUpdate;
+    Output*      pOutput;
 
 public:
 
     Solver(){}
-    Solver( std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, string InitString, string FvmString, string FluxString, string BuString, string LimitString, SOURCE_TYPE STYPE=GAUSSDER);
-    Solver( Config& cfg);
+    Solver( Config& cfg){ init(cfg);}
     ~Solver();
 
-    void init(std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, string InitString, string FvmString, string FluxString, string BuString, string LimitString, SOURCE_TYPE STYPE=GAUSSDER);
+    void init( Config& cfg);
 
-    bool complete();
+    bool is_complete();
     void advance();
     void solve();
     void exec();
 
-    void printData();
+    // PRINT FUNCTIONS, SHOULD BE DEPRECATED
     void printData(std::ofstream& file);
     void printGeometry();
     void printLevelSetVertices();
 };
-
-
-Solver::Solver( std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, string InitString, string FvmString, string FluxString, string BuString, string LimitString, SOURCE_TYPE STYPE){ 
-    init(runName,Nx,Ny,Lx,Ly,CFL,tmax,InitString,FvmString,FluxString,BuString,LimitString,STYPE);
-}
-
-Solver::Solver( Config& cfg){
-
-    string runName = cfg.lookup("RunName");
-    int Nx = cfg.lookup("Grid.cells.x");
-    int Ny = cfg.lookup("Grid.cells.y");
-    double Lx = cfg.lookup("Grid.size.x");
-    double Ly = cfg.lookup("Grid.size.y");
-    double CFL = cfg.lookup("Timing.CFL");
-    double tmax = cfg.lookup("Timing.tmax");
-    string InitString  = cfg.lookup("Init.type");
-    string FvmString   = cfg.lookup("FVM.type");
-    string FluxString  = cfg.lookup("FVM.scheme");
-    string LimitString = cfg.lookup("FVM.limiter");
-    string BuString    = cfg.lookup("Boundaries.type");
-    SOURCE_TYPE STYPE = NOSOURCE;
-
-    init(runName, Nx, Ny, Lx, Ly, CFL, tmax, InitString, FvmString, FluxString, BuString, LimitString, STYPE);
-}
 
 Solver::~Solver(){
   delete pUpdate;
   delete pInit;
   delete pTimer;
   delete pGrid;
-  datFile.close();
 }
 
-void Solver::init( std::string runName, int Nx, int Ny, double Lx, double Ly, double CFL, double tmax, string InitString, string FvmString, string FluxString, string BuString, string LimitString, SOURCE_TYPE STYPE){ 
+void Solver::init( Config& cfg){ 
 
     // Determine grid parameters
+    // TODO Generalise this, maybe?
     std::cout << "Getting grid params..." << std::endl;
     int bound=2;
     std::cout << "Boundary size: " << bound << std::endl;
 
     // Set up grid
+    int Nx = cfg.lookup("Grid.cells.x");
+    int Ny = cfg.lookup("Grid.cells.y");
+    double Lx = cfg.lookup("Grid.size.x");
+    double Ly = cfg.lookup("Grid.size.y");
     std::cout << "Building grid.." << std::endl;
     pGrid   = new Grid(Nx,Ny,Lx,Ly,bound);
 
+    // Output
+    std::cout << "Setting up output..." << std::endl;
+    pOutput = new Output;
+    Setting& outputCfg = cfg.lookup("Output");
+    pOutput->init(pGrid,outputCfg);
+
     // Set up timer
     std::cout << "Building timer..." << std::endl;
+    double CFL = cfg.lookup("Timing.CFL");
+    double tmax = cfg.lookup("Timing.tmax");
     pTimer  = new Timer(CFL,tmax,pGrid);
 
     // Set up Initialiser
+    string InitString  = cfg.lookup("Init.type");
     std::cout << "Building initialiser..." << std::endl;
     pInit = InitialiserFactory.create(InitString);
     pInit->init(pGrid);
@@ -115,6 +103,7 @@ void Solver::init( std::string runName, int Nx, int Ny, double Lx, double Ly, do
 
     Source* pSource;
     bool TE    = true;
+    SOURCE_TYPE STYPE = NOSOURCE;
 
     switch(STYPE){
         case NOSOURCE:
@@ -142,15 +131,19 @@ void Solver::init( std::string runName, int Nx, int Ny, double Lx, double Ly, do
     }
 
     // Set up flux solver
+    string FluxString  = cfg.lookup("FVM.scheme");
+    string LimitString = cfg.lookup("FVM.limiter");
     FluxSolver* pFlux = FluxSolverFactory.create(FluxString);
     pFlux->init(pGrid,pSource,LimitString);
 
     // Set up finite volume solver
+    string FvmString   = cfg.lookup("FVM.type");
     FVMsolver* pFVM = FVMsolverFactory.create(FvmString);
     pFVM->init(pGrid,pFlux,pSource);
 
     // Set up boundary update method
     std::cout << "Building boundary updater..." << std::endl;
+    string BuString    = cfg.lookup("Boundaries.type");
     BoundaryUpdater* pBUpdate = BoundaryUpdaterFactory.create(BuString);
     pBUpdate->init(pGrid);
 
@@ -158,42 +151,44 @@ void Solver::init( std::string runName, int Nx, int Ny, double Lx, double Ly, do
     std::cout << "Building complete time marching system..." << std::endl;
     pUpdate = new Updater(pGrid,pTimer,pFVM,pBUpdate);
 
-    // Set up output
-    std::cout << "Setting up output..." << std::endl;
-    std::string datSuffix(".dat");
-    std::string datName = runName + datSuffix;
-    datFile.open( datName.c_str());
-
     // Initialise
     std::cout << "Initialising..." << std::endl;
     pInit->exec();
+
+    // Initial output
+    pOutput->prod();
 
     std::cout << "Solver built successfully (probably)" << std::endl;
     return;
 }
 
-bool Solver::complete(){
-    return pTimer->t() >= pTimer->tmax();
+bool Solver::is_complete(){
+    return pTimer->is_complete();
 }
 
 void Solver::advance(){
     pUpdate->exec();
+    pOutput->prod();
     return;
 }
 
 void Solver::solve(){
-    while( !pTimer->complete()){
+    while( !pTimer->is_complete()){
         advance();
     }
-    std::cout << std::endl;
     return;
 }
 
 void Solver::exec(){
     solve();
-    printData();
+    pOutput->print();
     return;
 }
+
+
+// ADDITIONAL PRINT FUNCTIONS
+// Should be deprecated!
+
 
 void Solver::printData(std::ofstream& file){
 #ifdef MAXWELL
@@ -265,12 +260,6 @@ void Solver::printLevelSetVertices(){
         }
         file << std::endl;
     }
-    return;
-}
-
-
-void Solver::printData(){
-    printData(datFile);
     return;
 }
 

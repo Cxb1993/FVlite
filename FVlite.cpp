@@ -35,7 +35,7 @@ int main( int argc, char* argv[]){
     cfg.readFile(cfgname.c_str());
 
     Solver mySolver(cfg);
-    mySolver.printData();
+//    mySolver.printData();
 //    mySolver.printGeometry();
 //    mySolver.printLevelSetVertices();
     mySolver.exec();
