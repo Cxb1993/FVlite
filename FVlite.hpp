@@ -65,19 +65,11 @@ Solver::~Solver(){
 
 void Solver::init( Config& cfg){ 
 
-    // Determine grid parameters
-    // TODO Generalise this, maybe?
-    std::cout << "Getting grid params..." << std::endl;
-    int bound=2;
-    std::cout << "Boundary size: " << bound << std::endl;
-
     // Set up grid
-    int Nx = cfg.lookup("Grid.cells.x");
-    int Ny = cfg.lookup("Grid.cells.y");
-    double Lx = cfg.lookup("Grid.size.x");
-    double Ly = cfg.lookup("Grid.size.y");
     std::cout << "Building grid.." << std::endl;
-    pGrid   = new Grid(Nx,Ny,Lx,Ly,bound);
+    pGrid = new Grid;
+    Setting& gridCfg = cfg.lookup("Grid");
+    pGrid->init(gridCfg);
 
     // Output
     std::cout << "Setting up output..." << std::endl;

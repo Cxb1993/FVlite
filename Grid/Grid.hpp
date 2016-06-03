@@ -11,8 +11,10 @@
 #include "LevelSet.hpp"
 
 #include <vector>
+#include <libconfig.h++>
 
 using std::vector;
+using libconfig::Setting;
 
 namespace FVlite{
 
@@ -43,8 +45,11 @@ private:
 
 public:
 
-    Grid( int Nx, int Ny, double Lx, double Ly, int bound);
+    Grid(){}
+    Grid( Setting& cfg){ init(cfg);}
     ~Grid();
+
+    void init( Setting& cfg);
 
     // Access functions
     inline StateVector& state( int ii, int jj){ return (*pState)[jj*mSizeX+ii];}
@@ -81,17 +86,27 @@ public:
     double maxSpeed();
 };
 
+// Function definitions
 
-Grid::Grid( int Nx, int Ny, double Lx, double Ly, int bound) :
-        mNx(Nx), mNy(Ny), mLx(Lx), mLy(Ly), mDx(Lx/Nx), mDy(Ly/Ny), mBound(bound){
+void Grid::init( Setting& cfg){
+
+    mNx = cfg.lookup("cells.x");
+    mNy = cfg.lookup("cells.y");
+    mLx = cfg.lookup("size.x");
+    mLy = cfg.lookup("size.y");
+
+    // Boundary size, hardcoded
+    mBound = 2;
 
     // Determine grid parameters
-    mSizeX = Nx + 2*bound;
-    mSizeY = Ny + 2*bound;
-    mStartX = bound;
-    mStartY = bound;
-    mEndX = bound + Nx;
-    mEndY = bound + Ny;
+    mDx = mLx/mNx;
+    mDy = mLy/mNy;
+    mSizeX = mNx + 2*mBound;
+    mSizeY = mNy + 2*mBound;
+    mStartX = mBound;
+    mStartY = mBound;
+    mEndX = mBound + mNx;
+    mEndY = mBound + mNy;
 
     // Initialise pointers
     int size  = mSizeX * mSizeY;
@@ -104,6 +119,8 @@ Grid::Grid( int Nx, int Ny, double Lx, double Ly, int bound) :
     // Initialise LevelSet
     pLevelSet = new LevelSet(mNx,mNy,mBound,mDx,mDy,mLx,mLy);
     pLevelSet->init();
+
+    return;
 }
 
 Grid::~Grid(){
