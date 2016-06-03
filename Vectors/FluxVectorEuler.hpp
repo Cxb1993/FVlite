@@ -14,7 +14,7 @@
 
 // constant SIZE defined in StateVector.hpp
 
-namespace FVTD{
+namespace FVlite{
 
 class FluxVector : public MathVector<SIZE>{
 

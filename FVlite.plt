@@ -1,4 +1,4 @@
-# gnuplot file for FVTD
+# gnuplot file for FVlite
 # 'Heatmap' of H field
 
 #set terminal postscript eps enhanced color

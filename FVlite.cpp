@@ -1,21 +1,22 @@
-// FVTD.cpp
+// FVlite.cpp
 //
-// Code to run FVTD.hpp.
-// Used to solve scattering problems
-// Edit: Generalised to solve Euler equations too. Could do with a new name.
+// Code to run FVlite.hpp.
+// Used to solve finite volume problems.
+// See the README for information on how to use this code.
+// TODO Write dat README
 
 #include <cstdlib>
 #include <string>
 
 #include <libconfig.h++>
 
-#include "FVTD.hpp"
+#include "FVlite.hpp"
 
 #ifdef MAXWELL
 #include "FT_Controller.hpp"
 #endif
 
-using namespace FVTD;
+using namespace FVlite;
 using std::string;
 
 int main( int argc, char* argv[]){
@@ -37,7 +38,7 @@ int main( int argc, char* argv[]){
     mySolver.printData();
 //    mySolver.printGeometry();
 //    mySolver.printLevelSetVertices();
-//    mySolver.exec();
+    mySolver.exec();
 
 //    FT_Controller myFT( Nx, Ny, Lx, Ly, CFL, tmax, ITYPE, FVMTYPE, FTYPE, BTYPE, LTYPE);
 //    myFT.exec();

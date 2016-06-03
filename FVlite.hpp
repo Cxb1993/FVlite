@@ -1,7 +1,7 @@
-// FVTD.hpp
+// FVlite.hpp
 //
 // Defines a class for finite volume calculations.
-// Used to solve FVTD scattering problems
+// Used to solve FVlite scattering problems
 
 #ifndef SOLVER_HPP
 #define SOLVER_HPP
@@ -21,7 +21,7 @@ using std::string;
 using libconfig::Config;
 using libconfig::Setting;
 
-namespace FVTD{
+namespace FVlite{
 
 class FT_Controller;
 

@@ -10,7 +10,7 @@
 #include "Vectors/Grid.hpp"
 #include <iostream>
 
-namespace FVTD{
+namespace FVlite{
 
 class BoundaryUpdater{
 

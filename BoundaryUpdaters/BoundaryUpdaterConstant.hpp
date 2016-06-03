@@ -8,7 +8,7 @@
 
 #include"BoundaryUpdaterAbstract.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 class BoundaryUpdaterConstant : public BoundaryUpdater{
 public:

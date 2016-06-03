@@ -12,7 +12,7 @@
 #include "FluxSolvers/FluxSolvers.hpp"
 #include "Sources/Sources.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 class FVMsolver{
 

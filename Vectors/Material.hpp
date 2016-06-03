@@ -13,7 +13,7 @@
 
 #include <cmath>
 
-namespace FVTD{
+namespace FVlite{
 
 // Global constants, in SI units
 const double c_eps0 = 8.854187817e-12; // Vacuum permittivity

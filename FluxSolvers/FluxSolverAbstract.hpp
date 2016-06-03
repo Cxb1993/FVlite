@@ -18,7 +18,7 @@
 
 using std::string;
 
-namespace FVTD{
+namespace FVlite{
 
 
 class FluxSolver{

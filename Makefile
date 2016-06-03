@@ -1,4 +1,4 @@
-# Makefile for FVTD
+# Makefile for FVlite
 #
 # Author: Liam Pattinson
 # Date: 01/04/16
@@ -8,8 +8,8 @@ CFLAGS = -Wall -Wextra -pedantic -O3 -std=c++11
 DEBUG  = ${CFLAGS} -pedantic -g -pg
 LIBLOCS = -L/usr/lib/ -L/home/cdt1507/lib/libconfig/lib
 INCLOCS = -I/usr/include/ -I. -I/home/cdt1507/lib/libconfig/include
-FILES = FVTD.cpp
-EXEC = FVTD.exe
+FILES = FVlite.cpp
+EXEC = FVlite.exe
 LIBS = -lfftw3 -lm -lconfig++
 TESTFILES = test.cpp
 TESTEXEC  = test.exe

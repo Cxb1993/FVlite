@@ -16,7 +16,7 @@
 #include "SourceCos.hpp"
 #endif
 
-namespace FVTD{
+namespace FVlite{
 
 enum SOURCE_TYPE{
     NOSOURCE,

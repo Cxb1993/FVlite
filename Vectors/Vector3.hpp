@@ -8,7 +8,7 @@
 #include <cmath>
 #include "MathVector.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 class Vector3 : public MathVector<3>{
 

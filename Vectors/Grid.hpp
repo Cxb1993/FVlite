@@ -15,7 +15,7 @@
 
 using std::vector;
 
-namespace FVTD{
+namespace FVlite{
 
 class Grid{
 

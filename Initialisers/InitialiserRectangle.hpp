@@ -10,7 +10,7 @@
 
 #include <cmath>
 
-namespace FVTD{
+namespace FVlite{
 
 class InitialiserRectangle : public Initialiser{
 public:

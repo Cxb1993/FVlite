@@ -10,7 +10,7 @@
 #include "Vectors/Grid.hpp"
 #include "Timer/Timer.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 // Class delcaration
 

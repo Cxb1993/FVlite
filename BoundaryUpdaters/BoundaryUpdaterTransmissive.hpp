@@ -8,7 +8,7 @@
 
 #include"BoundaryUpdaterAbstract.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 class BoundaryUpdaterTransmissive : public BoundaryUpdater{
 public:

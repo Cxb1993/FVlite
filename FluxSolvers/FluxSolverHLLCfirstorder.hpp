@@ -13,7 +13,7 @@
 
 using std::string;
 
-namespace FVTD{
+namespace FVlite{
 
 class FluxSolverHLLCfirst : public FluxSolver{
 public:

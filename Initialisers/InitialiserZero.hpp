@@ -11,7 +11,7 @@
 
 #include <cmath>
 
-namespace FVTD{
+namespace FVlite{
 
 class InitialiserZero : public Initialiser{
 public:

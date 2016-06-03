@@ -1,4 +1,4 @@
 #!/bin/bash
 
 rm -f data/*
-./FVTD.exe $1
+./FVlite.exe $1

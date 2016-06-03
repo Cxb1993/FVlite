@@ -10,7 +10,7 @@
 #include "Vectors/StateVector.hpp"
 #include "FluxSolvers/FluxSolvers.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 class Source{
 

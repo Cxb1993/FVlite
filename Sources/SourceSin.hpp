@@ -12,7 +12,7 @@
 #include "SourceAbstract.hpp"
 #include "Vectors/StateVector.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 // Declare sinusoid function
 double ScalarSin( double, double);

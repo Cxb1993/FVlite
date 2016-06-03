@@ -15,7 +15,7 @@
 #include "BoundaryUpdaters/BoundaryUpdaters.hpp"
 #include "FVMsolvers/FVMsolvers.hpp"
 
-namespace FVTD{
+namespace FVlite{
 class Updater{
 
 protected:

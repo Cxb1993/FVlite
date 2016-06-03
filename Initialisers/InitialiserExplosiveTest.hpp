@@ -13,7 +13,7 @@
 #include <iostream>
 #include <cmath>
 
-namespace FVTD{
+namespace FVlite{
 
 class InitialiserExplosiveTest : public Initialiser{
 public:

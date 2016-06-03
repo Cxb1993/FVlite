@@ -11,7 +11,7 @@
 #include "SourceAbstract.hpp"
 #include "Vectors/StateVector.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 // Begin class
 class SourceNone : public Source{

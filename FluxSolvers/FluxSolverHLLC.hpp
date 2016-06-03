@@ -16,7 +16,7 @@
 
 using std::string;
 
-namespace FVTD{
+namespace FVlite{
 
 class FluxSolverHLLC : public FluxSolverMUSCLbase{
 public:

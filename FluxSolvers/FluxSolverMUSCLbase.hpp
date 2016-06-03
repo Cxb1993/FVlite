@@ -16,7 +16,7 @@
 
 using std::string;
 
-namespace FVTD{
+namespace FVlite{
 
 typedef std::pair<StateVector,StateVector> StatePair;
 

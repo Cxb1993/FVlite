@@ -10,7 +10,7 @@
 
 using std::string;
 
-namespace FVTD{
+namespace FVlite{
 
 class FluxSolverRichtmyer : public FluxSolver{
 public:

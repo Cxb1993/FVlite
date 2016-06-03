@@ -13,7 +13,7 @@
 #include "SourceAbstract.hpp"
 #include "Vectors/StateVector.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 // Declare Gaussian function
 double ScalarGaussian( double, double, double);

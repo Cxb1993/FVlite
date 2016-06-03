@@ -11,7 +11,7 @@
 #include "Vector3.hpp"
 #include "Grid.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 class LevelSet{
 

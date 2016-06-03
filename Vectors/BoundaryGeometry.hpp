@@ -12,7 +12,7 @@
 
 #include "Vector3.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 typedef std::pair<Vector3,Vector3> Slice;
 

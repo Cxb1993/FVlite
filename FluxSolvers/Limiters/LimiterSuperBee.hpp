@@ -8,7 +8,7 @@
 
 #include"LimiterAbstract.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 class LimiterSuperBee : public Limiter{
 public:

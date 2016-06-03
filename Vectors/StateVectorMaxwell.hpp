@@ -8,7 +8,7 @@
 #include <cmath>
 #include "MathVector.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 #define SIZE 6
 

@@ -10,7 +10,7 @@
 #include "MathVector.hpp"
 #include "constants.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 #define SIZE 4
 

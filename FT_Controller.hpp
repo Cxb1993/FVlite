@@ -12,10 +12,10 @@
 #include <fstream>
 #include <vector>
 
-#include "FVTD.hpp"
+#include "FVlite.hpp"
 #include "FT_Module.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 class FT_Controller{
 

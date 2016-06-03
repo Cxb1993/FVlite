@@ -11,7 +11,7 @@
 
 #include "Vectors/Grid.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 class Timer{
 

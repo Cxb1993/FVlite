@@ -11,7 +11,7 @@
 
 #include "Vectors/Grid.hpp"
 
-namespace FVTD{
+namespace FVlite{
 
 // Declare Gaussian function
 double Gaussian( double, double, double);

@@ -1,4 +1,4 @@
-# gnuplot file for FVTD LevelSet
+# gnuplot file for FVlite LevelSet
 
 unset key
 
