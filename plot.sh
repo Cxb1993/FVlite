@@ -5,4 +5,4 @@ outfile="plots/Default.png"
 
 gnuplot -e "datafile='${datafile}'"   \
         -e "outfile='${outfile}'"     \
-        FVTD_HEAT.plt
+        FVTD.plt

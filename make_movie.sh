@@ -10,8 +10,7 @@ i="0"
 while [ $i -le $filenumber ]
 do
     echo "Plotting $i..."
-    gnuplot -e "datafile='data/results$i.dat';outfile='plots/plot$i.png'" FVTD_HEAT.plt
-#    gnuplot -e "datafile='data/results$i.dat';outfile='plots/plot$i.png'" FVTD.plt
+    gnuplot -e "datafile='data/results$i.dat';outfile='plots/plot$i.png'" FVTD.plt
     i=$[$i+1]
 done
 
