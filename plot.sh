@@ -1,7 +1,7 @@
 #!/bin/bash
 
-datafile="data/Default.dat"
-outfile="plots/Default.png"
+datafile="data/DefaultInit.dat"
+outfile="plots/DefaultInit.png"
 
 gnuplot -e "datafile='${datafile}'"   \
         -e "outfile='${outfile}'"     \

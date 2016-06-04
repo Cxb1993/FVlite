@@ -38,9 +38,10 @@ public:
 
     void init( Grid* pGrid, Setting& cfg);
     virtual void init_params( Setting& cfg) = 0;
+    void init_state(Setting& cfg);
 
     void exec();
-    virtual double getLevelset( double x, double y) = 0;
+    virtual double getLevelSet( double x, double y) = 0;
     int rank(){ return mRank;}
 
 };
@@ -58,6 +59,22 @@ void InitialisationModule::init( Grid* pGrid, Setting& cfg){
     mRank  = cfg.lookup("rank");
     Setting& paramsCfg = cfg.lookup("params");
     init_params( paramsCfg);
+    if( !mSolid ){
+        Setting& stateCfg = paramsCfg.lookup("state");
+        init_state(stateCfg);
+    }
+    return;
+}
+
+void InitialisationModule::init_state( Setting& cfg){
+    // set values to a MathVector, not a StateVector
+    // This stores the primitive values, which are converted
+    // to a conserved form using the set(MathVector) function.
+    MathVector<SIZE> vector;
+    for( int ii=0; ii<SIZE; ii++){
+        vector[ii] = cfg[ii];
+    }
+    mState.set(vector);
     return;
 }
 
@@ -88,13 +105,15 @@ void InitialisationModule::exec(){
         y = pGrid->y(jj);
         for( int ii=0; ii<sizeX; ii++){
             x = pGrid->x(ii);
-            levelset = getLevelset(x,y);
+            levelset = getLevelSet(x,y);
 
             if( mSolid){
                 pGrid->levelset()->workspace(ii,jj) = levelset;
             } else {
-                if( (mInner && levelset>0) || (!mInner && levelset<0) ){
-                    pGrid->state(ii,jj) = mState;
+                if( ii>=startX && ii<endX && jj>=startY && jj<endY){
+                    if( (mInner && levelset>0) || (!mInner && levelset<0) ){
+                        pGrid->state(ii,jj) = mState;
+                    }
                 }
             }
         }

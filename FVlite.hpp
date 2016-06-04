@@ -13,7 +13,7 @@
 #include <libconfig.h++>
 
 #include "Grid/Grid.hpp"
-#include "Initialisers/Initialisers.hpp"
+#include "Initialisation/InitialisationManager.hpp"
 #include "Updaters/Updater.hpp"
 #include "Sources/Sources.hpp"
 #include "Output/Output.hpp"
@@ -33,7 +33,6 @@ private:
 
     Grid*        pGrid;
     Timer*       pTimer;
-    Initialiser* pInit;
     Updater*     pUpdate;
     Output*      pOutput;
 
@@ -58,7 +57,6 @@ public:
 
 Solver::~Solver(){
   delete pUpdate;
-  delete pInit;
   delete pTimer;
   delete pGrid;
 }
@@ -84,13 +82,6 @@ void Solver::init( Config& cfg){
     Setting& timerCfg = cfg.lookup("Timing");
     pTimer = new Timer;
     pTimer->init(pGrid,timerCfg);
-
-    // Set up Initialiser
-    std::cout << "Building initialiser..." << std::endl;
-    Setting& initCfg = cfg.lookup("Init");
-    string initType  = initCfg.lookup("type");
-    pInit = InitialiserFactory.create(initType);
-    pInit->init(pGrid);
 
     // Set up source
     // Temporary code, not up to current standard.
@@ -146,11 +137,15 @@ void Solver::init( Config& cfg){
     pUpdate = new Updater(pGrid,pTimer,pFVM,pBmanager);
 
     // Initialise
-    std::cout << "Initialising..." << std::endl;
-    pInit->exec();
-    pOutput->prod();
+    std::cout << "Building initialiser..." << std::endl;
+    Setting& initCfg = cfg.lookup("Initialisation");
+    InitialisationManager* pImanager = new InitialisationManager;
+    pImanager->init(pGrid,initCfg);
+    pImanager->exec();
+    delete pImanager;
 
     std::cout << "Solver built successfully" << std::endl;
+    pOutput->prod();
 
     return;
 }
