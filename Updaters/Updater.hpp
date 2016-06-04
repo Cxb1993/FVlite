@@ -12,7 +12,7 @@
 
 #include "Grid/Grid.hpp"
 #include "Timer/Timer.hpp"
-#include "BoundaryUpdaters/BoundaryUpdaters.hpp"
+#include "BoundaryManager/BoundaryManager.hpp"
 #include "FVMsolvers/FVMsolvers.hpp"
 
 namespace FVlite{
@@ -23,40 +23,52 @@ protected:
     Grid*             pGrid;
     Timer*            pTimer;
     FVMsolver*        pFVM;
-    BoundaryUpdater*  pBUpdate;
+    BoundaryManager*  pBmanager;
 
 public:
 
-    Updater( Grid* pGrid, Timer* pTimer, FVMsolver* pFVM, BoundaryUpdater* pBUpdate);
+    Updater( Grid* pGrid, Timer* pTimer, FVMsolver* pFVM, BoundaryManager* pBmanager);
     virtual ~Updater();
 
     void exec();
 };
 
-Updater::Updater( Grid* pGrid, Timer* pTimer, FVMsolver* pFVM, BoundaryUpdater* pBUpdate)
-        : pGrid(pGrid), pTimer(pTimer), pFVM(pFVM), pBUpdate(pBUpdate){
+Updater::Updater( Grid* pGrid, Timer* pTimer, FVMsolver* pFVM, BoundaryManager* pBmanager)
+        : pGrid(pGrid), pTimer(pTimer), pFVM(pFVM), pBmanager(pBmanager){
 }
 
 Updater::~Updater(){
     delete pFVM;
-    delete pBUpdate;
+    delete pBmanager;
 }
 
 void Updater::exec(){
+
     // Must first calibrate time step using largest speed on the grid
-    pBUpdate->exec();
     pTimer->calibrate_timestep();
     double t  = pTimer->t();
     double dt = pTimer->dt();
+
+    // Print current time to screen
     std::cout << "\rTime: " << t << std::flush;
     // Makes use of Strang directional splitting. 
-    pFVM->exec('x',t,0.5*dt); 
-    pBUpdate->exec();
-    pFVM->exec('y',t+0.5*dt,dt);
-    pBUpdate->exec();
-    pFVM->exec('x',t+0.5*dt,0.5*dt);
+    char dim;
+
+    dim = 'x';
+    pBmanager->exec(dim);
+    pFVM->exec(dim,t,0.5*dt); 
+
+    dim = 'y';
+    pBmanager->exec(dim);
+    pFVM->exec(dim,t+0.5*dt,dt);
+
+    dim = 'x';
+    pBmanager->exec(dim);
+    pFVM->exec(dim,t+0.5*dt,0.5*dt);
+
     // Increment time
     pTimer->advance();
+
     return;
 }
 

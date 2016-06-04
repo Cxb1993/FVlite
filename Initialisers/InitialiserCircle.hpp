@@ -24,14 +24,14 @@ void InitialiserCircle::exec(){
 
     double x, y;
     double rad = pGrid->Lx()/8.;
-    double centerX = 0.5;
-    double centerY = 0.5;
+    double centerX = 1.0;
+    double centerY = 1.0;
     double distance;
 
 #ifdef EULER
     StateVector LEFT( 1.0, 0.75, 0.0, 1.0);
     StateVector RIGHT( 0.125, 0.0, 0.0, 0.1);
-    double left_pos = 0.25;
+    double left_pos = 0.5;
 #endif
 
     int startX = pGrid->startX();

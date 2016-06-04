@@ -1,16 +1,18 @@
 #!/bin/bash
 
+runname=$1
+
 rm -f plots/*
 
-filenumber="`ls data -v | tail -1 | egrep -o [0-9]+`"
+filenumber="`ls data -v | tail -2 | egrep -o [0-9]+`"
 
 echo "Number of files: $filenumber"
 
-i="0"
+i="1"
 while [ $i -le $filenumber ]
 do
     echo "Plotting $i..."
-    gnuplot -e "datafile='data/results$i.dat';outfile='plots/plot$i.png'" FVlite.plt
+    gnuplot -e "datafile='data/$runname$i.dat';outfile='plots/$runname$i.png'" FVlite.plt
     i=$[$i+1]
 done
 

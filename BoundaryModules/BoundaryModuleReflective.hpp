@@ -16,7 +16,8 @@ namespace FVlite{
 class BoundaryModuleReflective : public BoundaryModule{
 public:
     BoundaryModuleReflective(){}
-    virtual StateVector getBoundary( StateVector& Reference, const char dim);
+    ~BoundaryModuleReflective(){}
+    virtual StateVector getBoundary( const StateVector& Reference, const char dim);
 };
 
 REGISTER(BoundaryModule,Reflective)

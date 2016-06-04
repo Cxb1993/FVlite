@@ -136,15 +136,14 @@ void Solver::init( Config& cfg){
     pFVM->init( pGrid, fvmCfg);
 
     // Set up boundary update method
-    std::cout << "Building boundary updater..." << std::endl;
+    std::cout << "Building boundary update manager..." << std::endl;
     Setting& boundaryCfg = cfg.lookup("Boundaries");
-    string boundaryType = boundaryCfg.lookup("type");
-    BoundaryUpdater* pBUpdate = BoundaryUpdaterFactory.create(boundaryType);
-    pBUpdate->init(pGrid);
+    BoundaryManager* pBmanager = new BoundaryManager;
+    pBmanager->init(pGrid,boundaryCfg);
 
     // Set up updater
     std::cout << "Building complete time marching system..." << std::endl;
-    pUpdate = new Updater(pGrid,pTimer,pFVM,pBUpdate);
+    pUpdate = new Updater(pGrid,pTimer,pFVM,pBmanager);
 
     // Initialise
     std::cout << "Initialising..." << std::endl;

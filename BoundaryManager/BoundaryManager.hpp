@@ -50,7 +50,7 @@ void BoundaryManager::init( Grid* pGrid, Setting& cfg){
     string modType;
     for( int count=0; count<nMods; count++){
         Setting& modCfg = cfg[count];
-        modType = modCfg.lookup("type");
+        modType = modCfg.lookup("type").c_str();
         pBmod = BoundaryModuleFactory.create( modType);
         pBmod->init( pGrid, modCfg);
         add_module( pBmod);

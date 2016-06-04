@@ -37,13 +37,13 @@ protected:
 
 public:
 
-    BoundaryModule();
+    BoundaryModule(){}
     BoundaryModule( const BoundaryModule& other);
     virtual ~BoundaryModule(){}
 
     void init( Grid* pGrid, Setting& cfg);
 
-    virtual void exec( char dim);
+    void exec( char dim);
     virtual StateVector getBoundary( const StateVector& Reference, const char dim) = 0;
     int rank(){ return mRank;}
 
