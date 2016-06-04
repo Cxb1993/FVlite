@@ -8,8 +8,11 @@
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
+#include <libconfig.h++>
 
 #include "Grid/Grid.hpp"
+
+using libconfig::Setting;
 
 namespace FVlite{
 
@@ -22,11 +25,13 @@ private:
     double mCFL;
     double mTmax;
 
-    Grid* pGrid;
+    Grid* mpGrid;
 
 public:
 
-    Timer( double CFL, double tmax, Grid* pGrid);
+    Timer(){}
+
+    void init( Grid* pGrid, Setting& cfg); 
 
     // Access functions
     inline double t(){ return mT;}
@@ -50,7 +55,14 @@ public:
     inline void calibrate_timestep();
 };
 
-Timer::Timer( double CFL, double tmax, Grid* pGrid) : mT(0), mDt(0), mCFL(CFL), mTmax(tmax), pGrid(pGrid){}
+void Timer::init( Grid* pGrid, Setting& cfg){
+    mT = 0;
+    mDt = 0;
+    mCFL  = cfg.lookup("CFL");
+    mTmax = cfg.lookup("tmax");
+    mpGrid = pGrid;
+    return;
+}
 
 void Timer::advance(double ratio){ 
     if( mDt == 0.0 ){
@@ -62,8 +74,8 @@ void Timer::advance(double ratio){
 }
 
 void Timer::calibrate_timestep(){
-    double maxSpeed = pGrid->maxSpeed();
-    double ds = (pGrid->dx() < pGrid->dy()) ? pGrid->dx() : pGrid->dy();
+    double maxSpeed = mpGrid->maxSpeed();
+    double ds = (mpGrid->dx() < mpGrid->dy()) ? mpGrid->dx() : mpGrid->dy();
     mDt = (ds*mCFL) / (maxSpeed*sqrt(2)); // Courant condition, root 2 accounts for 2 dimensions
     return;
 }

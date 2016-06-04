@@ -79,9 +79,9 @@ void Solver::init( Config& cfg){
 
     // Set up timer
     std::cout << "Building timer..." << std::endl;
-    double CFL = cfg.lookup("Timing.CFL");
-    double tmax = cfg.lookup("Timing.tmax");
-    pTimer  = new Timer(CFL,tmax,pGrid);
+    pTimer = new Timer;
+    Setting& timerCfg = cfg.lookup("Timing");
+    pTimer->init(pGrid,timerCfg);
 
     // Set up Initialiser
     string InitString  = cfg.lookup("Init.type");
