@@ -48,6 +48,7 @@ public:
     inline double p() const { return (c_gamma_ideal-1.)*(E()-0.5*rho()*(ux()*ux()+uy()*uy()));} // pressure
 
     inline void set( double rho, double ux, double uy, double p);
+    inline void set( MathVector<SIZE> primitives);
 
     // Utility
     static unsigned int size(){ return SIZE;}
@@ -65,6 +66,11 @@ void StateVector::set( double rho, double ux, double uy, double p){
     mX[1] = rho*ux;
     mX[2] = rho*uy;
     mX[3] = 0.5*rho*(ux*ux+uy*uy) + p/(c_gamma_ideal-1.);
+    return;
+}
+
+void StateVector::set( MathVector<SIZE> primitives){
+    set(primitives[0],primitives[1],primitives[2],primitives[3]);
     return;
 }
 

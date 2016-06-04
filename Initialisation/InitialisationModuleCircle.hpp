@@ -39,9 +39,14 @@ void InitialisationModuleCircle::init_params( Setting& cfg){
     mRadius  = cfg.lookup("radius");
     if( !mSolid ){
         Setting& stateCfg = cfg.lookup("state");
+        // set values to a MathVector, not a StateVector
+        // This stores the primitive values, which are converted
+        // to a conserved form using the set(MathVector) function.
+        MathVector<StateVector::size()> vector;
         for( int ii=0; ii<StateVector::size(); ii++){
-            mState[ii] = stateCfg[ii];
+            vector[ii] = stateCfg[ii];
         }
+        mState.set(vector);
     }
     return;
 }
