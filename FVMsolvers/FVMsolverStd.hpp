@@ -34,29 +34,9 @@ void FVMsolverStd::exec( char dim, double t, double dt){
     switch(dim){
         case 'x' :
             ds = pGrid->dx();
-            // Enforce PEC boundary (test if level set changes over boundary)
-            for( int jj=startY; jj<endY; jj++){
-                for( int ii=startX; ii<endX; ii++){
-                    levelset = pGrid->levelset(ii,jj);
-                    if( levelset >= 0){ // PEC
-                        if( pGrid->levelset(ii-1,jj) * levelset < 0 ){ // sign changes
-                            pGrid->state(ii,jj) = BoundaryReflective(pGrid->state(ii-1,jj),dim);
-                            if( pGrid->levelset(ii+1,jj) * levelset >= 0 ){ // still within boundary
-                                pGrid->state(ii+1,jj) = BoundaryReflective(pGrid->state(ii-2,jj),dim);
-                            }
-                        }
-                        if( pGrid->levelset(ii+1,jj) * levelset < 0){ // sign changes
-                            pGrid->state(ii,jj) = BoundaryReflective(pGrid->state(ii+1,jj),dim);
-                            if( pGrid->levelset(ii-1,jj) * levelset >= 0 ){ // still within boundary
-                                pGrid->state(ii-1,jj) = BoundaryReflective(pGrid->state(ii+2,jj),dim);
-                            }
-                        }
-                    }
-                }
-            }
-            //  Solve flux
+            // Solve flux
             pFlux->exec(dim,t,dt);
-            // Main update
+            // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
                     levelset = pGrid->levelset(ii,jj);
@@ -67,28 +47,9 @@ void FVMsolverStd::exec( char dim, double t, double dt){
             break;
         case 'y' :
             ds = pGrid->dy();
-            // Enforce PEC boundary (test if level set changes over boundary)
-            for( int jj=startY; jj<endY; jj++){
-                for( int ii=startX; ii<endX; ii++){
-                    levelset = pGrid->levelset(ii,jj);
-                    if( levelset >= 0){ // PEC
-                        if( pGrid->levelset(ii,jj-1) * levelset < 0){ // sign changes
-                            pGrid->state(ii,jj) = BoundaryReflective(pGrid->state(ii,jj-1),dim);
-                            if( pGrid->levelset(ii,jj+1) * levelset >= 0 ){ // still within boundary
-                                pGrid->state(ii,jj+1) = BoundaryReflective(pGrid->state(ii,jj-2),dim);
-                            }
-                        }
-                        if( pGrid->levelset(ii,jj+1) * levelset < 0){ // sign changes
-                            pGrid->state(ii,jj) = BoundaryReflective(pGrid->state(ii,jj+1),dim);
-                            if( pGrid->levelset(ii,jj-1) * levelset >= 0 ){ // still within boundary
-                                pGrid->state(ii,jj-1) = BoundaryReflective(pGrid->state(ii,jj+2),dim);
-                            }
-                        }
-                    }
-                }
-            }
             // Solve flux
             pFlux->exec(dim,t,dt);
+            // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
                     levelset = pGrid->levelset(ii,jj);
