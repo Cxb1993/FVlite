@@ -63,7 +63,7 @@ void BoundaryModule::init( Grid* pGrid, Setting& cfg){
     if( region == "upperwall") mREGION = UPPERWALL;
     if( region == "lowerwall") mREGION = LOWERWALL;
     if( region == "internal")  mREGION = INTERNAL;
-    mRank = (mREGION==INTERNAL) ? 2 : 1;
+    mRank = (mREGION==INTERNAL) ? 1 : 2;
     return;
 }
 

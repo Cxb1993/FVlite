@@ -12,7 +12,7 @@
 
 #include "Grid/Grid.hpp"
 #include "Timer/Timer.hpp"
-#include "BoundaryManager/BoundaryManager.hpp"
+#include "Boundaries/BoundaryManager.hpp"
 #include "FVMsolvers/FVMsolvers.hpp"
 
 namespace FVlite{
