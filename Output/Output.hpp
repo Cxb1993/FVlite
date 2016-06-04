@@ -49,8 +49,6 @@ void Output::init( Grid* pGrid, const Setting& cfg){
     mPrintInitial = cfg.lookup("PrintInitial");
     mRunName = cfg.lookup("RunName").c_str();
     mpGrid = pGrid;
-    std::cout << "Print every: " << mPrintEvery << std::endl;
-    std::cout << "Print initial: " << mPrintInitial << std::endl;
     return;
 }
 

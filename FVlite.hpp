@@ -65,33 +65,36 @@ Solver::~Solver(){
 
 void Solver::init( Config& cfg){ 
 
+    std::cout << "Begin Building Solver" << std::endl;
+
     // Set up grid
     std::cout << "Building grid.." << std::endl;
-    pGrid = new Grid;
     Setting& gridCfg = cfg.lookup("Grid");
+    pGrid = new Grid;
     pGrid->init(gridCfg);
 
     // Output
     std::cout << "Setting up output..." << std::endl;
-    pOutput = new Output;
     Setting& outputCfg = cfg.lookup("Output");
+    pOutput = new Output;
     pOutput->init(pGrid,outputCfg);
 
     // Set up timer
     std::cout << "Building timer..." << std::endl;
-    pTimer = new Timer;
     Setting& timerCfg = cfg.lookup("Timing");
+    pTimer = new Timer;
     pTimer->init(pGrid,timerCfg);
 
     // Set up Initialiser
-    string InitString  = cfg.lookup("Init.type");
     std::cout << "Building initialiser..." << std::endl;
-    pInit = InitialiserFactory.create(InitString);
+    Setting& initCfg = cfg.lookup("Init");
+    string initType  = initCfg.lookup("type");
+    pInit = InitialiserFactory.create(initType);
     pInit->init(pGrid);
-    
 
     // Set up source
-    std::cout << "Building PDE solver..." << std::endl;
+    // Temporary code, not up to current standard.
+    // Will be deprecated in favour of an improved boundary manager, with capabilities of a driven boundary.
 
     Source* pSource;
     bool TE    = true;
@@ -122,21 +125,21 @@ void Solver::init( Config& cfg){
             break;
     }
 
-    // Set up flux solver
-    string FluxString  = cfg.lookup("FVM.scheme");
-    string LimitString = cfg.lookup("FVM.limiter");
-    FluxSolver* pFlux = FluxSolverFactory.create(FluxString);
-    pFlux->init(pGrid,pSource,LimitString);
-
-    // Set up finite volume solver
-    string FvmString   = cfg.lookup("FVM.type");
-    FVMsolver* pFVM = FVMsolverFactory.create(FvmString);
-    pFVM->init(pGrid,pFlux,pSource);
+    // Set up finite volume system
+    std::cout << "Building FVM solver..." << std::endl;
+    Setting& fvmCfg = cfg.lookup("FVM");
+    string fvmType = fvmCfg.lookup("type");
+    FVMsolver* pFVM = FVMsolverFactory.create(fvmType);
+    // Following is temporary code, remove after implementing driven boundaries
+    pFVM->source_init(pSource);
+    // And back to decent code...
+    pFVM->init( pGrid, fvmCfg);
 
     // Set up boundary update method
     std::cout << "Building boundary updater..." << std::endl;
-    string BuString    = cfg.lookup("Boundaries.type");
-    BoundaryUpdater* pBUpdate = BoundaryUpdaterFactory.create(BuString);
+    Setting& boundaryCfg = cfg.lookup("Boundaries");
+    string boundaryType = boundaryCfg.lookup("type");
+    BoundaryUpdater* pBUpdate = BoundaryUpdaterFactory.create(boundaryType);
     pBUpdate->init(pGrid);
 
     // Set up updater
@@ -146,11 +149,10 @@ void Solver::init( Config& cfg){
     // Initialise
     std::cout << "Initialising..." << std::endl;
     pInit->exec();
-
-    // Initial output
     pOutput->prod();
 
-    std::cout << "Solver built successfully (probably)" << std::endl;
+    std::cout << "Solver built successfully" << std::endl;
+
     return;
 }
 

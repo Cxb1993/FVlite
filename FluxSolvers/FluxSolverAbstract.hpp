@@ -10,6 +10,7 @@
 #include <string>
 #include <cmath>
 #include <ctgmath>
+#include <libconfig.h++>
 
 #include "Grid/Grid.hpp"
 #include "Timer/Timer.hpp"
@@ -17,6 +18,7 @@
 #include "Limiters/Limiters.hpp"
 
 using std::string;
+using libconfig::Setting;
 
 namespace FVlite{
 
@@ -35,6 +37,7 @@ public:
     virtual ~FluxSolver();
 
     void init( Grid* pGrid, Source* pSource, string LimitString);
+    void init( Grid* pGrid, Source* pSource, Setting& cfg);
     void exec( char dim, double t, double dt);
     virtual void solve(char dim, double dt) = 0;
     void inject_source( char dim, double t, double dt);
@@ -63,6 +66,15 @@ void FluxSolver::init( Grid* pGrid, Source* pSource, string LimitString){
     (*this).pSource = pSource;
     pLimiter = LimiterFactory.create(LimitString);
 }
+
+void FluxSolver::init( Grid* pGrid, Source* pSource, Setting& cfg){
+    string limitType = cfg.lookup("limiter");
+    pLimiter = LimiterFactory.create(limitType);
+    (*this).pGrid = pGrid;
+    (*this).pSource = pSource;
+    return;
+}
+
 
 FluxSolver::~FluxSolver(){
     delete pLimiter;
