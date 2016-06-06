@@ -37,8 +37,9 @@ private:
     vector<StateVector>* pState;
     vector<FluxVector>*  pFlux;
 
-    vector<StateVector>* pStateRef; // Reference state, used for cut cell method
-    vector<FluxVector>*  pFluxAux;  // Auxiliary flux, used for cut cell method
+    vector<StateVector>* pStateRef;  // Reference state, used for cut cell method
+    vector<FluxVector>*  pFluxBound; // Boundary flux, used for cut cell method
+    vector<FluxVector>*  pFluxAux;   // Auxiliary flux, used for cut cell method
     vector<BoundaryGeometry>* pGeometry; // Contains geometry information for cut cell method
 
     LevelSet* pLevelSet; // Contains level set function
@@ -56,6 +57,7 @@ public:
     inline StateVector& state_ref( int ii, int jj){ return (*pStateRef)[jj*mSizeX+ii];}
     inline FluxVector&  flux( int ii, int jj){ return (*pFlux)[jj*mSizeX+ii];}
     inline FluxVector&  flux_aux( int ii, int jj){ return (*pFluxAux)[jj*mSizeX+ii];}
+    inline FluxVector&  flux_bound( int ii, int jj){ return (*pFluxBound)[jj*mSizeX+ii];}
     inline BoundaryGeometry& boundary( int ii, int jj){ return (*pGeometry)[jj*mSizeX+ii];}
     
     inline LevelSet* levelset(){ return pLevelSet;}
@@ -109,12 +111,13 @@ void Grid::init( Setting& cfg){
     mEndY = mBound + mNy;
 
     // Initialise pointers
-    int size  = mSizeX * mSizeY;
-    pState    = new vector<StateVector>(size);
-    pStateRef = new vector<StateVector>(size);
-    pFlux     = new vector<FluxVector>(size);
-    pFluxAux  = new vector<FluxVector>(size);
-    pGeometry = new vector<BoundaryGeometry>(size);
+    int size   = mSizeX * mSizeY;
+    pState     = new vector<StateVector>(size);
+    pStateRef  = new vector<StateVector>(size);
+    pFlux      = new vector<FluxVector>(size);
+    pFluxAux   = new vector<FluxVector>(size);
+    pFluxBound = new vector<FluxVector>(size);
+    pGeometry  = new vector<BoundaryGeometry>(size);
 
     // Initialise LevelSet
     pLevelSet = new LevelSet(mNx,mNy,mBound,mDx,mDy,mLx,mLy);
@@ -128,6 +131,7 @@ Grid::~Grid(){
     delete pFlux;
     delete pStateRef;
     delete pFluxAux;
+    delete pFluxBound;
     delete pGeometry;
     delete pLevelSet;
 }
