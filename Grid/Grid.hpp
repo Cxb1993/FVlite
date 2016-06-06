@@ -37,7 +37,7 @@ private:
     vector<StateVector>* pState;
     vector<FluxVector>*  pFlux;
 
-    vector<StateVector>* pStateAux; // Auxiliary state, used for cut cell method
+    vector<StateVector>* pStateRef; // Reference state, used for cut cell method
     vector<FluxVector>*  pFluxAux;  // Auxiliary flux, used for cut cell method
     vector<BoundaryGeometry>* pGeometry; // Contains geometry information for cut cell method
 
@@ -53,7 +53,7 @@ public:
 
     // Access functions
     inline StateVector& state( int ii, int jj){ return (*pState)[jj*mSizeX+ii];}
-    inline StateVector& state_aux( int ii, int jj){ return (*pStateAux)[jj*mSizeX+ii];}
+    inline StateVector& state_ref( int ii, int jj){ return (*pStateRef)[jj*mSizeX+ii];}
     inline FluxVector&  flux( int ii, int jj){ return (*pFlux)[jj*mSizeX+ii];}
     inline FluxVector&  flux_aux( int ii, int jj){ return (*pFluxAux)[jj*mSizeX+ii];}
     inline BoundaryGeometry& boundary( int ii, int jj){ return (*pGeometry)[jj*mSizeX+ii];}
@@ -111,7 +111,7 @@ void Grid::init( Setting& cfg){
     // Initialise pointers
     int size  = mSizeX * mSizeY;
     pState    = new vector<StateVector>(size);
-    pStateAux = new vector<StateVector>(size);
+    pStateRef = new vector<StateVector>(size);
     pFlux     = new vector<FluxVector>(size);
     pFluxAux  = new vector<FluxVector>(size);
     pGeometry = new vector<BoundaryGeometry>(size);
@@ -126,7 +126,7 @@ void Grid::init( Setting& cfg){
 Grid::~Grid(){
     delete pState;
     delete pFlux;
-    delete pStateAux;
+    delete pStateRef;
     delete pFluxAux;
     delete pGeometry;
     delete pLevelSet;

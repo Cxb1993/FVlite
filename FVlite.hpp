@@ -142,6 +142,7 @@ void Solver::init( Config& cfg){
     InitialisationManager* pImanager = new InitialisationManager;
     pImanager->init(pGrid,initCfg);
     pImanager->exec();
+    pImanager->setup_boundary_geometry();
     delete pImanager;
 
     std::cout << "Solver built successfully" << std::endl;
