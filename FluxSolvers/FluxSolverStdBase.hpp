@@ -1,26 +1,22 @@
-// FluxSolverRichtmyer.hpp
+// FluxSolverStdBase.hpp
 //
 // Finite volume flux solver.
-// Applies Richtmyer's method.
+// Implements standard method to compute intercell fluxes.
+// Does not use linear reconstruction.
 
-#ifndef FLUXRICHT_HPP
-#define FLUXRICHT_HPP
-
+#ifndef FLUXSTDBASE_HPP
+#define FLUXSTDBASE_HPP
+ 
 #include"FluxSolverAbstract.hpp"
-
-using std::string;
 
 namespace FVlite{
 
-class FluxSolverRichtmyer : public FluxSolver{
+class FluxSolverStdBase : public virtual FluxSolver{
 public:
-    FluxSolverRichtmyer(){}
     virtual void solve( char dim, double dt);
 };
 
-REGISTER(FluxSolver,Richtmyer)
-
-void FluxSolverRichtmyer::solve( char dim, double dt){
+void FluxSolverStdBase::solve( char dim, double dt){
     double ds;
     int startX = pGrid->startX();
     int startY = pGrid->startY();
@@ -34,7 +30,7 @@ void FluxSolverRichtmyer::solve( char dim, double dt){
                 for( int ii=startX-1; ii<endX; ii++){
                     StateL = pGrid->state(ii,jj);
                     StateR = pGrid->state(ii+1,jj);
-                    pGrid->flux(ii,jj) = FluxSolver::Richtmyer_flux(ds,dt,dim,StateL,StateR);
+                    pGrid->flux(ii,jj) = getIntercellFlux(ds,dt,dim,StateL,StateR);
                 }
             }
             break;
@@ -44,7 +40,7 @@ void FluxSolverRichtmyer::solve( char dim, double dt){
                 for( int ii=startX; ii<endX; ii++){
                     StateL = pGrid->state(ii,jj);
                     StateR = pGrid->state(ii,jj+1);
-                    pGrid->flux(ii,jj) = FluxSolver::Richtmyer_flux(ds,dt,dim,StateL,StateR);
+                    pGrid->flux(ii,jj) = getIntercellFlux(ds,dt,dim,StateL,StateR);
                 }
             }
             break;
@@ -56,4 +52,4 @@ void FluxSolverRichtmyer::solve( char dim, double dt){
 }
 
 }// Namespace closure
-#endif /* FLUXRICHT_HPP */
+#endif /* FLUXSTDBASE_HPP */

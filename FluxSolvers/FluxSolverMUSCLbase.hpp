@@ -14,44 +14,68 @@
 
 #include"FluxSolverAbstract.hpp"
 
-using std::string;
-
 namespace FVlite{
 
 typedef std::pair<StateVector,StateVector> StatePair;
 
-class FluxSolverMUSCLbase : public FluxSolver{
-
+class FluxSolverMUSCLbase : public virtual FluxSolver{
 public:
-
-    FluxSolverMUSCLbase(){}
-
-    StatePair linear_reconstruction( StateVector& StateL, StateVector& StateCL, StateVector& CR, StateVector& StateR, char dim, double dt);
+    virtual void solve( char dim, double dt);
+    StatePair linear_reconstruction( double ds, double dt, char dim, StateVector& StateL, StateVector& StateCL, StateVector& CR, StateVector& StateR);
     StateVector getLimitedSlope(StateVector& StateL, StateVector& StateC, StateVector& StateR, double tol=1e-10, double omega=0.);
-
-    virtual void solve( char dim, double dt) = 0;
 };
 
-StatePair FluxSolverMUSCLbase::linear_reconstruction( StateVector& StateL, StateVector& StateCL, StateVector& StateCR, StateVector& StateR, char dim, double dt){
+void FluxSolverMUSCLbase::solve( char dim, double dt){
+    double ds;
+    int startX = pGrid->startX();
+    int startY = pGrid->startY();
+    int endX = pGrid->endX();
+    int endY = pGrid->endY();
+    StateVector StateL, StateCL, StateCR, StateR;
+    StatePair BarStates;
+    FluxVector Flux;
+    switch(dim){
+        case 'x' :
+            ds = pGrid->dx();
+            for( int jj=startY; jj<endY; jj++){
+                for( int ii=startX-1; ii<endX; ii++){
+                    StateL  = pGrid->state(ii-1,jj);
+                    StateCL = pGrid->state(ii,jj);
+                    StateCR = pGrid->state(ii+1,jj);
+                    StateR  = pGrid->state(ii+2,jj);
+                    BarStates = linear_reconstruction(ds,dt,dim,StateL,StateCL,StateCR,StateR);
+                    Flux = getIntercellFlux( ds, dt, dim, BarStates.first, BarStates.second);
+                    pGrid->flux(ii,jj) = Flux;
+                }
+            }
+            break;
+        case 'y' :
+            ds = pGrid->dy();
+            for( int ii=startX; ii<endX; ii++){
+                for( int jj=startY-1; jj<endY; jj++){
+                    StateL  = pGrid->state(ii,jj-1);
+                    StateCL = pGrid->state(ii,jj);
+                    StateCR = pGrid->state(ii,jj+1);
+                    StateR  = pGrid->state(ii,jj+2);
+                    BarStates = linear_reconstruction(ds,dt,dim,StateL,StateCL,StateCR,StateR);
+                    Flux = getIntercellFlux( ds, dt, dim, BarStates.first, BarStates.second);
+                    pGrid->flux(ii,jj) = Flux;
+                }
+            }
+            break;
+        case 'z' :
+            break;
+    }
+    return;
+}
 
+
+StatePair FluxSolverMUSCLbase::linear_reconstruction( double ds, double dt, char dim, StateVector& StateL, StateVector& StateCL, StateVector& StateCR, StateVector& StateR){
     StateVector DeltaL, DeltaR;
     StateVector InterL, InterR;
     FluxVector FluxL, FluxR;
     StateVector StateRbar, StateLbar;
     StatePair BarStates;
-
-    double ds;
-    switch(dim){
-        case 'x' :
-            ds = pGrid->dx();
-            break;
-        case 'y' :
-            ds = pGrid->dy();
-            break;
-        default :
-            std::cerr << "ERROR: INCORRECT DIM, LINEAR RECONSTRUCTION" << std::endl;
-            exit(EXIT_FAILURE);
-    }
 
     DeltaL = getLimitedSlope( StateL, StateCL, StateCR);
     DeltaR = getLimitedSlope( StateCL, StateCR, StateR);

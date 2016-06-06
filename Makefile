@@ -4,7 +4,7 @@
 # Date: 01/04/16
 
 COMP = g++-4.9
-CFLAGS = -Wall -Wextra -pedantic -O3 -std=c++11 -fmax-errors=1
+CFLAGS = -Wall -Wextra -pedantic -O3 -std=c++11 -fmax-errors=3
 DEBUG  = ${CFLAGS} -pedantic -g -pg
 LIBLOCS = -L/home/cdt1507/lib/libconfig/lib/ -L/usr/lib/ 
 INCLOCS = -I. -I/home/cdt1507/lib/libconfig/include/ -I/usr/include/ 
