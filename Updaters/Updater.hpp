@@ -44,10 +44,13 @@ Updater::~Updater(){
 
 void Updater::exec(){
 
-    // Must first calibrate time step using largest speed on the grid
+    // Calibrate time step using largest speed on the grid
     pTimer->calibrate_timestep();
     double t  = pTimer->t();
     double dt = pTimer->dt();
+
+    // Tell FVMsolver that a new time step is occurring
+    pFVM->newTimeStep();
 
     // Print current time to screen
     std::cout << "\rTime: " << t << std::flush;

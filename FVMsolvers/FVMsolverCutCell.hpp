@@ -20,6 +20,7 @@ public:
 
     FVMsolverCutCell(){}
     virtual void exec( char dim, double t, double dt);
+    virtual void newTimeStep();
 };
 
 REGISTER(FVMsolver,CutCell)
@@ -70,6 +71,20 @@ void FVMsolverCutCell::exec( char dim, double t, double dt){
     return;
 }
 
+void FVMsolverCutCell::newTimeStep(){
+    // Copies all states into reference states
+    // TODO only do this for cut cells
+    int startX=pGrid->startX();
+    int startY=pGrid->startY();
+    int endX=pGrid->endX();
+    int endY=pGrid->endY();
+    for( int jj=startY; jj<endY; jj++){
+        for( int ii=startX; ii<endX; ii++){
+            pGrid->state_ref(ii,jj) = pGrid->state(ii,jj);
+        }
+    }
+    return;
+}
 
 }// Namespace closure
 #endif /* FVMCUTCELL_HPP */

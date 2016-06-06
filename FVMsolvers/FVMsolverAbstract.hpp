@@ -36,7 +36,8 @@ public:
     void init( Grid* pGrid, FluxSolver* pFlux, Source* pSource);
     void init( Grid* pGrid, Setting& cfg);
     void source_init( Source* pSource){ (*this).pSource=pSource;}
-    virtual void exec( char dim, double t, double dt)=0;
+    virtual void exec( char dim, double t, double dt) = 0;
+    virtual void newTimeStep() = 0;
 };
 
 // Declare object factory
