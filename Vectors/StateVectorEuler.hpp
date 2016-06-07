@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include "MathVector.hpp"
+#include "Vector3.hpp"
 #include "constants.hpp"
 
 namespace FVlite{
@@ -50,6 +51,8 @@ public:
     inline void set( double rho, double ux, double uy, double p);
     inline void set( MathVector<SIZE> primitives);
 
+    inline Vector3 getVelocity() const;
+
     // Utility
     static unsigned int size(){ return SIZE;}
 };
@@ -72,6 +75,14 @@ void StateVector::set( double rho, double ux, double uy, double p){
 void StateVector::set( MathVector<SIZE> primitives){
     set(primitives[0],primitives[1],primitives[2],primitives[3]);
     return;
+}
+
+Vector3 StateVector::getVelocity() const{
+    Vector3 result;
+    result[0] = ux();
+    result[1] = uy();
+    result[2] = 0.;
+    return result;
 }
 
 // Define zero state

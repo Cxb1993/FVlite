@@ -29,6 +29,7 @@ public:
 
     inline double norm();
 
+    friend double operator*( const Vector3& lhs, const Vector3& rhs); // Dot operator
     friend Vector3 operator^( const Vector3& lhs, const Vector3& rhs); // Curl operator
 };
 
@@ -45,6 +46,10 @@ void Vector3::set( double x, double y, double z){
 
 double Vector3::norm(){
     return sqrt(x()*x() + y()*y() + z()*z());
+}
+
+double operator*( const Vector3& lhs, const Vector3& rhs){
+    return lhs.x()*rhs.x() + lhs.y()*rhs.y() + lhs.z()*rhs.z();
 }
 
 Vector3 operator^( const Vector3& lhs, const Vector3& rhs){
