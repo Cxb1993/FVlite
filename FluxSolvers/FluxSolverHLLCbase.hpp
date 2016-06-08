@@ -19,6 +19,8 @@ namespace FVlite{
 class FluxSolverHLLCbase : public virtual FluxSolver{
 public:
     virtual FluxVector getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR);  
+
+    virtual Vector3 getWaveSpeeds( char dim, const StateVector& UL, const StateVector& UR);
     virtual StateVector getHLLCstate( char dim, const StateVector& UL, const StateVector& UR, double SL, double SR, double Sstar);
 };
 
@@ -27,6 +29,44 @@ FluxVector FluxSolverHLLCbase::getIntercellFlux( double ds, double dt, char dim,
     (void)ds;
     (void)dt;
 
+    // Step I: Calculate wave speeds
+    Vector3 speeds;
+    speeds = getWaveSpeeds( dim, StateL, StateR);
+    double S_L = speeds[0];
+    double S_R = speeds[1];
+    double S_star = speeds[2];
+
+    // Step II: Calculate HLLC state
+    StateVector State_HLLC;
+    State_HLLC = getHLLCstate( dim, StateL, StateR, S_L, S_R, S_star);
+
+    // Step III: Calculate flux
+    // Determine which regime we're in, and calculate accordingly.
+    FluxVector Flux;
+    FluxVector Flux_HLLC;
+
+    if( S_L >= 0.){
+        Flux_HLLC.set(State_HLLC,dim);
+        return Flux_HLLC;
+    }
+
+    if( S_R <= 0.){
+        Flux_HLLC.set(State_HLLC,dim);
+        return Flux_HLLC;
+    }
+
+
+    if( S_star >= 0){ // F_star_L
+        Flux.set(StateL,dim);
+        Flux_HLLC = Flux + S_L*(State_HLLC - StateL);
+    } else { // F_star_R
+        Flux.set(StateR,dim);
+        Flux_HLLC = Flux + S_R*(State_HLLC - StateR);
+    }
+    return Flux_HLLC;
+}
+
+Vector3 FluxSolverHLLCbase::getWaveSpeeds( char dim, const StateVector& StateL, const StateVector& StateR){
     // Setup
     const double gam = c_gamma_ideal;
     double rho_L = StateL.rho();
@@ -80,33 +120,14 @@ FluxVector FluxSolverHLLCbase::getIntercellFlux( double ds, double dt, char dim,
     double delta_R = S_R - u_R;
     double S_star = (p_R - p_L + rho_L*u_L*delta_L - rho_R*u_R*delta_R) / (rho_L*delta_L - rho_R*delta_R);
 
-    // Step III: Calculate HLLC flux
-    // Determine which regime we're in, and calculate accordingly.
-    StateVector State_HLLC;
-    FluxVector Flux;
-    FluxVector Flux_HLLC;
+    // Step III: bundle into Vector3
 
-    State_HLLC = getHLLCstate( dim, StateL, StateR, S_L, S_R, S_star);
+    Vector3 result;
+    result[0] = S_L;
+    result[1] = S_R;
+    result[2] = S_star;
 
-    if( S_L >= 0.){
-        Flux_HLLC.set(State_HLLC,dim);
-        return Flux_HLLC;
-    }
-
-    if( S_R <= 0.){
-        Flux_HLLC.set(State_HLLC,dim);
-        return Flux_HLLC;
-    }
-
-
-    if( S_star >= 0){ // F_star_L
-        Flux.set(StateL,dim);
-        Flux_HLLC = Flux + S_L*(State_HLLC - StateL);
-    } else { // F_star_R
-        Flux.set(StateR,dim);
-        Flux_HLLC = Flux + S_R*(State_HLLC - StateR);
-    }
-    return Flux_HLLC;
+    return result;
 }
 
 StateVector FluxSolverHLLCbase::getHLLCstate( char dim, const StateVector& StateL, const StateVector& StateR, double S_L, double S_R, double S_star){

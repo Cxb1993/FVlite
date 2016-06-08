@@ -25,26 +25,58 @@ class CutCellManagerStd : public CutCellManager {
 REGISTER(CutCellManager,Std)
 
 
-    // WARNING, CODE INCORRECT
 void CutCellManagerStd::newTimeStepSetup(){
-    // Copies all states into reference states
-    // TODO only do this for cut cells
+    // TODO reflective conditions are currently hardcoded. Change this.
     int startX=pGrid->startX();
     int startY=pGrid->startY();
     int endX=pGrid->endX();
     int endY=pGrid->endY();
     StateVector State;
+    StateVector BoundaryState;
     Vector3 Velocity;
-    Vector3 Tangential;
+    Vector3 VelocityR;
+    Vector3 WaveSpeeds;
+    Vector3 Normal;
+    double angle;
     BoundaryGeometry Boundary;
     for( int jj=startY; jj<endY; jj++){
         for( int ii=startX; ii<endX; ii++){
             Boundary = pGrid->boundary(ii,jj);
-            if(Boundary.alpha() == 1.) continue;
+            if(Boundary.alpha() == 1. || Boundary.alpha() == 0.) continue;
+            
             State = pGrid->state(ii,jj);
+
+            // Step I
+            // Find rotation matrix to convert velocity to tangential/normal frame
+            Normal   = Boundary.Nb();
+            angle = atan2( Normal[1], Normal[0]);
+
+            // Step II
+            // Rotate StateVector into that frame
             Velocity = State.getVelocity();
-            Tangential = Velocity - Velocity*Boundary.Nb();
-            State.set(State.rho(),Tangential[0],Tangential[1],State.p());
+            VelocityR[0] = Velocity[0]*cos(angle) - Velocity[1]*sin(angle);
+            VelocityR[1] = Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
+            State.set(State.rho(),VelocityR[0],VelocityR[1],State.p());
+            
+            // Step III
+            // Get appropriate boundary state
+            BoundaryState = State;
+            BoundaryState[1] = -State[1]; // Set x speed negative
+
+            // Step IV
+            // Solve Riemann problem at boundary
+            WaveSpeeds = pFlux->getWaveSpeeds('x',State,BoundaryState);
+            State = pFlux->getHLLCstate('x',State,BoundaryState,WaveSpeeds[0],WaveSpeeds[1],WaveSpeeds[2]);
+
+            // Step V
+            // Rotate back to standard frame
+            Velocity = State.getVelocity();
+            VelocityR[0] =  Velocity[0]*cos(angle) + Velocity[1]*sin(angle);
+            VelocityR[1] = -Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
+            State.set(State.rho(),VelocityR[0],VelocityR[1],State.p());
+
+            // Step VI
+            // Store result in reference state
             pGrid->state_ref(ii,jj) = State;
         }
     }

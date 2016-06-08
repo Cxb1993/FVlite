@@ -46,7 +46,8 @@ public:
     // DEPRECATED
     void inject_source( char dim, double t, double dt);
 
-    // Cut cell scheme requires HLLC. Function defined here, but throws error if called from non-HLLC solver.
+    // Cut cell scheme requires HLLC. Functions defined here, but throws error if called from non-HLLC solver.
+    virtual Vector3 getWaveSpeeds( char dim, const StateVector& UL, const StateVector& UR);
     virtual StateVector getHLLCstate( char dim, const StateVector& UL, const StateVector& UR, double SL, double SR, double Sstar);
 
 };
@@ -109,6 +110,16 @@ void FluxSolver::inject_source( char dim, double t, double dt){
     (void)dt;
 #endif
     return;
+}
+
+Vector3 FluxSolver::getWaveSpeeds( char dim, const StateVector& UL, const StateVector& UR){
+    std::cerr << "Error, tried cut cells without an HLLC based solver!" << std::endl;
+    exit(EXIT_FAILURE);
+    (void)dim;
+    (void)UR;
+    Vector3 result;
+    result = UL.getVelocity();
+    return result;
 }
 
 StateVector FluxSolver::getHLLCstate( char dim, const StateVector& UL, const StateVector& UR, double SL, double SR, double Sstar){
