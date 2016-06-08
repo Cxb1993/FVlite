@@ -14,7 +14,6 @@
 #include "Timer/Timer.hpp"
 #include "Sources/Sources.hpp"
 #include "Limiters/Limiters.hpp"
-#include "CutCellManagers/CutCellManagers.hpp"
 
 #include "BasicFluxFunctions.hpp"
 
@@ -30,7 +29,6 @@ protected:
     Grid*           pGrid;
     Source*         pSource;
     Limiter*        pLimiter;
-    CutCellManager* pCutCell;
 
 public:
 
@@ -40,6 +38,7 @@ public:
     void init( Grid* pGrid, Source* pSource, string LimitString);
     void init( Grid* pGrid, Source* pSource, Setting& cfg);
     void exec( char dim, double t, double dt);
+
     virtual void solve(char dim, double dt) = 0;
     virtual int stencilSize() = 0;
     virtual FluxVector getIntercellFlux( double ds, double dt, char dim, const StateVector& L, const StateVector& R) = 0;
@@ -66,8 +65,6 @@ void FluxSolver::init( Grid* pGrid, Source* pSource, Setting& cfg){
     string limitType = cfg.lookup("limiter");
     pLimiter = LimiterFactory.create(limitType);
     string cutCellType = cfg.lookup("cutcells");
-    pCutCell = CutCellManagerFactory.create(cutCellType);
-    pCutCell->init(pGrid);
     (*this).pGrid = pGrid;
     (*this).pSource = pSource;
     return;
@@ -76,7 +73,6 @@ void FluxSolver::init( Grid* pGrid, Source* pSource, Setting& cfg){
 
 FluxSolver::~FluxSolver(){
     delete pLimiter;
-    delete pCutCell;
 }
 
 void FluxSolver::exec( char dim, double t, double dt){

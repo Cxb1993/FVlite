@@ -19,7 +19,6 @@ public:
 
     FVMsolverStd(){}
     virtual void exec( char dim, double t, double dt);
-    virtual void newTimeStep(){/*do nothing*/}
 };
 
 REGISTER(FVMsolver,Std)

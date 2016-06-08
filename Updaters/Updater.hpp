@@ -24,6 +24,7 @@ protected:
     Timer*            pTimer;
     FVMsolver*        pFVM;
     BoundaryManager*  pBmanager;
+    CutCellManager*   pCutCell;
 
 public:
 

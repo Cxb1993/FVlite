@@ -14,6 +14,7 @@
 #include "Grid/Grid.hpp"
 #include "FluxSolvers/FluxSolvers.hpp"
 #include "Sources/Sources.hpp"
+#include "CutCellManagers/CutCellManagers.hpp"
 
 using std::string;
 using libconfig::Setting;
@@ -27,6 +28,7 @@ protected:
     Grid*       pGrid;
     FluxSolver* pFlux;
     Source*     pSource;
+    CutCellManager* pCutCell;
 
 public:
 
@@ -37,7 +39,7 @@ public:
     void init( Grid* pGrid, Setting& cfg);
     void source_init( Source* pSource){ (*this).pSource=pSource;}
     virtual void exec( char dim, double t, double dt) = 0;
-    virtual void newTimeStep() = 0;
+    virtual void newTimeStep();
 };
 
 // Declare object factory
@@ -58,13 +60,21 @@ void FVMsolver::init( Grid* pGrid, Setting& cfg){
     string fluxType = cfg.lookup("scheme");
     pFlux = FluxSolverFactory.create(fluxType);
     pFlux->init(pGrid,pSource,cfg);
+    string cutCellType = cfg.lookup("cutcells");
+    pCutCell = CutCellManagerFactory.create(cutCellType);
+    pCutCell->init(pGrid,pFlux);
     return;
 }
 
 FVMsolver::~FVMsolver(){
     delete pFlux;
+    delete pCutCell;
 }
 
+void FVMsolver::newTimeStep(){
+    pCutCell->newTimeStepSetup();
+    return;
+}
 
 }// Namespace closure
 #endif /* FVMABSTRACT_HPP */

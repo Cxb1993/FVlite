@@ -15,13 +15,14 @@ class CutCellManager{
 protected:
 
     Grid* pGrid;
+    FluxSolver* pFlux;
 
 public:
 
     CutCellManager(){}
     virtual ~CutCellManager(){}
 
-    void init( Grid* pGrid){ (*this).pGrid=pGrid;}
+    void init( Grid* pGrid, FluxSolver* pFlux); 
 
     virtual void newTimeStepSetup() = 0;
     virtual void correctFluxes()    = 0;
@@ -29,6 +30,12 @@ public:
 };
 
 ObjectFactory<CutCellManager> CutCellManagerFactory;
+
+void CutCellManager::init( Grid* pGrid, FluxSolver* pFlux){
+    (*this).pGrid = pGrid;
+    (*this).pFlux = pFlux;
+    return;
+}
 
 }//namspace closure
 #endif /* CUTCELLABSTRACT_HPP */
