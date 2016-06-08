@@ -19,7 +19,7 @@ namespace FVlite{
 class FluxSolverHLLCbase : public virtual FluxSolver{
 public:
     virtual FluxVector getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR);  
-    StateVector getHLLCstate( char dim, const StateVector& UL, const StateVector& UR, double SL, double SR, double Sstar);
+    virtual StateVector getHLLCstate( char dim, const StateVector& UL, const StateVector& UR, double SL, double SR, double Sstar);
 };
 
 FluxVector FluxSolverHLLCbase::getIntercellFlux( double ds, double dt, char dim, const StateVector& StateL, const StateVector& StateR){
