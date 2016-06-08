@@ -14,6 +14,7 @@
 #include "Timer/Timer.hpp"
 #include "Sources/Sources.hpp"
 #include "Limiters/Limiters.hpp"
+#include "CutCellManagers/CutCellManagers.hpp"
 
 #include "BasicFluxFunctions.hpp"
 
@@ -26,9 +27,10 @@ class FluxSolver{
 
 protected:
 
-    Grid*    pGrid;
-    Source*  pSource;
-    Limiter* pLimiter;
+    Grid*           pGrid;
+    Source*         pSource;
+    Limiter*        pLimiter;
+    CutCellManager* pCutCell;
 
 public:
 
@@ -63,6 +65,9 @@ void FluxSolver::init( Grid* pGrid, Source* pSource, string LimitString){
 void FluxSolver::init( Grid* pGrid, Source* pSource, Setting& cfg){
     string limitType = cfg.lookup("limiter");
     pLimiter = LimiterFactory.create(limitType);
+    string cutCellType = cfg.lookup("cutcell");
+    pCutCell = CutCellManagerFactory.create(cutCellType);
+    pCutCell->init(pGrid);
     (*this).pGrid = pGrid;
     (*this).pSource = pSource;
     return;
@@ -71,6 +76,7 @@ void FluxSolver::init( Grid* pGrid, Source* pSource, Setting& cfg){
 
 FluxSolver::~FluxSolver(){
     delete pLimiter;
+    delete pCutCell;
 }
 
 void FluxSolver::exec( char dim, double t, double dt){
