@@ -65,7 +65,7 @@ void FluxSolver::init( Grid* pGrid, Source* pSource, string LimitString){
 void FluxSolver::init( Grid* pGrid, Source* pSource, Setting& cfg){
     string limitType = cfg.lookup("limiter");
     pLimiter = LimiterFactory.create(limitType);
-    string cutCellType = cfg.lookup("cutcell");
+    string cutCellType = cfg.lookup("cutcells");
     pCutCell = CutCellManagerFactory.create(cutCellType);
     pCutCell->init(pGrid);
     (*this).pGrid = pGrid;
