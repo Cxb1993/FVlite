@@ -57,10 +57,15 @@ void FVMsolver::init( Grid* pGrid, FluxSolver* pFlux, Source* pSource){
 
 void FVMsolver::init( Grid* pGrid, Setting& cfg){
     (*this).pGrid = pGrid;
+
     string fluxType = cfg.lookup("scheme");
     pFlux = FluxSolverFactory.create(fluxType);
     pFlux->init(pGrid,pSource,cfg);
-    string cutCellType = cfg.lookup("cutcells");
+
+    string fvmType, cutCellType;
+    fvmType = cfg.lookup("type").c_str();
+    if( fvmType == "Std") cutCellType = "None";
+    if( fvmType == "CutCell") cutCellType = "Std";
     pCutCell = CutCellManagerFactory.create(cutCellType);
     pCutCell->init(pGrid,pFlux);
     return;
