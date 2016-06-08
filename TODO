@@ -1,0 +1,31 @@
+# TODO
+# list of things to work on
+
+    CUT CELL ISSUES
+
+> Klein paper (2009) only deals with the case where the normal to the boundary points left.
+  The generalisation to any boundary is not an obvious change to the algorithm.
+> Where to store the boundary/auxiliary/star/'2D' fluxes? Calculate on the fly, or store them?
+> Where to put this in the code? Modified flux solver, or modified FVMsolver? Or both?
+> How to deal with cases where there's an unshielded flux but no shielded?
+> How do long stencils fit into this? How do we even detect whether long stencils are being used?
+
+    CUT CELL PLAN
+
+> Give flux solver class a 'cut cell manager'. Pointer to this will be NULL for Std, but not for CutCell
+> Write rotation matrix class? Might be more work than I'd like.
+> Update HLLC to have a HLLC state function.
+
+    HOW TO CUT CELL
+
+> Startup routine:
+>> Get rotation matrix corresponding to normal.
+>> Rotate State
+>> Get HLLC state at boundary
+>> Rotate back
+>> Store
+
+> Start x-sweep
+>> Compute fluxes as usual, except in the case where the stencil 'does not contain two valid states' on either side. Then, resort to smaller stencil.
+>>> If already using smaller stencil, don't worry about it.
+...

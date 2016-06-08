@@ -21,6 +21,7 @@ typedef std::pair<StateVector,StateVector> StatePair;
 class FluxSolverMUSCLbase : public virtual FluxSolver{
 public:
     virtual void solve( char dim, double dt);
+    virtual int stencilSize(){ return 4;}
     StatePair linear_reconstruction( double ds, double dt, char dim, StateVector& StateL, StateVector& StateCL, StateVector& CR, StateVector& StateR);
     StateVector getLimitedSlope(StateVector& StateL, StateVector& StateC, StateVector& StateR, double tol=1e-10, double omega=0.);
 };
@@ -31,6 +32,7 @@ void FluxSolverMUSCLbase::solve( char dim, double dt){
     int startY = pGrid->startY();
     int endX = pGrid->endX();
     int endY = pGrid->endY();
+    BoundaryGeometry BoundaryL, BoundaryCL, BoundaryCR, BoundaryR;
     StateVector StateL, StateCL, StateCR, StateR;
     StatePair BarStates;
     FluxVector Flux;
@@ -39,12 +41,22 @@ void FluxSolverMUSCLbase::solve( char dim, double dt){
             ds = pGrid->dx();
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX-1; ii<endX; ii++){
-                    StateL  = pGrid->state(ii-1,jj);
-                    StateCL = pGrid->state(ii,jj);
-                    StateCR = pGrid->state(ii+1,jj);
-                    StateR  = pGrid->state(ii+2,jj);
-                    BarStates = linear_reconstruction(ds,dt,dim,StateL,StateCL,StateCR,StateR);
-                    Flux = getIntercellFlux( ds, dt, dim, BarStates.first, BarStates.second);
+                    BoundaryL  = pGrid->boundary(ii-1,jj);
+                    BoundaryCL = pGrid->boundary(ii,jj);
+                    BoundaryCR = pGrid->boundary(ii+1,jj);
+                    BoundaryR  = pGrid->boundary(ii+2,jj);
+                    if( BoundaryL.alpha()==0. || BoundaryCL.alpha()==0. || BoundaryCR.alpha()==0. || BoundaryR.alpha()==0.){
+                        StateL = pGrid->state(ii,jj);
+                        StateR = pGrid->state(ii+1,jj);
+                        Flux = getIntercellFlux( ds, dt, dim, StateL, StateR);
+                    } else {
+                        StateL  = pGrid->state(ii-1,jj);
+                        StateCL = pGrid->state(ii,jj);
+                        StateCR = pGrid->state(ii+1,jj);
+                        StateR  = pGrid->state(ii+2,jj);
+                        BarStates = linear_reconstruction(ds,dt,dim,StateL,StateCL,StateCR,StateR);
+                        Flux = getIntercellFlux( ds, dt, dim, BarStates.first, BarStates.second);
+                    }
                     pGrid->flux(ii,jj) = Flux;
                 }
             }
@@ -53,12 +65,22 @@ void FluxSolverMUSCLbase::solve( char dim, double dt){
             ds = pGrid->dy();
             for( int ii=startX; ii<endX; ii++){
                 for( int jj=startY-1; jj<endY; jj++){
-                    StateL  = pGrid->state(ii,jj-1);
-                    StateCL = pGrid->state(ii,jj);
-                    StateCR = pGrid->state(ii,jj+1);
-                    StateR  = pGrid->state(ii,jj+2);
-                    BarStates = linear_reconstruction(ds,dt,dim,StateL,StateCL,StateCR,StateR);
-                    Flux = getIntercellFlux( ds, dt, dim, BarStates.first, BarStates.second);
+                    BoundaryL  = pGrid->boundary(ii,jj-1);
+                    BoundaryCL = pGrid->boundary(ii,jj);
+                    BoundaryCR = pGrid->boundary(ii,jj+1);
+                    BoundaryR  = pGrid->boundary(ii,jj+2);
+                    if( BoundaryL.alpha()==0. || BoundaryCL.alpha()==0. || BoundaryCR.alpha()==0. || BoundaryR.alpha()==0.){
+                        StateL = pGrid->state(ii,jj);
+                        StateR = pGrid->state(ii,jj+1);
+                        Flux = getIntercellFlux( ds, dt, dim, StateL, StateR);
+                    } else {
+                        StateL  = pGrid->state(ii,jj-1);
+                        StateCL = pGrid->state(ii,jj);
+                        StateCR = pGrid->state(ii,jj+1);
+                        StateR  = pGrid->state(ii,jj+2);
+                        BarStates = linear_reconstruction(ds,dt,dim,StateL,StateCL,StateCR,StateR);
+                        Flux = getIntercellFlux( ds, dt, dim, BarStates.first, BarStates.second);
+                    }
                     pGrid->flux(ii,jj) = Flux;
                 }
             }

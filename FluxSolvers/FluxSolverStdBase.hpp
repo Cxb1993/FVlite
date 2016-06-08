@@ -14,6 +14,7 @@ namespace FVlite{
 class FluxSolverStdBase : public virtual FluxSolver{
 public:
     virtual void solve( char dim, double dt);
+    virtual int stencilSize(){ return 2;}
 };
 
 void FluxSolverStdBase::solve( char dim, double dt){

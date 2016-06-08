@@ -19,6 +19,7 @@ namespace FVlite{
 class FluxSolverHLLCbase : public virtual FluxSolver{
 public:
     virtual FluxVector getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR);  
+    StateVector getHLLCstate( char dim, const StateVector& UL, const StateVector& UR, double SL, double SR, double Sstar);
 };
 
 FluxVector FluxSolverHLLCbase::getIntercellFlux( double ds, double dt, char dim, const StateVector& StateL, const StateVector& StateR){
@@ -35,15 +36,12 @@ FluxVector FluxSolverHLLCbase::getIntercellFlux( double ds, double dt, char dim,
     double a_L   = StateL.a();
     double a_R   = StateR.a();
     double u_L, u_R;
-    int speed_idx;
     switch(dim){
         case 'x' :
-            speed_idx = 1;
             u_L = StateL.ux();
             u_R = StateR.ux();
             break;
         case 'y' :
-            speed_idx = 2;
             u_L = StateL.uy();
             u_R = StateR.uy();
             break;
@@ -78,45 +76,88 @@ FluxVector FluxSolverHLLCbase::getIntercellFlux( double ds, double dt, char dim,
 
     double S_L = u_L - a_L*q_L;
     double S_R = u_R + a_R*q_R;
-    // Calculation of S_star is delayed
+    double delta_L = S_L - u_L;
+    double delta_R = S_R - u_R;
+    double S_star = (p_R - p_L + rho_L*u_L*delta_L - rho_R*u_R*delta_R) / (rho_L*delta_L - rho_R*delta_R);
 
     // Step III: Calculate HLLC flux
     // Determine which regime we're in, and calculate accordingly.
+    StateVector State_HLLC;
+    FluxVector Flux;
     FluxVector Flux_HLLC;
 
+    State_HLLC = getHLLCstate( dim, StateL, StateR, S_L, S_R, S_star);
+
     if( S_L >= 0.){
-        Flux_HLLC.set(StateL,dim);
+        Flux_HLLC.set(State_HLLC,dim);
         return Flux_HLLC;
     }
 
     if( S_R <= 0.){
-        Flux_HLLC.set(StateR,dim);
+        Flux_HLLC.set(State_HLLC,dim);
         return Flux_HLLC;
     }
 
-    double delta_L = S_L - u_L;
-    double delta_R = S_R - u_R;
-    double S_star = (p_R - p_L + rho_L*u_L*delta_L - rho_R*u_R*delta_R) / (rho_L*delta_L - rho_R*delta_R);
-    StateVector State_star;
-    FluxVector Flux;
 
     if( S_star >= 0){ // F_star_L
+        Flux.set(StateL,dim);
+        Flux_HLLC = Flux + S_L*(State_HLLC - StateL);
+    } else { // F_star_R
+        Flux.set(StateR,dim);
+        Flux_HLLC = Flux + S_R*(State_HLLC - StateR);
+    }
+    return Flux_HLLC;
+}
+
+StateVector FluxSolverHLLCbase::getHLLCstate( char dim, const StateVector& StateL, const StateVector& StateR, double S_L, double S_R, double S_star){
+
+    // Get easy cases out of the way
+
+    if( S_L >= 0.) return StateL;
+    if( S_R <= 0.) return StateR;
+
+    // Prepare for the harder cases
+    double rho_L = StateL.rho();
+    double rho_R = StateR.rho();
+    double p_L   = StateL.p();
+    double p_R   = StateR.p();
+    double u_L, u_R;
+    int speed_idx;
+    switch(dim){
+        case 'x' :
+            speed_idx = 1;
+            u_L = StateL.ux();
+            u_R = StateR.ux();
+            break;
+        case 'y' :
+            speed_idx = 2;
+            u_L = StateL.uy();
+            u_R = StateR.uy();
+            break;
+        default  :
+            std::cerr << "ERROR, INCORRECT DIM, HLLC STATE SOLVER" << std::endl;
+            exit(EXIT_FAILURE);
+    } 
+    double delta_L = S_L - u_L;
+    double delta_R = S_R - u_R;
+
+    StateVector State_star;
+
+    if( S_star >= 0){ // U_star_L
         State_star = StateL/rho_L;
         State_star[speed_idx] = S_star;
         State_star[StateVector::size()-1] = StateL.E()/rho_L + (S_star-u_L)*(S_star + p_L/(rho_L*delta_L));
         State_star *= rho_L*delta_L/(S_L-S_star);
-        Flux.set(StateL,dim);
-        Flux_HLLC = Flux + S_L*(State_star - StateL);
     } else { // F_star_R
         State_star = StateR/rho_R;
         State_star[speed_idx] = S_star;
         State_star[StateVector::size()-1] = StateR.E()/rho_R + (S_star-u_R)*(S_star + p_R/(rho_R*delta_R));
         State_star *= rho_R*delta_R/(S_R-S_star);
-        Flux.set(StateR,dim);
-        Flux_HLLC = Flux + S_R*(State_star - StateR);
     }
-    return Flux_HLLC;
+
+    return State_star;
 }
+
 
 }// Namespace closure
 #endif /* FLUXFORCE_HPP */

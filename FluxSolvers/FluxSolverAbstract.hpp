@@ -39,6 +39,7 @@ public:
     void init( Grid* pGrid, Source* pSource, Setting& cfg);
     void exec( char dim, double t, double dt);
     virtual void solve(char dim, double dt) = 0;
+    virtual int stencilSize() = 0;
     virtual FluxVector getIntercellFlux( double ds, double dt, char dim, const StateVector& L, const StateVector& R) = 0;
 
     // DEPRECATED
