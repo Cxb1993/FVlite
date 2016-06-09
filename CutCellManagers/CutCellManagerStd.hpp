@@ -243,9 +243,9 @@ FluxVector CutCellManagerStd::getModifiedFlux( double ds, double dt, char dim, c
     //First, need to determine, whether left or right boundary flux is needed.
     bool positive_slope = (betaR<betaL) ? true : false;
     if(positive_slope){
-        BoundaryFlux.set(AuxL,dim);
-    } else {
         BoundaryFlux.set(AuxR,dim);
+    } else {
+        BoundaryFlux.set(AuxL,dim);
     }
 
     //Step 3

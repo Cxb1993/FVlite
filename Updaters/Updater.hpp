@@ -64,11 +64,11 @@ void Updater::exec(){
 
     dim = 'y';
     pBmanager->exec(dim);
-//    pFVM->exec(dim,t+0.5*dt,dt);
+    pFVM->exec(dim,t+0.5*dt,dt);
 
-//    dim = 'x';
-//    pBmanager->exec(dim);
-//    pFVM->exec(dim,t+0.5*dt,0.5*dt);
+    dim = 'x';
+    pBmanager->exec(dim);
+    pFVM->exec(dim,t+0.5*dt,0.5*dt);
 
     // Increment time
     pTimer->advance();
