@@ -233,7 +233,7 @@ template<unsigned int M>
 bool MathVector<M>::isnan(){
     bool result = false;
     for( unsigned int ii=0; ii<M; ii++){
-        if( isnan(mX[ii])) result = true;
+        if( std::isnan(mX[ii])) result = true;
     }
     return result;
 }

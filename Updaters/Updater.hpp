@@ -32,6 +32,7 @@ public:
     virtual ~Updater();
 
     void exec();
+    void checkGrid();
 };
 
 Updater::Updater( Grid* pGrid, Timer* pTimer, FVMsolver* pFVM, BoundaryManager* pBmanager)
@@ -62,17 +63,58 @@ void Updater::exec(){
     pBmanager->exec(dim);
     pFVM->exec(dim,t,0.5*dt); 
 
+#ifdef DEBUG
+    checkGrid();
+#endif
+
     dim = 'y';
     pBmanager->exec(dim);
     pFVM->exec(dim,t+0.5*dt,dt);
+
+#ifdef DEBUG
+    checkGrid();
+#endif
 
     dim = 'x';
     pBmanager->exec(dim);
     pFVM->exec(dim,t+0.5*dt,0.5*dt);
 
+#ifdef DEBUG
+    checkGrid();
+#endif
+
     // Increment time
     pTimer->advance();
 
+    return;
+}
+
+void Updater::checkGrid(){
+    int startX = pGrid->startX();
+    int startY = pGrid->startY();
+    int endX = pGrid->endX();
+    int endY = pGrid->endY();
+    StateVector State;
+    FluxVector Flux;
+    bool abort = false;
+    for( int jj=startY; jj<endY; jj++){
+        for( int ii=startX; ii<endX; ii++){
+            State = pGrid->state(ii,jj);
+            Flux  = pGrid->flux(ii,jj);
+            if( State.isnan() ){
+                std::cerr << "State("<<ii<<","<<jj<<") contains NaN" << std::endl;
+                abort = true;
+            }
+            if( Flux.isnan() ){
+                std::cerr << "Flux("<<ii<<","<<jj<<") contains NaN" << std::endl;
+                abort = true;
+            }
+        }
+    }
+    if( abort ){
+        std::cerr << "NaNs found in grid. Aborting." << std::endl;
+        exit(EXIT_FAILURE);
+    }
     return;
 }
 
