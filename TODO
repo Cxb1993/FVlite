@@ -29,3 +29,7 @@
 >> Compute fluxes as usual, except in the case where the stencil 'does not contain two valid states' on either side. Then, resort to smaller stencil.
 >>> If already using smaller stencil, don't worry about it.
 ...
+
+
+ERROR TO FIX
+cut cell algorithm breaks at upper right boundary. 

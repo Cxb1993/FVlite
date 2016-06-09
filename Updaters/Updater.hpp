@@ -54,7 +54,7 @@ void Updater::exec(){
     pFVM->newTimeStep();
 
     // Print current time to screen
-    std::cout << "\rTime: " << t << std::flush;
+    //std::cout << "\rTime: " << t << std::flush;
     // Makes use of Strang directional splitting. 
     char dim;
 
@@ -64,11 +64,11 @@ void Updater::exec(){
 
     dim = 'y';
     pBmanager->exec(dim);
-    pFVM->exec(dim,t+0.5*dt,dt);
+//    pFVM->exec(dim,t+0.5*dt,dt);
 
-    dim = 'x';
-    pBmanager->exec(dim);
-    pFVM->exec(dim,t+0.5*dt,0.5*dt);
+//    dim = 'x';
+//    pBmanager->exec(dim);
+//    pFVM->exec(dim,t+0.5*dt,0.5*dt);
 
     // Increment time
     pTimer->advance();

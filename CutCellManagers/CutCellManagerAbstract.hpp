@@ -25,7 +25,7 @@ public:
     void init( Grid* pGrid, FluxSolver* pFlux); 
 
     virtual void newTimeStepSetup() = 0;
-    virtual void correctFluxes()    = 0;
+    virtual void correctFluxes( char dim, double dt)  = 0;
 
 };
 

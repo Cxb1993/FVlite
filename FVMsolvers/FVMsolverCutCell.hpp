@@ -15,16 +15,8 @@
 namespace FVlite{
 
 class FVMsolverCutCell : public FVMsolver{
-
 public:
-
-    FVMsolverCutCell(){}
     virtual void exec( char dim, double t, double dt);
-
-    // Main cut cell function, used to calculate boundary, auxiliary and modified fluxes throughout grid
-    void updateCutFluxes( char dim);
-
-
 };
 
 REGISTER(FVMsolver,CutCell)
@@ -35,19 +27,42 @@ void FVMsolverCutCell::exec( char dim, double t, double dt){
     int endX = pGrid->endX();
     int endY = pGrid->endY();
     double ds;
-    double levelset;
     StateVector State;
+    BoundaryGeometry Boundary;
+    FluxVector FluxL,FluxR,BoundaryFlux;
+    double alpha, betaL, betaR;
+
+    // Method:
+    // 1) Sweep grid.
+    // 2) If cell is filled (alpha=0), skip.
+    // 3) If cell is free (alpha=1), standard explicit update.
+    // 4) If cell is mixed, apply cut-cell update
+
+    std::cout << "starting sweep, " << dim << std::endl;
     switch(dim){
         case 'x' :
             ds = pGrid->dx();
             // Solve flux
             pFlux->exec(dim,t,dt);
+            std::cout << "standard x fluces" << std::endl;
+            pCutCell->correctFluxes(dim,dt);
+            std::cout << "corrected x fluxes" << std::endl;
             // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
-                    levelset = pGrid->levelset(ii,jj);
-                    if( levelset > 0) continue;
-                    pGrid->state(ii,jj) = pGrid->state(ii,jj) + (pGrid->flux(ii-1,jj)-pGrid->flux(ii,jj)) * dt/ds;
+                    Boundary = pGrid->boundary(ii,jj);
+                    alpha = Boundary.alpha();
+                    betaL = Boundary.betaL();
+                    betaR = Boundary.betaR();
+                    if( alpha == 0.) continue;
+                    if( alpha == 1.){
+//                        pGrid->state(ii,jj) = pGrid->state(ii,jj) + (pGrid->flux(ii-1,jj)-pGrid->flux(ii,jj)) * dt/ds;
+                    }else{
+                        BoundaryFlux.set( pGrid->state_ref(ii,jj),dim);
+                        FluxL = pGrid->flux(ii-1,jj);
+                        FluxR = pGrid->flux(ii,jj);
+//                        pGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
+                    }
                 }
             }
             break;
@@ -55,12 +70,25 @@ void FVMsolverCutCell::exec( char dim, double t, double dt){
             ds = pGrid->dy();
             // Solve flux
             pFlux->exec(dim,t,dt);
+            std::cout << "standard y fluxes" << std::endl;
+            pCutCell->correctFluxes(dim,dt);
+            std::cout << "corrected y fluxes" << std::endl;
             // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
-                    levelset = pGrid->levelset(ii,jj);
-                    if( levelset > 0) continue;
-                    pGrid->state(ii,jj) = pGrid->state(ii,jj) + (pGrid->flux(ii,jj-1)-pGrid->flux(ii,jj)) * dt/ds;
+                    Boundary = pGrid->boundary(ii,jj);
+                    alpha = Boundary.alpha();
+                    betaL = Boundary.betaB();
+                    betaR = Boundary.betaT();
+                    if( alpha == 0.) continue;
+                    if( alpha == 1.){
+//                        pGrid->state(ii,jj) = pGrid->state(ii,jj) + (pGrid->flux(ii,jj-1)-pGrid->flux(ii,jj)) * dt/ds;
+                    }else{
+                       BoundaryFlux.set( pGrid->state_ref(ii,jj),dim);
+                        FluxL = pGrid->flux(ii,jj-1);
+                        FluxR = pGrid->flux(ii,jj);
+//                        pGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
+                    }
                 }
             }
             break;
@@ -72,6 +100,9 @@ void FVMsolverCutCell::exec( char dim, double t, double dt){
             std::cerr << "Error, invalid direction specifier" << std::endl;
             exit(EXIT_FAILURE);
     }
+    (void)betaL;
+    (void)betaR;
+    (void)ds;
     return;
 }
 

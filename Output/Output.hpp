@@ -111,14 +111,23 @@ void Output::print(){
     // Print data
 
     StateVector State;
-    for( int ii=mpGrid->startX(); ii<mpGrid->endX(); ii++){
-        for( int jj=mpGrid->startY(); jj<mpGrid->endY(); jj++){
+//    for( int ii=mpGrid->startX(); ii<mpGrid->endX(); ii++){
+//        for( int jj=mpGrid->startY(); jj<mpGrid->endY(); jj++){
+    for( int ii=0; ii<mpGrid->sizeX(); ii++){
+        for( int jj=0; jj<mpGrid->sizeY(); jj++){
 
             // Print position
             File << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';
 
             // Print conserved data
             State = mpGrid->state(ii,jj);
+            for( unsigned int kk=0; kk<State.size(); kk++){
+                File << State[kk] << '\t';
+            }
+            
+            // TEMPORARY CODE
+            // Print auxiliary data
+            State = mpGrid->state_ref(ii,jj);
             for( unsigned int kk=0; kk<State.size(); kk++){
                 File << State[kk] << '\t';
             }

@@ -11,7 +11,7 @@ namespace FVlite{
 
 class CutCellManagerNone : public CutCellManager {
     virtual void newTimeStepSetup(){return;}
-    virtual void correctFluxes(){return;}
+    virtual void correctFluxes( char dim, double dt){(void)dim;(void)dt;return;}
 };
 
 REGISTER(CutCellManager,None)

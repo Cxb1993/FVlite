@@ -12,14 +12,11 @@ namespace FVlite{
 
 class CutCellManagerStd : public CutCellManager {
     virtual void newTimeStepSetup();
-    virtual void correctFluxes(){return;}
+    virtual void correctFluxes( char dim, double dt);
 
     // Component functions used in cut cell scheme
     double getAlphaShielded( const BoundaryGeometry& Boundary, char dim);
-    FluxVector getBoundaryFlux( int ii, int jj, char dim);
-    FluxVector getShieldedFlux( int ii, int jj, char dim);
-    FluxVector getAuxFlux( int ii, int jj, char dim);
-    FluxVector getModifiedFlux( int ii, int jj, char dim);
+    FluxVector getModifiedFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const StateVector& AuxL, const StateVector& AuxR, const BoundaryGeometry& BL, const BoundaryGeometry& BR);
 };
 
 REGISTER(CutCellManager,Std)
@@ -48,7 +45,7 @@ void CutCellManagerStd::newTimeStepSetup(){
 
             // Step I
             // Find rotation matrix to convert velocity to tangential/normal frame
-            Normal   = Boundary.Nb();
+            Normal = Boundary.Nb();
             angle = atan2( Normal[1], Normal[0]);
 
             // Step II
@@ -61,7 +58,7 @@ void CutCellManagerStd::newTimeStepSetup(){
             // Step III
             // Get appropriate boundary state
             BoundaryState = State;
-            BoundaryState[1] = -State[1]; // Set x speed negative
+            BoundaryState[2] = -State[2]; // Set y speed negative in new coordinates
 
             // Step IV
             // Solve Riemann problem at boundary
@@ -83,6 +80,55 @@ void CutCellManagerStd::newTimeStepSetup(){
     return;
 }
 
+void CutCellManagerStd::correctFluxes( char dim, double dt){
+    int startX=pGrid->startX();
+    int startY=pGrid->startY();
+    int endX=pGrid->endX();
+    int endY=pGrid->endY();
+    BoundaryGeometry BoundaryL, BoundaryR;
+    StateVector StateL, StateR, StateAuxL, StateAuxR;
+    FluxVector Flux;
+    double ds;
+    switch(dim){
+        case 'x':
+        ds = pGrid->dx();
+        for( int jj=startY; jj<endY; jj++){
+            for( int ii=startX-1; ii<endX; ii++){
+                BoundaryL = pGrid->boundary(ii,jj);
+                BoundaryR = pGrid->boundary(ii+1,jj);
+                if( !BoundaryGeometry::beta1or0(BoundaryL.alpha()) // Really should rename that function
+                  ||!BoundaryGeometry::beta1or0(BoundaryR.alpha()) ){
+                    StateL = pGrid->state(ii,jj);
+                    StateR = pGrid->state(ii+1,jj);
+                    StateAuxL = pGrid->state_ref(ii,jj);
+                    StateAuxR = pGrid->state_ref(ii+1,jj);
+                    Flux = getModifiedFlux(ds,dt,dim,StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
+                    pGrid->flux(ii,jj) = Flux;
+                }
+            }
+        }
+        break;
+        case 'y':
+        ds = pGrid->dy();
+        for( int jj=startY-1; jj<endY; jj++){
+            for( int ii=startX; ii<endX; ii++){
+                BoundaryL = pGrid->boundary(ii,jj);
+                BoundaryR = pGrid->boundary(ii,jj+1);
+                if( !BoundaryGeometry::beta1or0(BoundaryL.alpha()) // Really should rename that function
+                  ||!BoundaryGeometry::beta1or0(BoundaryR.alpha())){
+                    StateL = pGrid->state(ii,jj);
+                    StateR = pGrid->state(ii,jj+1);
+                    StateAuxL = pGrid->state_ref(ii,jj);
+                    StateAuxR = pGrid->state_ref(ii,jj+1);
+                    Flux = getModifiedFlux(ds,dt,dim,StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
+                    pGrid->flux(ii,jj) = Flux;
+                }
+            }
+        }
+        break;
+    }
+    return;
+}
 
 double CutCellManagerStd::getAlphaShielded( const BoundaryGeometry& Boundary, char dim){
     // Case 1
@@ -135,12 +181,94 @@ double CutCellManagerStd::getAlphaShielded( const BoundaryGeometry& Boundary, ch
     return 0.5*(beta1+beta2);
 }
 
-//    FluxVector getShieldedFlux( int ii, int jj, char dim);
-//    FluxVector getAuxFlux( int ii, int jj, char dim);
-//    FluxVector getBoundaryFlux( int ii, int jj, char dim);
+FluxVector CutCellManagerStd::getModifiedFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const StateVector& AuxL, const StateVector& AuxR, const BoundaryGeometry& BL, const BoundaryGeometry& BR){
 
-//FluxVector CutCellManagerStd::getModifiedFlux( int ii, int jj, char dim){
+    FluxVector Shielded, Unshielded, BoundaryFlux, Modified;
+    double alpha_shielded;
+    double betaL,betaR,betaC;
 
+    // If y sweep, exchange betas so it looks like an x sweep
+    switch(dim){
+        case 'x':
+            betaL = BL.betaL();
+            betaC = BL.betaR();
+            betaR = BR.betaR();
+            break;
+        case 'y':
+            betaL = BL.betaB();
+            betaC = BL.betaT();
+            betaR = BR.betaT();
+            break;
+        default:
+            std::cerr <<"ERROR: bad dim, getModifiedFlux" << std::endl;
+            betaL=betaC=betaR=0;
+            exit(EXIT_FAILURE);
+    }
+
+    //Step 1
+    //Compute 'unshielded flux'. This should be a first order HLLC flux between the two states
+    Unshielded = pFlux->getIntercellFlux( ds,dt,dim,UL,UR);
+
+    //Step 1.1
+    //Deal with case where the boundary comes to a point at the cell boundary:
+    //-----------------------
+    //|          |          |
+    //|         /|\         |
+    //|        / | \        |
+    //|       /  |  \       |
+    //-----------------------
+    //(Equally applies to case where the boundary is flat)
+    if( betaC <= betaL && betaC <= betaR){
+        // Written in this way for consistency
+        Modified = (betaC*Unshielded)/betaC;
+        return Modified;
+    }
+
+    //Step 1.2
+    //'Deal' with concave problem
+    if( betaC > betaL &&  betaC > betaR){
+        std::cerr << "ERROR: Encountered concave boundary. Cut cell algorithm failed." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    //Step 1.3
+    //'Deal' with no boundary in the middle
+    if( betaC == 0.){
+        std::cerr << "ERROR: Middle boundary is zero. Cut cell algorithm failed." << std::endl;
+        exit(EXIT_FAILURE);
+    }   
+
+    //Step 2
+    //Compute boundary flux
+    //First, need to determine, whether left or right boundary flux is needed.
+    bool positive_slope = (betaR<betaL) ? true : false;
+    if(positive_slope){
+        BoundaryFlux.set(AuxL,dim);
+    } else {
+        BoundaryFlux.set(AuxR,dim);
+    }
+
+    //Step 3
+    //Compute shielded flux
+    //a) get alpha shielded
+    if(positive_slope){
+       alpha_shielded = getAlphaShielded(BR,dim);
+    } else {
+        alpha_shielded = getAlphaShielded(BL,dim);
+    }
+    //b) get F shielded
+    Shielded = BoundaryFlux + alpha_shielded*(Unshielded-BoundaryFlux);
+
+    //Step 4
+    //Compute modified flux
+    if(positive_slope){
+        Modified = (betaR*Unshielded + (betaC-betaR)*Shielded)/betaC;
+    } else {
+        Modified = (betaL*Unshielded + (betaC-betaL)*Shielded)/betaC;
+    }
+
+    return Modified;
+}
 
 }//namspace closure
 #endif /* CUTCELLSTD_HPP */

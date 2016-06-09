@@ -18,8 +18,8 @@ set palette defined (0 "white", 1 "black")
 # axes
 set xlabel 'x (m)'
 set ylabel 'y (m)'
-set xrange [0:2]
-set yrange [0:2]
+#set xrange [0:2]
+#set yrange [0:2]
 #set zrange [-2:2]
 set size square
 set xyplane 0.1
