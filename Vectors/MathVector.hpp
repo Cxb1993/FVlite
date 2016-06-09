@@ -10,6 +10,9 @@
 #ifndef MATHVECTOR_HPP
 #define MATHVECTOR_HPP
 
+#include <cmath>
+#include <ctgmath>
+
 template <unsigned int N>
 class MathVector{
 
@@ -47,6 +50,8 @@ public:
     template<unsigned int M> friend MathVector<M> operator/(const MathVector<M>& lhs, const MathVector<M>& rhs);
     template<unsigned int M> friend MathVector<M> operator/(const MathVector<M>& lhs, const double& rhs);
     template<unsigned int M> friend MathVector<M> operator/(const double& lhs, const MathVector<M>& rhs);
+
+    bool isnan();
 };
 
 template<unsigned int M>
@@ -223,5 +228,15 @@ MathVector<M> operator/( const double& lhs, const MathVector<M>& rhs){
     }
     return result;
 }
+
+template<unsigned int M>
+bool MathVector<M>::isnan(){
+    bool result = false;
+    for( unsigned int ii=0; ii<M; ii++){
+        if( isnan(mX[ii])) result = true;
+    }
+    return result;
+}
+
 
 #endif /* MATHVECTOR_HPP */
