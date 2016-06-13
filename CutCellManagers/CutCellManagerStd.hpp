@@ -7,6 +7,7 @@
 #define CUTCELLSTD_HPP
 
 #include "CutCellManagerAbstract.hpp"
+#include "FluxSolvers/HLLCfunctions.hpp"
 
 namespace FVlite{
 
@@ -64,16 +65,16 @@ void CutCellManagerStd::newTimeStepSetup(){
             // Get appropriate boundary state
             BoundaryState = State;
             BoundaryState[1] = -State[1]; // Set x speed negative in new coordinates
-            //BoundaryState[2] = -State[2]; // Set y speed negative in new coordinates
 
             // Step IV
             // Solve Riemann problem at boundary
-            WaveSpeeds = pFlux->getWaveSpeeds('x',State,BoundaryState);
-            State = pFlux->getHLLCstate('x',State,BoundaryState,WaveSpeeds[0],WaveSpeeds[1],WaveSpeeds[2]);
-
+            WaveSpeeds = HLLC::getWaveSpeeds('x',State,BoundaryState);
+            State = HLLC::getHLLCstate('x',State,BoundaryState,WaveSpeeds[0],WaveSpeeds[1],WaveSpeeds[2]);
 
             // Step V
             // Rotate back to standard frame
+            // NOTE: This method tends to introduce unsual behaviour in the tangential velocity.
+            // Now manually setting it to be maintained from original state.
             //Velocity = State.getVelocity();
             //VelocityR[0] =  Velocity[0]*cos(angle) + Velocity[1]*sin(angle);
             //VelocityR[1] = -Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
@@ -81,7 +82,6 @@ void CutCellManagerStd::newTimeStepSetup(){
 
             // Step V alt
             // Retain only tangential component of velocity at interface
-            // (from Nandan's code)
             Velocity = Velocity - (Velocity*Normal)*Normal;
             State.set(State.rho(),Velocity[0],Velocity[1],State.p());
 
