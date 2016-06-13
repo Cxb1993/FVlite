@@ -1,4 +1,5 @@
 *.dat
+gmon.out
 *.png
 *.mpeg4
 *.txt

@@ -2,14 +2,14 @@
 # 'Heatmap' of H field
 
 #set terminal postscript eps enhanced color
-set terminal png size 800,800 font "Times Roman" 12
+set terminal png size 1200,800 font "Times Roman" 12
 #set terminal epslatex color size 4.5in, 4.5in
 set output outfile
 
 unset key
 
 # colorbar
-set cbrange [0:2]
+#set cbrange [0:2]
 #set cblabel "Hz  (A/m)"
 #set palette defined (0 "blue", 1 "white", 2 "violet")
 #set palette defined (0 "green", 1 "red")
@@ -21,7 +21,7 @@ set ylabel 'y (m)'
 #set xrange [0:2]
 #set yrange [0:2]
 #set zrange [-2:2]
-set size square
+#set size square
 set xyplane 0.1
 #set view 90, 0 
 

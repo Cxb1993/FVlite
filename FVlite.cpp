@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <string>
+#include <iostream>
 
 #include <libconfig.h++>
 
@@ -31,8 +32,16 @@ int main( int argc, char* argv[]){
 
     cfgname = cfgname + ".cfg";
 
+#ifdef DEBUG
+    std::cout << "Reading config file: " << cfgname << std::endl;
+#endif
+
     libconfig::Config cfg;
     cfg.readFile(cfgname.c_str());
+
+#ifdef DEBUG
+    std::cout << "Config file read success." << std::endl;
+#endif
 
     Solver mySolver(cfg);
 //    mySolver.printData();

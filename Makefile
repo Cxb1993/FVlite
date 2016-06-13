@@ -5,7 +5,8 @@
 
 COMP = g++-4.9
 CFLAGS = -Wall -Wextra -pedantic -O3 -std=c++11 -fmax-errors=3
-DEBUG  = ${CFLAGS} -pedantic -g -pg
+DEBUG  = ${CFLAGS} -DDEBUG -g -pg
+#DEBUG  = ${CFLAGS} -DDEBUG 
 LIBLOCS = -L/home/cdt1507/lib/libconfig/lib/ -L/usr/lib/ 
 INCLOCS = -I. -I/home/cdt1507/lib/libconfig/include/ -I/usr/include/ 
 FILES = FVlite.cpp
@@ -21,7 +22,7 @@ maxwell: ${FILES}
 	${COMP} ${CFLAGS} -DMAXWELL ${INCLOCS} -o ${EXEC} ${FILES} ${LIBLOCS} ${LIBS}
 
 debug: ${FILES}
-	${COMP} ${DEBUG} ${TYPE} ${LIBLOCS} ${INCLOCS} -o ${EXEC} ${FILES} ${LIBS}
+	${COMP} ${DEBUG} -DEULER ${INCLOCS} -o ${EXEC} ${FILES} ${LIBLOCS} ${LIBS}
 
 test: ${TESTFILES}
 	${COMP} ${CFLAGS} ${TYPE} ${LIBLOCS} ${INCLOCS} -o ${TESTEXEC} ${TESTFILES} ${LIBS}

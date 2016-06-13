@@ -55,13 +55,19 @@ void Updater::exec(){
     pFVM->newTimeStep();
 
     // Print current time to screen
-    //std::cout << "\rTime: " << t << std::flush;
+    std::cout << "\rTime: " << t
+#ifdef DEBUG 
+        << std::endl;
+#else
+        << std::flush;
+#endif
+
     // Makes use of Strang directional splitting. 
     char dim;
 
     dim = 'x';
     pBmanager->exec(dim);
-    pFVM->exec(dim,t,0.5*dt); 
+    pFVM->exec(dim,t,dt); 
 
 #ifdef DEBUG
     checkGrid();
@@ -75,13 +81,13 @@ void Updater::exec(){
     checkGrid();
 #endif
 
-    dim = 'x';
-    pBmanager->exec(dim);
-    pFVM->exec(dim,t+0.5*dt,0.5*dt);
-
-#ifdef DEBUG
-    checkGrid();
-#endif
+//    dim = 'x';
+//    pBmanager->exec(dim);
+//    pFVM->exec(dim,t+0.5*dt,0.5*dt);
+//
+//#ifdef DEBUG
+//    checkGrid();
+//#endif
 
     // Increment time
     pTimer->advance();

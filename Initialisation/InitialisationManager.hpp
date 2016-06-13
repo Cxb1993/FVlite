@@ -23,6 +23,7 @@ public:
     InitialisationManager(){}
     virtual void init( Grid* pGrid, Setting& cfg);
     void setup_boundary_geometry();
+    void fix_edges();
 };
 
 void InitialisationManager::init( Grid* pGrid, Setting& cfg){
@@ -63,6 +64,8 @@ void InitialisationManager::setup_boundary_geometry(){
     double dx = pGrid->dx();
     double dy = pGrid->dy();
 
+    BoundaryGeometry Boundary;
+
     for( int jj=1; jj<sizeY-1; jj++){
         y = pGrid->y(jj);
         for( int ii=1; ii<sizeX-1; ii++){
@@ -73,12 +76,77 @@ void InitialisationManager::setup_boundary_geometry(){
             levelset_tl = pGrid->levelset()->interpolate(x-0.5*dx,y+0.5*dy);
             levelset_tr = pGrid->levelset()->interpolate(x+0.5*dx,y+0.5*dy);
             // Calculate geometry parameters
-            pGrid->boundary(ii,jj).set( dx, dy, levelset_bl, levelset_br, levelset_tl, levelset_tr);
+            Boundary.set( dx, dy, levelset_bl, levelset_br, levelset_tl, levelset_tr);
+            pGrid->boundary(ii,jj) = Boundary;
         }
+    }
+    fix_edges();
+    return;
+}
+
+void InitialisationManager::fix_edges(){
+    // Errors are introduced if attempting to allow any solid to extend into edge boundaries.
+    // This function fixes that.
+
+    int startX = pGrid->startX();
+    int startY = pGrid->startY();
+    int endX   = pGrid->endX();
+    int endY   = pGrid->endY();
+
+    BoundaryGeometry BoundaryL, BoundaryR;
+    double temp;
+    Vector3 Nb;
+
+    // Left/right boundary
+    for( int jj=startY; jj<endY; jj++){
+        BoundaryL = pGrid->boundary(startX,jj);
+        BoundaryR = pGrid->boundary(endX-1,jj);
+
+        temp = BoundaryL.betaL();
+        BoundaryL.betaL() = BoundaryL.betaR();
+        BoundaryL.betaR() = temp;
+        Nb = BoundaryL.Nb();
+        Nb[1] = -Nb[1];
+        BoundaryL.Nb() = Nb;
+
+        temp = BoundaryR.betaL();
+        BoundaryR.betaL() = BoundaryR.betaR();
+        BoundaryR.betaR() = temp;
+        Nb = BoundaryR.Nb();
+        Nb[1] = -Nb[1];
+        BoundaryR.Nb() = Nb;
+
+        pGrid->boundary(startX-1,jj) = BoundaryL;
+        pGrid->boundary(endX,jj) = BoundaryR;
+    }
+
+
+    // Top/bottom boundary
+    for( int ii=startX; ii<endX; ii++){
+        BoundaryL = pGrid->boundary(ii,startY);
+        BoundaryR = pGrid->boundary(ii,endY-1);
+
+        temp = BoundaryL.betaB();
+        BoundaryL.betaB() = BoundaryL.betaT();
+        BoundaryL.betaT() = temp;
+        Nb = BoundaryL.Nb();
+        Nb[0] = -Nb[0];
+        BoundaryL.Nb() = Nb;
+
+        temp = BoundaryR.betaB();
+        BoundaryR.betaB() = BoundaryR.betaT();
+        BoundaryR.betaT() = temp;
+        Nb = BoundaryR.Nb();
+        Nb[0] = -Nb[0];
+        BoundaryR.Nb() = Nb;
+
+        pGrid->boundary(ii,startY-1) = BoundaryL;
+        pGrid->boundary(ii,endY) = BoundaryR;
     }
 
     return;
 }
+
 
 }// Namespace closure
 #endif /* INITIALISATIONMANAGER_HPP */

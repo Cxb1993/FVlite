@@ -147,6 +147,9 @@ void Solver::init( Config& cfg){
 
     std::cout << "Solver built successfully" << std::endl;
     pOutput->prod();
+#ifdef DEBUG
+    pOutput->print_geometry();
+#endif
 
     return;
 }

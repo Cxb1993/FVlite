@@ -38,6 +38,7 @@ public:
     void init( Grid* pGrid, const Setting& cfg);
     void prod();
     void print();
+    void print_geometry();
 
 };
 
@@ -125,12 +126,13 @@ void Output::print(){
                 File << State[kk] << '\t';
             }
             
-            // TEMPORARY CODE
+#ifdef DEBUG
             // Print auxiliary data
             State = mpGrid->state_ref(ii,jj);
             for( unsigned int kk=0; kk<State.size(); kk++){
                 File << State[kk] << '\t';
             }
+#endif
 
             // Print level set function
             File << (*mpGrid->levelset())(ii,jj) << std::endl;
@@ -144,6 +146,70 @@ void Output::print(){
     File.close();
 
     return;
+}
+
+void Output::print_geometry(){
+
+    // Get filename
+
+    string Prefix = "data/";
+    string Suffix = "Geometry.dat";
+    string Filename = Prefix+mRunName+Suffix;
+
+    // Open file
+    
+    std::ofstream File( Filename);
+
+    // Print metadata
+
+    File << "# ii" << std::endl;
+    File << "# jj" << std::endl;
+    File << "# x" << std::endl;
+    File << "# y" << std::endl;
+
+    File << "# betaL" << std::endl;
+    File << "# betaR" << std::endl;
+    File << "# betaT" << std::endl;
+    File << "# betaB" << std::endl;
+    File << "# alpha" << std::endl;
+    File << "# Nb[0]" << std::endl;
+    File << "# Nb[1]" << std::endl;
+    File << "# Nb[2]" << std::endl;
+
+    // Print data
+
+    BoundaryGeometry Boundary;
+    for( int ii=0; ii<mpGrid->sizeX(); ii++){
+        for( int jj=0; jj<mpGrid->sizeY(); jj++){
+
+            // Print grid location
+            File << ii  << '\t' << jj << '\t';
+
+            // Print position
+            File << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';
+
+            // Print boundary data
+            Boundary = mpGrid->boundary(ii,jj); 
+            File << Boundary.betaL() << '\t';
+            File << Boundary.betaR() << '\t';
+            File << Boundary.betaT() << '\t';
+            File << Boundary.betaB() << '\t';
+            File << Boundary.alpha() << '\t';
+            File << (Boundary.Nb())[0] << '\t';
+            File << (Boundary.Nb())[1] << '\t';
+            File << (Boundary.Nb())[2] << '\t';
+            File << std::endl;
+
+        }
+        File << std::endl;
+    }
+
+    // Close file
+
+    File.close();
+
+    return;
+
 }
 
 }// Namespace closure

@@ -24,6 +24,9 @@ REGISTER(CutCellManager,Std)
 
 void CutCellManagerStd::newTimeStepSetup(){
     // TODO reflective conditions are currently hardcoded. Change this.
+#ifdef DEBUG
+    std::cout << "NEW TIME STEP" << std::endl;
+#endif
     int startX=pGrid->startX();
     int startY=pGrid->startY();
     int endX=pGrid->endX();
@@ -34,6 +37,7 @@ void CutCellManagerStd::newTimeStepSetup(){
     Vector3 VelocityR;
     Vector3 WaveSpeeds;
     Vector3 Normal;
+    Velocity[2]=0; VelocityR[2]=0; Normal[2]=0;
     double angle;
     BoundaryGeometry Boundary;
     for( int jj=startY; jj<endY; jj++){
@@ -51,32 +55,48 @@ void CutCellManagerStd::newTimeStepSetup(){
             // Step II
             // Rotate StateVector into that frame
             Velocity = State.getVelocity();
-            VelocityR[0] = Velocity[0]*cos(angle) - Velocity[1]*sin(angle);
-            VelocityR[1] = Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
+            VelocityR[0] =  Velocity[0]*cos(angle) - Velocity[1]*sin(angle);
+            VelocityR[1] =  Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
             State.set(State.rho(),VelocityR[0],VelocityR[1],State.p());
             
             // Step III
             // Get appropriate boundary state
             BoundaryState = State;
-            BoundaryState[2] = -State[2]; // Set y speed negative in new coordinates
+            BoundaryState[1] = -State[1]; // Set x speed negative in new coordinates
+            //BoundaryState[2] = -State[2]; // Set y speed negative in new coordinates
 
             // Step IV
             // Solve Riemann problem at boundary
             WaveSpeeds = pFlux->getWaveSpeeds('x',State,BoundaryState);
             State = pFlux->getHLLCstate('x',State,BoundaryState,WaveSpeeds[0],WaveSpeeds[1],WaveSpeeds[2]);
 
+
             // Step V
             // Rotate back to standard frame
-            Velocity = State.getVelocity();
-            VelocityR[0] =  Velocity[0]*cos(angle) + Velocity[1]*sin(angle);
-            VelocityR[1] = -Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
-            State.set(State.rho(),VelocityR[0],VelocityR[1],State.p());
+            //Velocity = State.getVelocity();
+            //VelocityR[0] =  Velocity[0]*cos(angle) + Velocity[1]*sin(angle);
+            //VelocityR[1] = -Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
+            //State.set(State.rho(),VelocityR[0],VelocityR[1],State.p());
+
+            // Step V alt
+            // Retain only tangential component of velocity at interface
+            // (from Nandan's code)
+            Velocity = Velocity - (Velocity*Normal)*Normal;
+            State.set(State.rho(),Velocity[0],Velocity[1],State.p());
 
             // Step VI
             // Store result in reference state
             pGrid->state_ref(ii,jj) = State;
+
+            if(ii==96&&jj==2){
+                std::cout << State[0] << std::endl;
+                std::cout << State[1] << std::endl;
+                std::cout << State[2] << std::endl;
+                std::cout << State[3] << std::endl;
+            }
         }
     }
+
     return;
 }
 
@@ -85,6 +105,7 @@ void CutCellManagerStd::correctFluxes( char dim, double dt){
     int startY=pGrid->startY();
     int endX=pGrid->endX();
     int endY=pGrid->endY();
+    double alphaL, alphaR, betaC;
     BoundaryGeometry BoundaryL, BoundaryR;
     StateVector StateL, StateR, StateAuxL, StateAuxR;
     FluxVector Flux;
@@ -96,13 +117,20 @@ void CutCellManagerStd::correctFluxes( char dim, double dt){
             for( int ii=startX-1; ii<endX; ii++){
                 BoundaryL = pGrid->boundary(ii,jj);
                 BoundaryR = pGrid->boundary(ii+1,jj);
-                if( !BoundaryGeometry::beta1or0(BoundaryL.alpha()) // Really should rename that function
-                  ||!BoundaryGeometry::beta1or0(BoundaryR.alpha()) ){
+                alphaL = BoundaryL.alpha();
+                alphaR = BoundaryR.alpha();
+                betaC  = BoundaryL.betaR();
+                if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
                     StateL = pGrid->state(ii,jj);
                     StateR = pGrid->state(ii+1,jj);
                     StateAuxL = pGrid->state_ref(ii,jj);
                     StateAuxR = pGrid->state_ref(ii+1,jj);
                     Flux = getModifiedFlux(ds,dt,dim,StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
+#ifdef DEBUG
+                    if( Flux.isnan()){
+                        std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
+                    }
+#endif
                     pGrid->flux(ii,jj) = Flux;
                 }
             }
@@ -114,13 +142,20 @@ void CutCellManagerStd::correctFluxes( char dim, double dt){
             for( int ii=startX; ii<endX; ii++){
                 BoundaryL = pGrid->boundary(ii,jj);
                 BoundaryR = pGrid->boundary(ii,jj+1);
-                if( !BoundaryGeometry::beta1or0(BoundaryL.alpha()) // Really should rename that function
-                  ||!BoundaryGeometry::beta1or0(BoundaryR.alpha())){
+                alphaL = BoundaryL.alpha();
+                alphaR = BoundaryR.alpha();
+                betaC  = BoundaryL.betaT();
+                if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
                     StateL = pGrid->state(ii,jj);
                     StateR = pGrid->state(ii,jj+1);
                     StateAuxL = pGrid->state_ref(ii,jj);
                     StateAuxR = pGrid->state_ref(ii,jj+1);
                     Flux = getModifiedFlux(ds,dt,dim,StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
+#ifdef DEBUG
+                    if( Flux.isnan()){
+                        std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
+                    }
+#endif
                     pGrid->flux(ii,jj) = Flux;
                 }
             }
@@ -193,11 +228,21 @@ FluxVector CutCellManagerStd::getModifiedFlux( double ds, double dt, char dim, c
             betaL = BL.betaL();
             betaC = BL.betaR();
             betaR = BR.betaR();
+#ifdef DEBUG
+            if( fabs(betaC-BR.betaL()) > 1e-2){
+                std::cerr << "Beta error, x sweep" << std::endl;
+            }
+#endif
             break;
         case 'y':
             betaL = BL.betaB();
             betaC = BL.betaT();
             betaR = BR.betaT();
+#ifdef DEBUG
+            if( fabs(betaC-BR.betaB()) > 1e-2){
+                std::cerr << "Beta error, y sweep" << std::endl;
+            }
+#endif
             break;
         default:
             std::cerr <<"ERROR: bad dim, getModifiedFlux" << std::endl;
@@ -208,6 +253,14 @@ FluxVector CutCellManagerStd::getModifiedFlux( double ds, double dt, char dim, c
     //Step 1
     //Compute 'unshielded flux'. This should be a first order HLLC flux between the two states
     Unshielded = pFlux->getIntercellFlux( ds,dt,dim,UL,UR);
+#ifdef DEBUG
+    if( Unshielded.isnan()){
+        std::cerr << "Unshielded Flux is nan" << std::endl;
+        std::cerr << "UL( "<<UL[0]<<", "<<UL[1]<<", "<<UL[2]<<", "<<UL[3]<<")"<< std::endl;
+        std::cerr << "UR( "<<UR[0]<<", "<<UR[1]<<", "<<UR[2]<<", "<<UR[3]<<")"<< std::endl;
+        std::cerr << "F( "<<Unshielded[0]<<", "<<Unshielded[1]<<", "<<Unshielded[2]<<", "<<Unshielded[3]<<")"<< std::endl;
+    }
+#endif
 
     //Step 1.1
     //Deal with case where the boundary comes to a point at the cell boundary:
@@ -221,6 +274,11 @@ FluxVector CutCellManagerStd::getModifiedFlux( double ds, double dt, char dim, c
     if( betaC <= betaL && betaC <= betaR){
         // Written in this way for consistency
         Modified = (betaC*Unshielded)/betaC;
+#ifdef DEBUG
+        if( Modified.isnan()){
+            std::cerr << "Modified Flux is nan (from boundary peak)" << std::endl;
+        }
+#endif
         return Modified;
     }
 
@@ -247,6 +305,24 @@ FluxVector CutCellManagerStd::getModifiedFlux( double ds, double dt, char dim, c
     } else {
         BoundaryFlux.set(AuxL,dim);
     }
+#ifdef DEBUG
+    if( BoundaryFlux.isnan()){
+        std::cerr << "BoundaryFlux is nan" << std::endl;
+        if(positive_slope){
+            std::cerr << "AuxR" << std::endl;
+            std::cerr << AuxR[0] << std::endl;
+            std::cerr << AuxR[1] << std::endl;
+            std::cerr << AuxR[2] << std::endl;
+            std::cerr << AuxR[3] << std::endl;
+        } else {
+            std::cerr << "AuxL" << std::endl;
+            std::cerr << AuxL[0] << std::endl;
+            std::cerr << AuxL[1] << std::endl;
+            std::cerr << AuxL[2] << std::endl;
+            std::cerr << AuxL[3] << std::endl;
+        }
+    }
+#endif
 
     //Step 3
     //Compute shielded flux
@@ -258,6 +334,11 @@ FluxVector CutCellManagerStd::getModifiedFlux( double ds, double dt, char dim, c
     }
     //b) get F shielded
     Shielded = BoundaryFlux + alpha_shielded*(Unshielded-BoundaryFlux);
+#ifdef DEBUG
+    if( Shielded.isnan()){
+        std::cerr << "Shielded Flux is nan" << std::endl;
+    }
+#endif
 
     //Step 4
     //Compute modified flux
@@ -266,6 +347,11 @@ FluxVector CutCellManagerStd::getModifiedFlux( double ds, double dt, char dim, c
     } else {
         Modified = (betaL*Unshielded + (betaC-betaL)*Shielded)/betaC;
     }
+#ifdef DEBUG
+    if( Modified.isnan()){
+        std::cerr << "Modified Flux is nan" << std::endl;
+    }
+#endif
 
     return Modified;
 }

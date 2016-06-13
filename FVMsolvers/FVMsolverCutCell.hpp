@@ -38,15 +38,15 @@ void FVMsolverCutCell::exec( char dim, double t, double dt){
     // 3) If cell is free (alpha=1), standard explicit update.
     // 4) If cell is mixed, apply cut-cell update
 
-    std::cout << "starting sweep, " << dim << std::endl;
     switch(dim){
         case 'x' :
+#ifdef DEBUG
+            std::cout<< "Beginning X sweep" << std::endl;
+#endif
             ds = pGrid->dx();
             // Solve flux
             pFlux->exec(dim,t,dt);
-            std::cout << "standard x fluces" << std::endl;
             pCutCell->correctFluxes(dim,dt);
-            std::cout << "corrected x fluxes" << std::endl;
             // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
@@ -65,14 +65,18 @@ void FVMsolverCutCell::exec( char dim, double t, double dt){
                     }
                 }
             }
+#ifdef DEBUG
+            std::cout<< "Finished X sweep" << std::endl;
+#endif
             break;
         case 'y' :
+#ifdef DEBUG
+            std::cout<< "Beginning Y sweep" << std::endl;
+#endif
             ds = pGrid->dy();
             // Solve flux
             pFlux->exec(dim,t,dt);
-            std::cout << "standard y fluxes" << std::endl;
             pCutCell->correctFluxes(dim,dt);
-            std::cout << "corrected y fluxes" << std::endl;
             // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
@@ -91,6 +95,9 @@ void FVMsolverCutCell::exec( char dim, double t, double dt){
                     }
                 }
             }
+#ifdef DEBUG
+            std::cout<< "Finished Y sweep" << std::endl;
+#endif
             break;
         case 'z' :
             std::cerr << "Error, z direction not implemented" << std::endl;
