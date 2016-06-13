@@ -21,7 +21,7 @@ set ylabel 'y (m)'
 #set xrange [0:2]
 #set yrange [0:2]
 #set zrange [-2:2]
-#set size square
+set size square
 set xyplane 0.1
 #set view 90, 0 
 

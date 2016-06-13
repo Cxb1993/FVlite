@@ -4,7 +4,7 @@ runname=$1
 
 rm -f plots/*
 
-filenumber="`ls data -v | tail -3 | egrep -o [0-9]+`"
+filenumber="`ls data -v | tail -2 | egrep -o [0-9]+`"
 
 echo "Number of files: $filenumber"
 

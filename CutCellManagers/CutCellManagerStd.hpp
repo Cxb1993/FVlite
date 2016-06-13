@@ -51,6 +51,7 @@ void CutCellManagerStd::newTimeStepSetup(){
             // Find rotation matrix to convert velocity to tangential/normal frame
             Normal = Boundary.Nb();
             angle = atan2( Normal[1], Normal[0]);
+            if( angle < 0. ) angle += 360/M_PI;
 
             // Step II
             // Rotate StateVector into that frame
@@ -87,13 +88,6 @@ void CutCellManagerStd::newTimeStepSetup(){
             // Step VI
             // Store result in reference state
             pGrid->state_ref(ii,jj) = State;
-
-            if(ii==96&&jj==2){
-                std::cout << State[0] << std::endl;
-                std::cout << State[1] << std::endl;
-                std::cout << State[2] << std::endl;
-                std::cout << State[3] << std::endl;
-            }
         }
     }
 
