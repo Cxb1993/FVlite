@@ -1,8 +1,9 @@
 *.dat
-gmon.out
 *.png
 *.mpeg4
 *.txt
 *.exe
+gmon.out
 toam*
 *.C
+*.py
