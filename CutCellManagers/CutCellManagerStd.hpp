@@ -52,19 +52,27 @@ void CutCellManagerStd::newTimeStepSetup(){
             // Find rotation matrix to convert velocity to tangential/normal frame
             Normal = Boundary.Nb();
             angle = atan2( Normal[1], Normal[0]);
-            if( angle < 0. ) angle += 360/M_PI;
 
             // Step II
             // Rotate StateVector into that frame
             Velocity = State.getVelocity();
-            VelocityR[0] =  Velocity[0]*cos(angle) - Velocity[1]*sin(angle);
-            VelocityR[1] =  Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
+            VelocityR[0] =  Velocity[0]*cos(angle) + Velocity[1]*sin(angle);
+            VelocityR[1] =  -Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
             State.set(State.rho(),VelocityR[0],VelocityR[1],State.p());
             
             // Step III
             // Get appropriate boundary state
             BoundaryState = State;
             BoundaryState[1] = -State[1]; // Set x speed negative in new coordinates
+
+            /* For parallel flow test
+            if(fabs(State.ux())>1e-10){
+                std::cout << "Normal velocity non-zero: " << State.ux() << std::endl;
+                std::cout << "Angle: " << angle*180/M_PI << std::endl;
+                std::cout << "Velocity: ( " << Velocity[0] << ", " << Velocity[1] << ")" << std::endl;
+                std::cout << "VelocityR: ( " << VelocityR[0] << ", " << VelocityR[1] << ")" << std::endl;
+            } 
+            */
 
             // Step IV
             // Solve Riemann problem at boundary
@@ -75,15 +83,15 @@ void CutCellManagerStd::newTimeStepSetup(){
             // Rotate back to standard frame
             // NOTE: This method tends to introduce unsual behaviour in the tangential velocity.
             // Now manually setting it to be maintained from original state.
-            //Velocity = State.getVelocity();
-            //VelocityR[0] =  Velocity[0]*cos(angle) + Velocity[1]*sin(angle);
-            //VelocityR[1] = -Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
-            //State.set(State.rho(),VelocityR[0],VelocityR[1],State.p());
+            Velocity = State.getVelocity();
+            VelocityR[0] = Velocity[0]*cos(angle) - Velocity[1]*sin(angle);
+            VelocityR[1] = Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
+            State.set(State.rho(),VelocityR[0],VelocityR[1],State.p());
 
             // Step V alt
             // Retain only tangential component of velocity at interface
-            Velocity = Velocity - (Velocity*Normal)*Normal;
-            State.set(State.rho(),Velocity[0],Velocity[1],State.p());
+            //Velocity = Velocity - (Velocity*Normal)*Normal;
+            //State.set(State.rho(),Velocity[0],Velocity[1],State.p());
 
             // Step VI
             // Store result in reference state

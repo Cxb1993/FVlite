@@ -135,7 +135,7 @@ StateVector getHLLCstate( char dim, const StateVector& StateL, const StateVector
         State_star[speed_idx] = S_star;
         State_star[StateVector::size()-1] = StateL.E()/rho_L + (S_star-u_L)*(S_star + p_L/(rho_L*delta_L));
         State_star *= rho_L*delta_L/(S_L-S_star);
-    } else { // F_star_R
+    } else { // U_star_R
         State_star = StateR/rho_R;
         State_star[speed_idx] = S_star;
         State_star[StateVector::size()-1] = StateR.E()/rho_R + (S_star-u_R)*(S_star + p_R/(rho_R*delta_R));

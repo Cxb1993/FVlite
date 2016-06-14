@@ -62,6 +62,28 @@ void FVMsolverCutCell::exec( char dim, double t, double dt){
                         FluxL = pGrid->flux(ii-1,jj);
                         FluxR = pGrid->flux(ii,jj);
                         pGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
+                        /*
+                        if( dummya==1){
+                            std::cout << "DUMMYA" << std::endl;
+                            std::cout << "alpha= " << alpha << std::endl;
+                            std::cout << "betaL= " << betaL << std::endl;
+                            std::cout << "betaR= " << betaR << std::endl;
+                            std::cout << "FluxL= " << "("<<FluxL[0]<<", "<<FluxL[1]<<", "<<FluxL[2]<<", "<<FluxL[3]<<")"<<std::endl;
+                            std::cout << "FluxR= " << "("<<FluxR[0]<<", "<<FluxR[1]<<", "<<FluxR[2]<<", "<<FluxR[3]<<")"<<std::endl;
+                            std::cout << "BoundaryState= " << "("<<pGrid->state_ref(ii,jj)[0]<<", "<<pGrid->state_ref(ii,jj)[1]<<", "<<pGrid->state_ref(ii,jj)[2]<<", "<<pGrid->state_ref(ii,jj)[3]<<")"<<std::endl;
+                            std::cout << "BoundaryFlux= " << "("<<BoundaryFlux[0]<<", "<<BoundaryFlux[1]<<", "<<BoundaryFlux[2]<<", "<<BoundaryFlux[3]<<")"<<std::endl;
+                        }
+                        if( dummyb==1){
+                            std::cout << "DUMMYB" << std::endl;
+                            std::cout << "alpha= " << alpha << std::endl;
+                            std::cout << "betaL= " << betaL << std::endl;
+                            std::cout << "betaR= " << betaR << std::endl;
+                            std::cout << "FluxL= " << "("<<FluxL[0]<<", "<<FluxL[1]<<", "<<FluxL[2]<<", "<<FluxL[3]<<")"<<std::endl;
+                            std::cout << "FluxR= " << "("<<FluxR[0]<<", "<<FluxR[1]<<", "<<FluxR[2]<<", "<<FluxR[3]<<")"<<std::endl;
+                            std::cout << "BoundaryState= " << "("<<pGrid->state_ref(ii,jj)[0]<<", "<<pGrid->state_ref(ii,jj)[1]<<", "<<pGrid->state_ref(ii,jj)[2]<<", "<<pGrid->state_ref(ii,jj)[3]<<")"<<std::endl;
+                            std::cout << "BoundaryFlux= " << "("<<BoundaryFlux[0]<<", "<<BoundaryFlux[1]<<", "<<BoundaryFlux[2]<<", "<<BoundaryFlux[3]<<")"<<std::endl;
+                        }
+                        */
                     }
                 }
             }
