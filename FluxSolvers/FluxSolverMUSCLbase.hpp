@@ -14,6 +14,14 @@
 
 #include"FluxSolverAbstract.hpp"
 
+#ifdef EULER
+#define DEFAULTTOL 1e-10
+#endif
+
+#ifdef MAXWELL
+#define DEFAULTTOL 1e-20
+#endif
+
 namespace FVlite{
 
 typedef std::pair<StateVector,StateVector> StatePair;
@@ -23,7 +31,7 @@ public:
     virtual void exec( char dim, double dt);
     virtual int stencilSize(){ return 4;}
     StatePair linear_reconstruction( double ds, double dt, char dim, StateVector& StateL, StateVector& StateCL, StateVector& CR, StateVector& StateR);
-    StateVector getLimitedSlope(StateVector& StateL, StateVector& StateC, StateVector& StateR, double tol=1e-10, double omega=0.);
+    StateVector getLimitedSlope(StateVector& StateL, StateVector& StateC, StateVector& StateR, double tol=DEFAULTTOL, double omega=0.);
 };
 
 void FluxSolverMUSCLbase::exec( char dim, double dt){

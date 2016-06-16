@@ -11,6 +11,16 @@
 #include "FluxSolverStdBase.hpp"
 #include "FluxSolverMUSCLbase.hpp"
 
+#include "FluxSolverLaxFriedrichsBase.hpp"
+
+namespace FVlite{
+
+    class FluxSolverLaxFriedrichs : public FluxSolverStdBase, public FluxSolverLaxFriedrichsBase {};
+    REGISTER(FluxSolver,LaxFriedrichs)
+
+    class FluxSolverMUSCLLF : public FluxSolverMUSCLbase, public FluxSolverLaxFriedrichsBase {};
+    REGISTER(FluxSolver,MUSCLLF)
+}
 
 #include "FluxSolverRichtmyerBase.hpp"
 

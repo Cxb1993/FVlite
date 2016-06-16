@@ -8,19 +8,23 @@ set output outfile
 
 unset key
 
-# colorbar
-set cbrange [-0.005:0.005]
-#set cblabel "Hz  (A/m)"
-#set palette defined (0 "blue", 1 "white", 2 "violet")
-#set palette defined (0 "green", 1 "red")
-set palette defined (0 "white", 1 "black")
 
 # axes
 set xlabel 'x (m)'
 set ylabel 'y (m)'
 #set xrange [0:2]
 #set yrange [0:2]
-set zrange [-0.005:0.005]
+
+# colorbar
+#set zrange [-0.005:0.005]
+#set cbrange [-0.005:0.005]
+#set cblabel "Hz  (A/m)"
+#set palette defined (0 "blue", 1 "white", 2 "violet")
+#set palette defined (0 "green", 1 "red")
+set palette defined (0 "white", 1 "black")
+
+
+
 set size square
 set xyplane 0.1
 #set view 90, 0 
