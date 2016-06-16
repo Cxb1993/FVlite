@@ -7,13 +7,20 @@
 #ifndef FT_CONTROLLER_HPP
 #define FT_CONTROLLER_HPP
 
+#include <cstdlib>
 #include <cmath>
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <libconfig.h++>
 
 #include "FVlite.hpp"
 #include "FT_Module.hpp"
+
+using std::string;
+using libconfig::Config;
+using libconfig::Setting;
 
 namespace FVlite{
 
@@ -21,21 +28,12 @@ class FT_Controller{
 
 protected:
 
-    Solver RealSolver;
-    Solver ImagSolver;
-
-    Solver& R;
-    Solver& I;
+    Config& mCfg;
+    Solver mSolver;
 
 public:
 
-    FT_Controller( int Nx, int Ny, double Lx, double Ly, double CFL, double tmax,
-                   INIT_TYPE ITYPE, FVM_TYPE FVMTYPE, FLUX_TYPE FTYPE, B_UPDATE_TYPE BTYPE, LIMIT_TYPE LTYPE=NONE)
-        : RealSolver("data/results",Nx,Ny,Lx,Ly,CFL,tmax,ITYPE,FVMTYPE,FTYPE,BTYPE,LTYPE,SINE),
-          ImagSolver("data/results",Nx,Ny,Lx,Ly,CFL,tmax,ITYPE,FVMTYPE,FTYPE,BTYPE,LTYPE,COSINE),
-          R(RealSolver), I(ImagSolver)
-    {}
-
+    FT_Controller( Config& cfg) : mCfg(cfg), mSolver(cfg) {}
     void exec();
 };
 
@@ -43,32 +41,46 @@ void FT_Controller::exec(){
 
     // Temporary function: should be replaced with something sturdier
     // Perhaps implement an 'overseer' class that controls the solver, which data should be printed, when to print, etc.
-    
 
-    double T = 2*M_PI/omega;       // single period
-    int N = ceil(T/R.pTimer->dt()); // Number of time steps in single period
+    // Get length of a single period
+    Setting& BoundCfg = mCfg.lookup("Boundaries");
+    int BoundSize = BoundCfg.getLength();
+    double freq = 0.;
+    double T;
+    for( int ii=0; ii<BoundSize; ii++){
+        Setting& thisCfg = BoundCfg[ii];
+        try{
+            Setting& params = thisCfg.lookup("params");
+            freq = params.lookup("frequency");
+        } catch(const std::exception&) {}
+    }
+    if( freq == 0.){
+        std::cerr << "ERROR: zero frequency" << std::endl;
+        exit(EXIT_FAILURE);
+    } else {
+        T = 2*M_PI/freq;
+    }
+
+    // Get number of time steps in single period
+    // Assumes constant timestep. Valid for free-space Maxwell's equations, but not always true otherwise.
+    int N = ceil(T/mSolver.pTimer->dt());
     
+    std::cout << "Frequency: " << freq << std::endl;
+    std::cout << "Period: " << T << std::endl;
+    std::cout << "Timestep: " << mSolver.pTimer->dt() << std::endl;
     std::cout << "Number of timesteps per period: " << N << std::endl;
 
     // Determine number of cells in the near-field near PEC
     int n_cells = 0;
-    int x_start = R.pGrid->startX();
-    int x_end   = R.pGrid->endX();
-    int y_start = R.pGrid->startY();
-    int y_end   = R.pGrid->endY();
+    int x_start = mSolver.pGrid->startX();
+    int x_end   = mSolver.pGrid->endX();
+    int y_start = mSolver.pGrid->startY();
+    int y_end   = mSolver.pGrid->endY();
+    BoundaryGeometry Boundary;
     for( int ii=x_start; ii<x_end; ii++){
         for( int jj=y_start; jj<y_end; jj++){
-            // if grid cell not PEC, but at least one neighbour is...
-            /*if( !R.pGrid->material(ii,jj).PEC() && (  R.pGrid->material(ii+1,jj).PEC() 
-                                                   || R.pGrid->material(ii-1,jj).PEC()
-                                                   || R.pGrid->material(ii,jj+1).PEC()
-                                                   || R.pGrid->material(ii,jj-1).PEC() )){*/
-            if( R.pGrid->levelset(ii,jj) < 0 && (  R.pGrid->levelset(ii+1,jj) >= 0 
-                                                || R.pGrid->levelset(ii-1,jj) >= 0
-                                                || R.pGrid->levelset(ii,jj+1) >= 0
-                                                || R.pGrid->levelset(ii,jj-1) >= 0 )){
-                n_cells++;
-            }  
+            Boundary = mSolver.pGrid->boundary(ii,jj);
+            if( Boundary.isCut()) n_cells++;
         }
     }
 
@@ -79,17 +91,10 @@ void FT_Controller::exec(){
     int kk=0;
     for( int ii=x_start; ii<x_end; ii++){
         for( int jj=y_start; jj<y_end; jj++){
-            // if grid cell not PEC, but at least one neighbour is...
-            /*if( !R.pGrid->material(ii,jj).PEC() && (  R.pGrid->material(ii+1,jj).PEC() 
-                                                   || R.pGrid->material(ii-1,jj).PEC()
-                                                   || R.pGrid->material(ii,jj+1).PEC()
-                                                   || R.pGrid->material(ii,jj-1).PEC() )){*/
-            if( R.pGrid->levelset(ii,jj) < 0 && (  R.pGrid->levelset(ii+1,jj) >= 0 
-                                                || R.pGrid->levelset(ii-1,jj) >= 0
-                                                || R.pGrid->levelset(ii,jj+1) >= 0
-                                                || R.pGrid->levelset(ii,jj-1) >= 0 )){
-                x = (ii-R.pGrid->bound()+0.5)*R.pGrid->dx()-R.pGrid->Lx()/2.;
-                y = (jj-R.pGrid->bound()+0.5)*R.pGrid->dy()-R.pGrid->Ly()/2.;
+            Boundary = mSolver.pGrid->boundary(ii,jj);
+            if( Boundary.isCut()){
+                x = (ii-mSolver.pGrid->bound()+0.5)*mSolver.pGrid->dx()-mSolver.pGrid->Lx()/2.;
+                y = (jj-mSolver.pGrid->bound()+0.5)*mSolver.pGrid->dy()-mSolver.pGrid->Ly()/2.;
                 phi = atan2(y,x) * 180 / M_PI;
                 if(phi>=0.){
                     Phi[kk] = phi;
@@ -102,50 +107,35 @@ void FT_Controller::exec(){
     }
 
     // Advance 10 full periods. This is enough time for the system to reach steady state
-    while( R.pTimer->t() < 10*T ) R.advance();
-    //while( I.pTimer->t() < 10*T ) I.advance();
+    while( mSolver.pTimer->t() < 10*T ) mSolver.advance();
 
     // Set N to power of 2
     int new_N = 1;
     while(new_N<N) new_N*=2;
-    R.pTimer->setDt(T/new_N);
+    mSolver.pTimer->setDt(T/new_N);
     N = new_N;
     std::cout << "Calibrated number of timesteps per period: " << N << std::endl;
 
     // Set up storage
-    std::vector<double> allTimeDomainReal( N*n_cells); // Stores real time domain data at all cells
-    std::vector<double> allTimeDomainImag( N*n_cells); // Stores imaginary time domain data at all cells
-    std::vector<double> TimeDomainReal(N); // Stores real part of time domain data at a single grid location
-    std::vector<double> TimeDomainImag(N); // Stores imaginary part of time domain data at a single grid location
-    std::vector<double> FreqDomainReal(N); // Stores real part of frequency domain data
-    std::vector<double> FreqDomainImag(N); // Stores imaginary part of frequency domain data
+    std::vector<double> allTimeDomain( N*n_cells); // Stores time domain data at all cells
+    std::vector<double> TimeDomainReal(N); // Stores real time domain data at a single grid location
+    std::vector<double> TimeDomainImag(N); // Stores imaginary time domain data at a single grid location (all zeroes)
+    std::vector<double> FreqDomainReal(N); // Stores real frequency domain data at a single grid location
+    std::vector<double> FreqDomainImag(N); // Stores imaginary frequency domain data at a single grid location
+    std::vector<double> Amplitude(n_cells); // Stores amplitude of frequency domain data
 
 
     // Iterate over another full period, storing data at each time step
-    
     int cells = 0;
-    StateVector StateReal;
-    StateVector StateImag;
+    StateVector State;
     for( int timestep = 0; timestep < N; timestep++){
-        if(timestep>0){
-            R.advance();
-        //    I.advance();
-        }
+        if(timestep>0) mSolver.advance();
         for( int ii=x_start; ii<x_end; ii++){
             for( int jj=y_start; jj<y_end; jj++){
-                // if grid cell not PEC, but at least one neighbour is...
-                /*if( !R.pGrid->material(ii,jj).PEC() && ( R.pGrid->material(ii+1,jj).PEC() 
-                                                      || R.pGrid->material(ii-1,jj).PEC()
-                                                      || R.pGrid->material(ii,jj+1).PEC()
-                                                      || R.pGrid->material(ii,jj-1).PEC() )){*/
-                if( R.pGrid->levelset(ii,jj) < 0 && (  R.pGrid->levelset(ii+1,jj) >= 0 
-                                                    || R.pGrid->levelset(ii-1,jj) >= 0
-                                                    || R.pGrid->levelset(ii,jj+1) >= 0
-                                                    || R.pGrid->levelset(ii,jj-1) >= 0 )){
-                    StateReal = R.pGrid->state(ii,jj);
-                    StateImag = I.pGrid->state(ii,jj);
-                    allTimeDomainReal[ cells*N + timestep] = StateReal.Hz();
-                    allTimeDomainImag[ cells*N + timestep] = 0;//StateImag.Hz();
+                Boundary = mSolver.pGrid->boundary(ii,jj);
+                if( Boundary.isCut()){
+                    State = mSolver.pGrid->state(ii,jj);
+                    allTimeDomain[ cells*N + timestep] = State.Hz();
                     cells++;
                 }  
             }
@@ -162,8 +152,8 @@ void FT_Controller::exec(){
         
         // copy allTimeDomain into TimeDomain
         for( int timestep=0; timestep<N; timestep++){
-            TimeDomainReal[timestep] = allTimeDomainReal[ cells*N + timestep];
-            TimeDomainImag[timestep] = allTimeDomainImag[ cells*N + timestep];
+            TimeDomainReal[timestep] = allTimeDomain[ cells*N + timestep];
+            TimeDomainImag[timestep] = 0.;
         }
         
         // Perform Fourier transform
@@ -171,16 +161,21 @@ void FT_Controller::exec(){
         realpart = 2*FreqDomainReal[1]/N;
         imagpart = 2*FreqDomainImag[1]/N;
 
-        // print
-        PEC_test_file << Phi[cells] << '\t'
-                      << realpart   << '\t'
-                      << imagpart   << '\t'
-                      << sqrt(realpart*realpart + imagpart*imagpart) << std::endl;   
+        // Calculate amplitude
+        Amplitude[cells] = sqrt(realpart*realpart + imagpart*imagpart);
     }
 
-    // Also print time domain response at end of run
+    // Get normalising constant
+    double max=0.;
+    for( cells=0; cells<n_cells; cells++){
+        max = (Amplitude[cells] > max) ? Amplitude[cells] : max;
+    }
 
-    R.printData();
+    // Print normalised data
+    for( cells=0; cells<n_cells; cells++){
+        PEC_test_file << Phi[cells]           << '\t'
+                      << Amplitude[cells]/max << std::endl;   
+    }
 
     return;
 

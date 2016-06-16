@@ -81,6 +81,7 @@ void Solver::init( Config& cfg){
     Setting& timerCfg = cfg.lookup("Timing");
     pTimer = new Timer;
     pTimer->init(pGrid,timerCfg);
+    pTimer->calibrate_timestep();
 
     // Set up finite volume system
     std::cout << "Building FVM solver..." << std::endl;

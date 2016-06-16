@@ -13,9 +13,9 @@
 
 #include "FVlite.hpp"
 
-//#ifdef MAXWELL
-//#include "FT_Controller.hpp"
-//#endif
+#ifdef MAXWELL
+#include "FT_Controller.hpp"
+#endif
 
 using namespace FVlite;
 using std::string;
@@ -43,14 +43,14 @@ int main( int argc, char* argv[]){
     std::cout << "Config file read success." << std::endl;
 #endif
 
-    Solver mySolver(cfg);
+//    Solver mySolver(cfg);
 //    mySolver.printData();
 //    mySolver.printGeometry();
 //    mySolver.printLevelSetVertices();
-    mySolver.exec();
+//    mySolver.exec();
 
-//    FT_Controller myFT( Nx, Ny, Lx, Ly, CFL, tmax, ITYPE, FVMTYPE, FTYPE, BTYPE, LTYPE);
-//    myFT.exec();
+    FT_Controller myFT( cfg);
+    myFT.exec();
 /*
     std::string prefix("data/results");
     std::string suffix(".dat");

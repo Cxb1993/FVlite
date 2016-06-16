@@ -50,15 +50,18 @@ for ii = 1:N_points
 endfor
 
 phi.*=180/pi;
+Habs = abs(H);
+HabsMax = max(Habs);
+Habs = Habs/HabsMax;
 
 file_id=fopen('exact_data.txt','w');
-fprintf(file_id,'# phi\n# H field\n');
+fprintf(file_id,'# phi\n# H field (normalised) \n');
 for ii=1:N_points
-    fprintf(file_id,'%f\t%f\n',phi(ii),abs(H(ii)));
+    fprintf(file_id,'%f\t%f\n',phi(ii),Habs(ii));
 endfor
 fclose(file_id);
 
-plot(phi,abs(H))
+plot(phi,Habs)
 %plot(phi,real(H))
 %plot(phi,imag(H))
 xlabel("Phi /degrees")

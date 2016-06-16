@@ -27,6 +27,7 @@ private:
     int mCounter;        // Counts number of timesteps.
     int mPrintEvery;     // Print on every mPrintEvery'th timestep. Set to zero to print only final results.
     bool mPrintInitial;  // Print initial conditions?
+    bool mPrintCutCells; // Print only cut cells
     string mRunName;     // Name of current run.
     Grid* mpGrid;        // Pointer to grid.
 
@@ -48,6 +49,7 @@ void Output::init( Grid* pGrid, const Setting& cfg){
     mCounter = 0;
     mPrintEvery = cfg.lookup("PrintEvery");
     mPrintInitial = cfg.lookup("PrintInitial");
+    mPrintCutCells = cfg.lookup("PrintCutCells");
     mRunName = cfg.lookup("RunName").c_str();
     mpGrid = pGrid;
     return;
@@ -112,30 +114,37 @@ void Output::print(){
     // Print data
 
     StateVector State;
+    BoundaryGeometry Boundary;
+    double alpha;
 //    for( int ii=mpGrid->startX(); ii<mpGrid->endX(); ii++){
 //        for( int jj=mpGrid->startY(); jj<mpGrid->endY(); jj++){
     for( int ii=0; ii<mpGrid->sizeX(); ii++){
         for( int jj=0; jj<mpGrid->sizeY(); jj++){
 
-            // Print position
-            File << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';
+            Boundary = mpGrid->boundary(ii,jj);
+            alpha = Boundary.alpha();
+            if( !mPrintCutCells || (alpha>0 && alpha<1.)){
 
-            // Print conserved data
-            State = mpGrid->state(ii,jj);
-            for( unsigned int kk=0; kk<State.size(); kk++){
-                File << State[kk] << '\t';
-            }
+                // Print position
+                File << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';
+
+                // Print conserved data
+                State = mpGrid->state(ii,jj);
+                for( unsigned int kk=0; kk<State.size(); kk++){
+                    File << State[kk] << '\t';
+                }
             
 #ifdef DEBUG
-            // Print auxiliary data
-            State = mpGrid->state_ref(ii,jj);
-            for( unsigned int kk=0; kk<State.size(); kk++){
-                File << State[kk] << '\t';
-            }
+                // Print auxiliary data
+                State = mpGrid->state_ref(ii,jj);
+                for( unsigned int kk=0; kk<State.size(); kk++){
+                    File << State[kk] << '\t';
+                }
 #endif
 
-            // Print level set function
-            File << (*mpGrid->levelset())(ii,jj) << std::endl;
+                // Print level set function
+                File << (*mpGrid->levelset())(ii,jj) << std::endl;
+            }
 
         }
         File << std::endl;

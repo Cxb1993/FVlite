@@ -47,7 +47,9 @@ Updater::~Updater(){
 void Updater::exec(){
 
     // Calibrate time step using largest speed on the grid
+#ifdef EULER
     pTimer->calibrate_timestep();
+#endif
     double t  = pTimer->t();
     double dt = pTimer->dt();
 
