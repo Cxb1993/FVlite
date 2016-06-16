@@ -13,11 +13,11 @@ namespace FVlite{
 
 class FluxSolverStdBase : public virtual FluxSolver{
 public:
-    virtual void solve( char dim, double dt);
+    virtual void exec( char dim, double dt);
     virtual int stencilSize(){ return 2;}
 };
 
-void FluxSolverStdBase::solve( char dim, double dt){
+void FluxSolverStdBase::exec( char dim, double dt){
     double ds;
     int startX = pGrid->startX();
     int startY = pGrid->startY();

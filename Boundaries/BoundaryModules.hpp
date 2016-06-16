@@ -11,4 +11,11 @@
 #include "BoundaryModuleTransmissive.hpp"
 #include "BoundaryModuleReflective.hpp"
 
+#ifdef MAXWELL
+#include "BoundaryModuleSine.hpp"
+#include "BoundaryModuleCosine.hpp"
+#include "BoundaryModuleGaussian.hpp"
+#include "BoundaryModuleGaussDer.hpp"
+#endif
+
 #endif /* BOUNDARYMODULES_HPP */

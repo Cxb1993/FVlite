@@ -18,12 +18,12 @@ class FVMsolverStd : public FVMsolver{
 public:
 
     FVMsolverStd(){}
-    virtual void exec( char dim, double t, double dt);
+    virtual void exec( char dim, double dt);
 };
 
 REGISTER(FVMsolver,Std)
 
-void FVMsolverStd::exec( char dim, double t, double dt){
+void FVMsolverStd::exec( char dim, double dt){
     int startX = pGrid->startX();
     int startY = pGrid->startY();
     int endX = pGrid->endX();
@@ -35,7 +35,7 @@ void FVMsolverStd::exec( char dim, double t, double dt){
         case 'x' :
             ds = pGrid->dx();
             // Solve flux
-            pFlux->exec(dim,t,dt);
+            pFlux->exec(dim,dt);
             // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
@@ -48,7 +48,7 @@ void FVMsolverStd::exec( char dim, double t, double dt){
         case 'y' :
             ds = pGrid->dy();
             // Solve flux
-            pFlux->exec(dim,t,dt);
+            pFlux->exec(dim,dt);
             // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){

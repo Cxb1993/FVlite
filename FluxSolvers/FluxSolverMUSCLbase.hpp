@@ -20,13 +20,13 @@ typedef std::pair<StateVector,StateVector> StatePair;
 
 class FluxSolverMUSCLbase : public virtual FluxSolver{
 public:
-    virtual void solve( char dim, double dt);
+    virtual void exec( char dim, double dt);
     virtual int stencilSize(){ return 4;}
     StatePair linear_reconstruction( double ds, double dt, char dim, StateVector& StateL, StateVector& StateCL, StateVector& CR, StateVector& StateR);
     StateVector getLimitedSlope(StateVector& StateL, StateVector& StateC, StateVector& StateR, double tol=1e-10, double omega=0.);
 };
 
-void FluxSolverMUSCLbase::solve( char dim, double dt){
+void FluxSolverMUSCLbase::exec( char dim, double dt){
     double ds;
     int startX = pGrid->startX();
     int startY = pGrid->startY();

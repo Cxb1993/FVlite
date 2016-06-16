@@ -15,7 +15,6 @@
 #include "Grid/Grid.hpp"
 #include "Initialisation/InitialisationManager.hpp"
 #include "Updaters/Updater.hpp"
-#include "Sources/Sources.hpp"
 #include "Output/Output.hpp"
 
 using std::string;
@@ -83,47 +82,11 @@ void Solver::init( Config& cfg){
     pTimer = new Timer;
     pTimer->init(pGrid,timerCfg);
 
-    // Set up source
-    // Temporary code, not up to current standard.
-    // Will be deprecated in favour of an improved boundary manager, with capabilities of a driven boundary.
-
-    Source* pSource;
-    bool TE    = true;
-    SOURCE_TYPE STYPE = NOSOURCE;
-
-    switch(STYPE){
-        case NOSOURCE:
-            pSource = new SourceNone();
-            (void)TE;
-            break;
-#ifdef MAXWELL
-        case SINE:
-            pSource = new SourceSin( omega, TE);
-            break;
-        case COSINE:
-            pSource = new SourceCos( omega, TE);
-            break;
-        case GAUSSIAN:
-            pSource = new SourceGaussian( sigma, mean, TE);
-            break;
-        case GAUSSDER:
-            pSource = new SourceGaussder( sigma, mean, TE);
-            break;
-#endif
-        default:
-            pSource = new SourceNone();
-            (void)TE;
-            break;
-    }
-
     // Set up finite volume system
     std::cout << "Building FVM solver..." << std::endl;
     Setting& fvmCfg = cfg.lookup("FVM");
     string fvmType = fvmCfg.lookup("type");
     FVMsolver* pFVM = FVMsolverFactory.create(fvmType);
-    // Following is temporary code, remove after implementing driven boundaries
-    pFVM->source_init(pSource);
-    // And back to decent code...
     pFVM->init( pGrid, fvmCfg);
 
     // Set up boundary update method

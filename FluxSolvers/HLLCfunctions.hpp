@@ -7,6 +7,8 @@
 #ifndef HLLCFUNCTIONS_HPP
 #define HLLCFUNCTIONS_HPP
 
+#ifdef EULER
+
 #include "Vectors/StateVector.hpp"
 #include "Vectors/FluxVector.hpp"
 #include "Vectors/Vector3.hpp"
@@ -177,4 +179,5 @@ FluxVector getHLLCflux( char dim, const StateVector& StateL, const StateVector& 
 
 }// namespace closure, HLLC
 }// namespace closure, FVlite
+#endif /* EULER */
 #endif /* HLLCFUNCTIONS_HPP */

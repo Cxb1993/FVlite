@@ -12,6 +12,7 @@
 
 #include "Grid/Grid.hpp"
 #include "Utils/ObjectFactory.hpp"
+#include "BoundaryFunctions.hpp"
 
 using std::string;
 using libconfig::Setting;
@@ -41,10 +42,10 @@ public:
     BoundaryModule( const BoundaryModule& other);
     virtual ~BoundaryModule(){}
 
-    void init( Grid* pGrid, Setting& cfg);
+    virtual void init( Grid* pGrid, Setting& cfg);
 
-    void exec( char dim);
-    virtual StateVector getBoundary( const StateVector& Reference, const char dim) = 0;
+    void exec( char dim, double t, double dt);
+    virtual StateVector getBoundary( const StateVector& Reference, const char dim, const double t, const double dt) = 0;
     int rank(){ return mRank;}
 
 };
@@ -71,7 +72,7 @@ BoundaryModule::BoundaryModule( const BoundaryModule& other)
     : pGrid(other.pGrid), mREGION(other.mREGION), mRank(other.mRank)
 {}
 
-void BoundaryModule::exec( char dim){
+void BoundaryModule::exec( char dim, double t, double dt){
 
     int bound  = pGrid->bound();
     int startX = pGrid->startX();
@@ -85,7 +86,7 @@ void BoundaryModule::exec( char dim){
             if( dim != 'x') break;
             for( int ii=0; ii<bound; ii++){
                 for( int jj=startY; jj<endY; jj++){
-                    pGrid->state(startX-1-ii,jj) = getBoundary(pGrid->state(startX+ii,jj),dim);
+                    pGrid->state(startX-1-ii,jj) = getBoundary(pGrid->state(startX+ii,jj),dim,t,dt);
                 }
             }
             break;
@@ -93,7 +94,7 @@ void BoundaryModule::exec( char dim){
             if( dim != 'x') break;
             for( int ii=0; ii<bound; ii++){
                 for( int jj=startY; jj<endY; jj++){
-                    pGrid->state(endX+ii,jj) = getBoundary(pGrid->state(endX-1-ii,jj),dim);
+                    pGrid->state(endX+ii,jj) = getBoundary(pGrid->state(endX-1-ii,jj),dim,t,dt);
                 }
             }
             break;
@@ -101,7 +102,7 @@ void BoundaryModule::exec( char dim){
             if( dim != 'y') break;
             for( int ii=startX; ii<endX; ii++){
                 for( int jj=0; jj<bound; jj++){
-                    pGrid->state(ii,startY-1-jj) = getBoundary(pGrid->state(ii,startY+jj),dim);
+                    pGrid->state(ii,startY-1-jj) = getBoundary(pGrid->state(ii,startY+jj),dim,t,dt);
                 }
             }
             break;
@@ -109,7 +110,7 @@ void BoundaryModule::exec( char dim){
             if( dim != 'y') break;
             for( int ii=startX; ii<endX; ii++){
                 for( int jj=0; jj<bound; jj++){
-                    pGrid->state(ii,endY+jj) = getBoundary(pGrid->state(ii,endY-1-jj),dim);
+                    pGrid->state(ii,endY+jj) = getBoundary(pGrid->state(ii,endY-1-jj),dim,t,dt);
                 }
             }
             break;
@@ -121,12 +122,12 @@ void BoundaryModule::exec( char dim){
                         if( levelset > 0){ // PEC
                             if( pGrid->levelset(ii-1,jj) * levelset < 0 ){ // sign changes
                                 for( int kk=0; kk<bound; kk++){
-                                    pGrid->state(ii+kk,jj) = getBoundary(pGrid->state(ii-1-kk,jj),dim);
+                                    pGrid->state(ii+kk,jj) = getBoundary(pGrid->state(ii-1-kk,jj),dim,t,dt);
                                 }
                             }
                             if( pGrid->levelset(ii+1,jj) * levelset < 0){ // sign changes
                                 for( int kk=0; kk<bound; kk++){
-                                    pGrid->state(ii-kk,jj) = getBoundary(pGrid->state(ii+1+kk,jj),dim);
+                                    pGrid->state(ii-kk,jj) = getBoundary(pGrid->state(ii+1+kk,jj),dim,t,dt);
                                 }
                             }
                         }
@@ -140,12 +141,12 @@ void BoundaryModule::exec( char dim){
                         if( levelset > 0){ // PEC
                             if( pGrid->levelset(ii,jj-1) * levelset < 0 ){ // sign changes
                                 for( int kk=0; kk<bound; kk++){
-                                    pGrid->state(ii,jj+kk) = getBoundary(pGrid->state(ii,jj-1-kk),dim);
+                                    pGrid->state(ii,jj+kk) = getBoundary(pGrid->state(ii,jj-1-kk),dim,t,dt);
                                 }
                             }
                             if( pGrid->levelset(ii,jj+1) * levelset < 0){ // sign changes
                                 for( int kk=0; kk<bound; kk++){
-                                    pGrid->state(ii,jj-kk) = getBoundary(pGrid->state(ii,jj+1+kk),dim);
+                                    pGrid->state(ii,jj-kk) = getBoundary(pGrid->state(ii,jj+1+kk),dim,t,dt);
                                 }
                             }
                         }

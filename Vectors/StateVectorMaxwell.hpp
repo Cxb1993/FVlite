@@ -20,14 +20,21 @@ public:
     StateVector() : MathVector() {}
     StateVector( double Ex, double Ey, double Ez, double Hx, double Hy, double Hz);
 
-    inline double Ex() const;
-    inline double Ey() const;
-    inline double Ez() const;
-    inline double Hx() const;
-    inline double Hy() const;
-    inline double Hz() const;
+    inline double Ex() const { return mX[0];}
+    inline double Ey() const { return mX[1];}
+    inline double Ez() const { return mX[2];}
+    inline double Hx() const { return mX[3];}
+    inline double Hy() const { return mX[4];}
+    inline double Hz() const { return mX[5];}
+    inline double& Ex(){ return mX[0];}
+    inline double& Ey(){ return mX[1];}
+    inline double& Ez(){ return mX[2];}
+    inline double& Hx(){ return mX[3];}
+    inline double& Hy(){ return mX[4];}
+    inline double& Hz(){ return mX[5];}
 
     inline void set( double Ex, double Ey, double Ez, double Hx, double Hy, double Hz);
+    inline void set( MathVector<SIZE> fields);
 
     // Utility
     static unsigned int size(){ return SIZE;}
@@ -38,30 +45,6 @@ StateVector::StateVector( double Ex, double Ey, double Ez, double Hx, double Hy,
     return;
 }
 
-double StateVector::Ex() const{
-    return mX[0];
-}
-
-double StateVector::Ey() const{
-    return mX[1];
-}
-
-double StateVector::Ez() const{
-    return mX[2];
-}
-
-double StateVector::Hx() const{
-    return mX[3];
-}
-
-double StateVector::Hy() const{
-    return mX[4];
-}
-
-double StateVector::Hz() const{
-    return mX[5];
-}
-
 void StateVector::set( double Ex, double Ey, double Ez, double Hx, double Hy, double Hz){
     mX[0] = Ex;
     mX[1] = Ey;
@@ -69,6 +52,11 @@ void StateVector::set( double Ex, double Ey, double Ez, double Hx, double Hy, do
     mX[3] = Hx;
     mX[4] = Hy;
     mX[5] = Hz;
+    return;
+}
+
+void StateVector::set( MathVector<SIZE> fields){
+    set(fields[0],fields[1],fields[2],fields[3],fields[4],fields[5]);
     return;
 }
 

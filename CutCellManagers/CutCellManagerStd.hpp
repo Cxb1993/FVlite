@@ -8,6 +8,7 @@
 
 #include "CutCellManagerAbstract.hpp"
 #include "FluxSolvers/HLLCfunctions.hpp"
+#include "Boundaries/BoundaryFunctions.hpp"
 
 namespace FVlite{
 
@@ -24,7 +25,6 @@ REGISTER(CutCellManager,Std)
 
 
 void CutCellManagerStd::newTimeStepSetup(){
-    // TODO reflective conditions are currently hardcoded. Change this.
 #ifdef DEBUG
     std::cout << "NEW TIME STEP" << std::endl;
 #endif
@@ -34,11 +34,17 @@ void CutCellManagerStd::newTimeStepSetup(){
     int endY=pGrid->endY();
     StateVector State;
     StateVector BoundaryState;
+#ifdef MAXWELL
+    StateVector Rotated;
+#endif
+#ifdef EULER
     Vector3 Velocity;
     Vector3 VelocityR;
     Vector3 WaveSpeeds;
+    Velocity[2]=0; VelocityR[2]=0; 
+#endif
     Vector3 Normal;
-    Velocity[2]=0; VelocityR[2]=0; Normal[2]=0;
+    Normal[2]=0;
     double angle;
     BoundaryGeometry Boundary;
     for( int jj=startY; jj<endY; jj++){
@@ -55,15 +61,25 @@ void CutCellManagerStd::newTimeStepSetup(){
 
             // Step II
             // Rotate StateVector into that frame
+#ifdef EULER
             Velocity = State.getVelocity();
             VelocityR[0] =  Velocity[0]*cos(angle) + Velocity[1]*sin(angle);
             VelocityR[1] =  -Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
             State.set(State.rho(),VelocityR[0],VelocityR[1],State.p());
-            
+#endif
+#ifdef MAXWELL
+            Rotated.Ex() = State.Ex()*cos(angle) + State.Ey()*sin(angle);
+            Rotated.Hx() = State.Hx()*cos(angle) + State.Hy()*sin(angle);
+            Rotated.Ey() = -State.Ex()*sin(angle) + State.Ey()*cos(angle);
+            Rotated.Hy() = -State.Hx()*sin(angle) + State.Hy()*cos(angle);
+            Rotated.Ez() = State.Ez();
+            Rotated.Hz() = State.Hz();
+            State = Rotated;
+#endif
             // Step III
             // Get appropriate boundary state
-            BoundaryState = State;
-            BoundaryState[1] = -State[1]; // Set x speed negative in new coordinates
+            // (Behaviour for Maxwell's equations contained in boundary function)
+            BoundaryState = Boundary::Reflective( State, 'x');
 
             /* For parallel flow test
             if(fabs(State.ux())>1e-10){
@@ -75,18 +91,36 @@ void CutCellManagerStd::newTimeStepSetup(){
             */
 
             // Step IV
-            // Solve Riemann problem at boundary
+            // Euler: Solve Riemann problem at boundary
+            // Maxwell: I have no idea!
+#ifdef EULER
             WaveSpeeds = HLLC::getWaveSpeeds('x',State,BoundaryState);
             State = HLLC::getHLLCstate('x',State,BoundaryState,WaveSpeeds[0],WaveSpeeds[1],WaveSpeeds[2]);
+#endif
+#ifdef MAXWELL
+//            State = 0.5*(BoundaryState+State); //?????
+            State = BoundaryState;
+#endif
 
             // Step V
             // Rotate back to standard frame
             // NOTE: This method tends to introduce unsual behaviour in the tangential velocity.
             // Now manually setting it to be maintained from original state.
+#ifdef EULER
             Velocity = State.getVelocity();
             VelocityR[0] = Velocity[0]*cos(angle) - Velocity[1]*sin(angle);
             VelocityR[1] = Velocity[0]*sin(angle) + Velocity[1]*cos(angle);
             State.set(State.rho(),VelocityR[0],VelocityR[1],State.p());
+#endif
+#ifdef MAXWELL
+            Rotated.Ex() = State.Ex()*cos(angle) - State.Ey()*sin(angle);
+            Rotated.Hx() = State.Hx()*cos(angle) - State.Hy()*sin(angle);
+            Rotated.Ey() = State.Ex()*sin(angle) + State.Ey()*cos(angle);
+            Rotated.Hy() = State.Hx()*sin(angle) + State.Hy()*cos(angle);
+            Rotated.Ez() = State.Ez();
+            Rotated.Hz() = State.Hz();
+            State = Rotated;
+#endif
 
             // Step V alt
             // Retain only tangential component of velocity at interface

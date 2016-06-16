@@ -64,26 +64,27 @@ void Updater::exec(){
 
     // Makes use of Strang directional splitting. 
     char dim;
+    (void) t;
 
     dim = 'x';
-    pBmanager->exec(dim);
-    pFVM->exec(dim,t,dt); 
+    pBmanager->exec(dim,t,dt);
+    pFVM->exec(dim,dt); 
 
 #ifdef DEBUG
     checkGrid();
 #endif
 
     dim = 'y';
-    pBmanager->exec(dim);
-    pFVM->exec(dim,t+0.5*dt,dt);
+    pBmanager->exec(dim,t,dt);
+    pFVM->exec(dim,dt);
 
 #ifdef DEBUG
     checkGrid();
 #endif
 
 //    dim = 'x';
-//    pBmanager->exec(dim);
-//    pFVM->exec(dim,t+0.5*dt,0.5*dt);
+//    pBmanager->exec(dim,t,dt);
+//    pFVM->exec(dim,0.5*dt);
 //
 //#ifdef DEBUG
 //    checkGrid();

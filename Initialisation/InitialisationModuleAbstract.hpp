@@ -70,6 +70,7 @@ void InitialisationModule::init_state( Setting& cfg){
     // set values to a MathVector, not a StateVector
     // This stores the primitive values, which are converted
     // to a conserved form using the set(MathVector) function.
+    // For Maxwell's equations, the field itself will be taken.
     MathVector<SIZE> vector;
     for( int ii=0; ii<SIZE; ii++){
         vector[ii] = cfg[ii];
