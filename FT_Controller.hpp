@@ -77,10 +77,12 @@ void FT_Controller::exec(){
     int y_start = mSolver.pGrid->startY();
     int y_end   = mSolver.pGrid->endY();
     BoundaryGeometry Boundary;
+    double levelset;
     for( int ii=x_start; ii<x_end; ii++){
         for( int jj=y_start; jj<y_end; jj++){
             Boundary = mSolver.pGrid->boundary(ii,jj);
-            if( Boundary.isCut()) n_cells++;
+            levelset = mSolver.pGrid->levelset(ii,jj);
+            if( Boundary.isCut() && levelset < 0) n_cells++;
         }
     }
 
@@ -92,7 +94,8 @@ void FT_Controller::exec(){
     for( int ii=x_start; ii<x_end; ii++){
         for( int jj=y_start; jj<y_end; jj++){
             Boundary = mSolver.pGrid->boundary(ii,jj);
-            if( Boundary.isCut()){
+            levelset = mSolver.pGrid->levelset(ii,jj);
+            if( Boundary.isCut() && levelset < 0){
                 x = (ii-mSolver.pGrid->bound()+0.5)*mSolver.pGrid->dx()-mSolver.pGrid->Lx()/2.;
                 y = (jj-mSolver.pGrid->bound()+0.5)*mSolver.pGrid->dy()-mSolver.pGrid->Ly()/2.;
                 phi = atan2(y,x) * 180 / M_PI;
@@ -133,7 +136,8 @@ void FT_Controller::exec(){
         for( int ii=x_start; ii<x_end; ii++){
             for( int jj=y_start; jj<y_end; jj++){
                 Boundary = mSolver.pGrid->boundary(ii,jj);
-                if( Boundary.isCut()){
+                levelset = mSolver.pGrid->levelset(ii,jj);
+                if( Boundary.isCut() && levelset < 0){
                     State = mSolver.pGrid->state(ii,jj);
                     allTimeDomain[ cells*N + timestep] = State.Hz();
                     cells++;

@@ -1,6 +1,7 @@
 # gnuplot file
 
-set terminal png size 1280,720
+#set terminal png size 1280,720
+set terminal png size 1920,1080
 set output 'PEC_test.png'
 #set output 'ScatteringPECanalytic.png'
 #set terminal epslatex color size 4in, 3in
