@@ -17,15 +17,14 @@ class BoundaryModuleTransmissive : public BoundaryModule{
 public:
     BoundaryModuleTransmissive(){}
     ~BoundaryModuleTransmissive(){}
-    virtual StateVector getBoundary( const StateVector& Reference, const char dim, const double t, const double dt);
+    virtual StateVector getBoundary( const StateVector& Reference, const char dim,  const double t);
 };
 
 REGISTER(BoundaryModule,Transmissive)
 
-StateVector BoundaryModuleTransmissive::getBoundary( const StateVector& Reference, const char dim, const double t, const double dt){
+StateVector BoundaryModuleTransmissive::getBoundary( const StateVector& Reference, const char dim,  const double t){
     (void)dim;
     (void)t;
-    (void)dt;
     StateVector Boundary;
     Boundary = Boundary::Transmissive( Reference);
     return Boundary;

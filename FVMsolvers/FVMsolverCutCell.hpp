@@ -63,7 +63,8 @@ void FVMsolverCutCell::exec( char dim, double dt){
                         FluxR = pGrid->flux(ii,jj);
                         pGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
                         
-                        if( pGrid->state(ii,jj).Hz() > 1.0){
+#if 0
+                        if( pGrid->state(ii,jj).Hz() > 10.0){
                             std::cout << "("<<ii<<","<<jj<<")"<<std::endl;
                             std::cout << "alpha= " << alpha << std::endl;
                             std::cout << "betaL= " << betaL << std::endl;
@@ -73,7 +74,7 @@ void FVMsolverCutCell::exec( char dim, double dt){
                             std::cout << "BoundaryState= " << "("<<pGrid->state_ref(ii,jj)[0]<<", "<<pGrid->state_ref(ii,jj)[1]<<", "<<pGrid->state_ref(ii,jj)[2]<<", "<<pGrid->state_ref(ii,jj)[3]<<", " << pGrid->state_ref(ii,jj)[4]<<", "<<pGrid->state_ref(ii,jj)[5]<<")"<<std::endl;
                             std::cout << "BoundaryFlux= " << "("<<BoundaryFlux[0]<<", "<<BoundaryFlux[1]<<", "<<BoundaryFlux[2]<<", "<<BoundaryFlux[3]<<", "<<BoundaryFlux[4]<<", "<<BoundaryFlux[5] << ")"<<std::endl;
                         }
-                        
+#endif                   
                     }
                 }
             }

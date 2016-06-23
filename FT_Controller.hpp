@@ -60,6 +60,12 @@ void FT_Controller::exec(){
     } else {
         T = 2*M_PI/freq;
     }
+    // Get circle center
+    Setting& InitCfg = mCfg.lookup("Initialisation");
+    Setting& CircleCfg = InitCfg.lookup("Circle");
+    double circleX, circleY;
+    circleX = CircleCfg.lookup("params.center.x");
+    circleY = CircleCfg.lookup("params.center.y");
 
     // Get number of time steps in single period
     // Assumes constant timestep. Valid for free-space Maxwell's equations, but not always true otherwise.
@@ -96,8 +102,8 @@ void FT_Controller::exec(){
             Boundary = mSolver.pGrid->boundary(ii,jj);
             levelset = mSolver.pGrid->levelset(ii,jj);
             if( Boundary.isCut() && levelset < 0){
-                x = (ii-mSolver.pGrid->bound()+0.5)*mSolver.pGrid->dx()-mSolver.pGrid->Lx()/2.;
-                y = (jj-mSolver.pGrid->bound()+0.5)*mSolver.pGrid->dy()-mSolver.pGrid->Ly()/2.;
+                x = (ii-mSolver.pGrid->bound()+0.5)*mSolver.pGrid->dx()-circleX;
+                y = (jj-mSolver.pGrid->bound()+0.5)*mSolver.pGrid->dy()-circleY;
                 phi = atan2(y,x) * 180 / M_PI;
                 if(phi>=0.){
                     Phi[kk] = phi;
@@ -170,10 +176,10 @@ void FT_Controller::exec(){
     }
 
     // Get normalising constant
-    double max=0.;
-    for( cells=0; cells<n_cells; cells++){
+    double max=1.0;//0.;
+   /* for( cells=0; cells<n_cells; cells++){
         max = (Amplitude[cells] > max) ? Amplitude[cells] : max;
-    }
+    }*/
 
     // Print normalised data
     for( cells=0; cells<n_cells; cells++){

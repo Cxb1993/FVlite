@@ -15,14 +15,13 @@ namespace FVlite{
 
 class BoundaryModuleReflective : public BoundaryModule{
 public:
-    virtual StateVector getBoundary( const StateVector& Reference, const char dim, const double t, const double dt);
+    virtual StateVector getBoundary( const StateVector& Reference, const char dim, const double t);
 };
 
 REGISTER(BoundaryModule,Reflective)
 
-StateVector BoundaryModuleReflective::getBoundary( const StateVector& Reference, const char dim, const double t, const double dt){
+StateVector BoundaryModuleReflective::getBoundary( const StateVector& Reference, const char dim, const double t){
     (void)t;
-    (void)dt;
     StateVector Boundary;
     Boundary = Boundary::Reflective( Reference, dim);
     return Boundary;

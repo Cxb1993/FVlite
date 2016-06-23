@@ -26,6 +26,7 @@ set palette defined (0 "white", 1 "black")
 
 
 set size square
+#set size ratio 0.25
 set xyplane 0.1
 #set view 90, 0 
 
@@ -37,8 +38,8 @@ set xyplane 0.1
 
 set view map
 #MAXWELL
-plot datafile using 1:2:8 with image
+#plot datafile using 1:2:8 with image
 #EULER
-#plot datafile using 1:2:3 with image
+plot datafile using 1:2:3 with image
 #splot datafile using 1:2:3  w l
 #plot datafile using 1:3 with l

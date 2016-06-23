@@ -29,7 +29,7 @@ protected:
     POLARISATION mPOL;
 public:
     virtual void init( Grid* pGrid, Setting& cfg);
-    virtual StateVector getBoundary( const StateVector& Reference, const char dim, const double t, const double dt);
+    virtual StateVector getBoundary( const StateVector& Reference, const char dim, const double t);
     virtual double getDrivenTerm( const double t) = 0;
 };
 
@@ -43,17 +43,19 @@ void BoundaryModuleDrivenBase::init( Grid* pGrid, Setting& cfg){
     return;
 }
 
-StateVector BoundaryModuleDrivenBase::getBoundary( const StateVector& Reference, const char dim, const double t, const double dt){
+StateVector BoundaryModuleDrivenBase::getBoundary( const StateVector& Reference, const char dim, const double t){
+    // TODO Make the boundary both transmissive and driven.
+    //      As it stands, it is possible to generate instabilities when backscattered waves meet the boundary.
+    (void)Reference;
     double driventerm = getDrivenTerm(t);
-    double lastdriventerm = getDrivenTerm(t-dt); // Source of error: dt might change!
     StateVector Boundary;
 
-    // Use transmissive boundary condition
-    Boundary = Boundary::Transmissive(Reference);
+    // Set to zero
+    Boundary = ZEROSTATE;
 
     // Calculate driven part
     double electric, magnetic;
-    magnetic = (t==0.) ? driventerm : driventerm - lastdriventerm;
+    magnetic = driventerm;
     electric = c_eta0 * magnetic;
 
     // Add to boundary
@@ -84,10 +86,6 @@ StateVector BoundaryModuleDrivenBase::getBoundary( const StateVector& Reference,
             break;
     }
     
- /*   std::cout<<"electric: " << electric<<std::endl;    
-    std::cout<<"magnetic: " << magnetic<<std::endl;    
-    std::cout<<"t: " << t<<std::endl;
-*/
     return Boundary;
 }
 

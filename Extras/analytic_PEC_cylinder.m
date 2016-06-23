@@ -51,7 +51,8 @@ endfor
 
 phi.*=180/pi;
 Habs = abs(H);
-HabsMax = max(Habs);
+%HabsMax = max(Habs);
+HabsMax=1.0;
 Habs = Habs/HabsMax;
 
 file_id=fopen('exact_data.txt','w');

@@ -69,7 +69,7 @@ void Updater::exec(){
     (void) t;
 
     dim = 'x';
-    pBmanager->exec(dim,t,dt);
+    pBmanager->exec(dim,t);
     pFVM->exec(dim,dt); 
 
 #ifdef DEBUG
@@ -77,7 +77,7 @@ void Updater::exec(){
 #endif
 
     dim = 'y';
-    pBmanager->exec(dim,t,dt);
+    pBmanager->exec(dim,t);
     pFVM->exec(dim,dt);
 
 #ifdef DEBUG
