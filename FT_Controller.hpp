@@ -88,7 +88,7 @@ void FT_Controller::exec(){
         for( int jj=y_start; jj<y_end; jj++){
             Boundary = mSolver.pGrid->boundary(ii,jj);
             levelset = mSolver.pGrid->levelset(ii,jj);
-            if( Boundary.isCut() && levelset < 0) n_cells++;
+            if( Boundary.isCut() ) n_cells++;
         }
     }
 
@@ -101,7 +101,7 @@ void FT_Controller::exec(){
         for( int jj=y_start; jj<y_end; jj++){
             Boundary = mSolver.pGrid->boundary(ii,jj);
             levelset = mSolver.pGrid->levelset(ii,jj);
-            if( Boundary.isCut() && levelset < 0){
+            if( Boundary.isCut() ){
                 x = (ii-mSolver.pGrid->bound()+0.5)*mSolver.pGrid->dx()-circleX;
                 y = (jj-mSolver.pGrid->bound()+0.5)*mSolver.pGrid->dy()-circleY;
                 phi = atan2(y,x) * 180 / M_PI;
@@ -143,7 +143,7 @@ void FT_Controller::exec(){
             for( int jj=y_start; jj<y_end; jj++){
                 Boundary = mSolver.pGrid->boundary(ii,jj);
                 levelset = mSolver.pGrid->levelset(ii,jj);
-                if( Boundary.isCut() && levelset < 0){
+                if( Boundary.isCut() ){
                     State = mSolver.pGrid->state(ii,jj);
                     allTimeDomain[ cells*N + timestep] = State.Hz();
                     cells++;
@@ -186,7 +186,7 @@ void FT_Controller::exec(){
         PEC_test_file << Phi[cells]           << '\t'
                       << Amplitude[cells]/max << std::endl;   
     }
-
+(void)levelset;
     return;
 
 }

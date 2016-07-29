@@ -23,7 +23,6 @@ using std::string;
 int main( int argc, char* argv[]){
 
     string cfgname;
-
     if( argc > 1){
         cfgname = argv[1];
     }else{
@@ -44,32 +43,15 @@ int main( int argc, char* argv[]){
 #endif
 
     Solver mySolver(cfg);
-//    mySolver.printData();
-//    mySolver.printGeometry();
-//    mySolver.printLevelSetVertices();
     mySolver.exec();
 
+    // TODO
+    // Update Output such that Fourier transforms can be selected at run time.
+    // Perhaps get cut cell output to work, and write external scripts that process data
+    // an appropriate form. Then pass that to a FFT library (there must be one in SciPy),
+    // and plot from there.
 //    FT_Controller myFT( cfg);
 //    myFT.exec();
-/*
-    std::string prefix("data/results");
-    std::string suffix(".dat");
-    std::string number;
-    std::string filename;
-    std::ofstream file;
-    int iter = 0;
-    int print_every = 10;
-    while(!mySolver.complete()){
-        iter++;
-        mySolver.advance();
-        if(iter%print_every==0){
-            number = std::to_string(iter/print_every);
-            filename = prefix+number+suffix;
-            file.open(filename.c_str());
-            mySolver.printData(file);
-            file.close();
-        }
-    }
-*/
+
     return EXIT_SUCCESS;
 }

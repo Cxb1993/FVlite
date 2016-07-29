@@ -8,3 +8,6 @@ gmon.out
 toam*
 *.C
 *.py
+*.pdf
+*.eps
+*.tex

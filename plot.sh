@@ -1,7 +1,7 @@
 #!/bin/bash
 
-datafile="data/DefaultInit.dat"
-outfile="plots/DefaultInit.png"
+datafile="data/MaxwellSlopeInit.dat"
+outfile="plots/MaxwellSlopeInit.png"
 
 gnuplot -e "datafile='${datafile}'"   \
         -e "outfile='${outfile}'"     \
