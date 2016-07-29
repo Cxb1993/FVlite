@@ -69,7 +69,7 @@ void FVMsolverCutCell::exec( char dim, double dt){
 //                            std::cout << "FluxR= " << "("<<FluxR[0]<<", "<<FluxR[1]<<", "<<FluxR[2]<<", "<<FluxR[3]<<", "<<FluxR[4]<<", "<<FluxR[5]<<")"<<std::endl;
 //                            std::cout << "BoundaryFlux= " << "("<<BoundaryFlux[0]<<", "<<BoundaryFlux[1]<<", "<<BoundaryFlux[2]<<", "<<BoundaryFlux[3]<<", "<<BoundaryFlux[4]<<", "<<BoundaryFlux[5] << ")"<<std::endl;
 //                        }
-                        pGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR /*- (betaL-betaR)*BoundaryFlux*/) * dt/(ds*alpha);
+                        pGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
                         
 #if 0
                         if( pGrid->state(ii,jj).Hz() > 10.0){
@@ -112,7 +112,7 @@ void FVMsolverCutCell::exec( char dim, double dt){
                         BoundaryFlux.set( pGrid->state_ref(ii,jj),dim);
                         FluxL = pGrid->flux(ii,jj-1);
                         FluxR = pGrid->flux(ii,jj);
-                        pGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR /*- (betaL-betaR)*BoundaryFlux*/) * dt/(ds*alpha);
+                        pGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
                     }
                 }
             }
