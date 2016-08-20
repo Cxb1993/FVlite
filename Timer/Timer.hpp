@@ -76,7 +76,7 @@ void Timer::advance(double ratio){
 void Timer::calibrate_timestep(){
     double maxSpeed = mpGrid->maxSpeed();
     double ds = (mpGrid->dx() < mpGrid->dy()) ? mpGrid->dx() : mpGrid->dy();
-    mDt = (ds*mCFL) / (maxSpeed*sqrt(2)); // Courant condition, root 2 accounts for 2 dimensions
+    mDt = (ds*mCFL)/maxSpeed; // Courant condition
     return;
 }
 

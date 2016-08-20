@@ -28,8 +28,8 @@ set palette defined (0 "white", 1 "black")
 #load 'RdBu.plt'
 
 
-set size square
-#set size ratio 0.25
+#set size square
+set size ratio 0.6
 set xyplane 0.1
 #set view 90, 0 
 

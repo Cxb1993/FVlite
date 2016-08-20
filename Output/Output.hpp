@@ -147,7 +147,7 @@ void Output::print(){
             }
 
         }
-        File << std::endl;
+//        File << std::endl;
     }
 
     // Close file
