@@ -14,6 +14,7 @@
 #include <libconfig.h++>
 
 #include "Grid/Grid.hpp"
+#include "Timer/Timer.hpp"
 
 using std::string;
 using libconfig::Setting;
@@ -26,17 +27,20 @@ private:
 
     int mCounter;        // Counts number of timesteps.
     int mPrintEvery;     // Print on every mPrintEvery'th timestep. Set to zero to print only final results.
+    double mPrintDelay;  // Time must be greater than print delay to start printing
     bool mPrintInitial;  // Print initial conditions?
     bool mPrintCutCells; // Print only cut cells
     string mRunName;     // Name of current run.
+
     Grid* mpGrid;        // Pointer to grid.
+    Timer* mpTimer;      // Pointer to timer
 
 public:
 
     Output(){}
     ~Output(){}
 
-    void init( Grid* pGrid, const Setting& cfg);
+    void init( Grid* pGrid, Timer* pTimer, const Setting& cfg);
     void prod();
     void print();
     void print_geometry();
@@ -45,19 +49,26 @@ public:
 
 // Function definitions
 
-void Output::init( Grid* pGrid, const Setting& cfg){
+void Output::init( Grid* pGrid, Timer* pTimer, const Setting& cfg){
     mCounter = 0;
     mPrintEvery = cfg.lookup("PrintEvery");
+    mPrintDelay = cfg.lookup("PrintDelay");
     mPrintInitial = cfg.lookup("PrintInitial");
     mPrintCutCells = cfg.lookup("PrintCutCells");
     mRunName = cfg.lookup("RunName").c_str();
     mpGrid = pGrid;
+    mpTimer = pTimer;
     return;
 }
 
 void Output::prod(){
+    double t = mpTimer->t();
     if(  (mCounter==0 && mPrintInitial) 
-      || (mPrintEvery!=0 && mCounter>0 && ( mCounter % mPrintEvery == 0  )) )
+      || (mPrintEvery!=0 && mCounter>0 && 
+             ( mCounter % mPrintEvery == 0 ) &&
+             ( t >= mPrintDelay )
+         ) 
+      )
     {
         print();
     }
@@ -123,7 +134,7 @@ void Output::print(){
 
             Boundary = mpGrid->boundary(ii,jj);
             alpha = Boundary.alpha();
-            if( !mPrintCutCells || (alpha>0 && alpha<1.)){
+            if( !mPrintCutCells || (alpha!=0. && alpha!=1.)){
 
                 // Print position
                 File << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';

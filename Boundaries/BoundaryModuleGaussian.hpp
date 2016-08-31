@@ -22,7 +22,7 @@ REGISTER(BoundaryModule,Gaussian)
 double BoundaryModuleGaussian::getDrivenTerm( const double t){
     double numer = (t - mMean)*(t - mMean);
     double denom = 2*mStdDev*mStdDev;
-    return mAmp*exp(-numer/denom);
+    return mAmp*exp(-numer/denom)/(sqrt(2*M_PI)*mStdDev);
 }
 
 }// Namespace closure

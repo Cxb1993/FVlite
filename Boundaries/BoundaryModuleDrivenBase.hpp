@@ -55,8 +55,8 @@ StateVector BoundaryModuleDrivenBase::getBoundary( const StateVector& Reference,
 
     // Calculate driven part
     double electric, magnetic;
-    magnetic = driventerm;
-    electric = c_eta0 * magnetic;
+    electric = driventerm;
+    magnetic = electric / c_eta0;
 
     // Add to boundary
     switch(dim){

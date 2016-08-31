@@ -70,18 +70,18 @@ void Solver::init( Config& cfg){
     pGrid = new Grid;
     pGrid->init(gridCfg);
 
-    // Output
-    std::cout << "Setting up output..." << std::endl;
-    Setting& outputCfg = cfg.lookup("Output");
-    pOutput = new Output;
-    pOutput->init(pGrid,outputCfg);
-
     // Set up timer
     std::cout << "Building timer..." << std::endl;
     Setting& timerCfg = cfg.lookup("Timing");
     pTimer = new Timer;
     pTimer->init(pGrid,timerCfg);
     pTimer->calibrate_timestep();
+
+    // Output
+    std::cout << "Setting up output..." << std::endl;
+    Setting& outputCfg = cfg.lookup("Output");
+    pOutput = new Output;
+    pOutput->init(pGrid,pTimer,outputCfg);
 
     // Set up finite volume system
     std::cout << "Building FVM solver..." << std::endl;
