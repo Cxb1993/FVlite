@@ -70,7 +70,7 @@ def exact(phis=[]):
     Z0 = 376.73031346177
     E0 = 1.0
     # FIXME 5e9
-    omega = 5e8
+    omega = 5e9
     k = omega / c
     R = 0.5
     kR = k*R
@@ -103,7 +103,7 @@ def exact(phis=[]):
 
 def get_numerical_results( rootname, cutcells=True):
 
-    centrecoord = (1.0,1.0)
+    centrecoord = (2.0,1.0)
 
     files = sorted(glob.glob(rootname+ "*dat"))
     n_times = len(files)
@@ -134,10 +134,10 @@ def get_numerical_results( rootname, cutcells=True):
 
     # Fourier transform over time for each point
     for ii in range(n_points):
-         #HzFreq[ii] = abs(2*(np.fft.fft(HzTime[:,ii]))[1]/n_times)
+         HzFreq[ii] = abs(2*(np.fft.fft(HzTime[:,ii]))[1]/n_times)
          # GAUSSIAN TEST
-         result =abs(2*(np.fft.fft(HzTime[:,ii]))[1]/n_times)
-         HzFreq[ii] = result * math.exp(-(5e8*5e8*1e-9*1e-9/2.0))
+         #result =abs(2*(np.fft.fft(HzTime[:,ii]))[1]/n_times)
+         #HzFreq[ii] = result * math.exp(-(5e8*5e8*1e-9*1e-9/2.0))
 
     return phis, HzFreq
 
@@ -177,10 +177,11 @@ def main():
         PhisExact, HzExact = exact()
 
         # Plot exact solution
+        plt.figure(figsize=(2.5,2.5))
         plt.plot( PhisExact, HzExact, color=Colors[0])
 
         # Obtain and plot numerical solution(s)
-        markevery=5
+        markevery=9
         for ii in range(len(rootnames)):
             phis, HzFreq = get_numerical_results( rootnames[ii], cutcells)
             plt.scatter( phis[0:len(phis)-1:markevery], HzFreq[0:len(HzFreq)-1:markevery], color=Colors[ii+1])
@@ -219,9 +220,11 @@ def main():
             phisExact, HzExact = exact(phis)
             staircase_rms[i] = RMS_error( Hz, HzExact)
 
+        plt.figure(figsize=(2.5,2.5))
         plt.plot( resolutions, cutcell_rms, marker='o', color='k')
         plt.plot( resolutions, staircase_rms, marker='o', color='r')
         plt.xlim([0,800])
+        plt.xticks([0,200,400,600,800])
         plt.xlabel("Number of cells, x direction")
         plt.ylabel("RMS error")
 

@@ -42,10 +42,12 @@ def main():
                       'family':'serif' ,
                       'serif':['Computer Modern Roman'],
                       #'serif':['Times'],
-                      'size':14,
-                      #'weight':'bold'
+                      'size':18,
+                      'weight':'bold'
                      })
         colormap = cm.get_cmap('RdBu')
+
+        plt.figure(figsize=(4,4))
 
         plt.pcolormesh( xi, yi, zi, cmap=colormap, vmin=-0.006, vmax=0.006)
 
@@ -97,7 +99,7 @@ def main():
                       'family':'serif' ,
                       #'serif':['Computer Modern Roman'],
                       'serif':['Times'],
-                      'size':14,
+                      'size':18,
                       #'weight':'bold'
                      })
 
