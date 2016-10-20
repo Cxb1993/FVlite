@@ -1,6 +1,31 @@
 # TODO
 # list of things to work on
 
+> Overhaul looping
+    - Code could be greatly sped up by replacing double nested
+      loops with single nested loops and clever iterators.
+      This may allow the code to be switched easily from 1D to
+      2D to 3D, simply by choosing a different iterator and looping
+      from .start() to .end().
+    - For y-sweeps, it may be necesarry to use two iterators, one of
+      which is offset from the other such that it is always one row above.
+    - Perhaps just use one but add a constant to get the one-row-above
+      pointer?
+        * no, way faster to add a constant at the start and iterate. But
+          then how will larger stencils be handled?
+        * boom, implement an iterating stencil class! The stencil could change
+          to account for x-sweeps vs y-sweeps, and everything else would
+          remain the same!
+    - It is not immediately obvious how to skip over ghost cells efficiently.
+      If the position is determined from the iterator once per loop, that
+      would actually be less efficient.
+    - Perhaps the stencil should store the current coordinate? It could iterate
+      over ii too, perform a check to see if ii>=ghosts, and if so set ii=0 and jj++.
+      Similar for kk.
+> Implement stencil class
+    - see above for intended purpose
+    - what should create it? Should it be passed all the way down to flux
+      calculators?
 > Generalise Updater class
     - Implement an 'EventSequencer', which can be set up
       at run time or load from set of defaults.
