@@ -25,14 +25,17 @@ int main( int argc, char* argv[]){
         cfgname = "Default";
     }
 
-    cfgname = cfgname + ".cfg";
-
 #ifdef DEBUG
     std::cout << "Reading config file: " << cfgname << std::endl;
 #endif
 
     libconfig::Config cfg;
-    cfg.readFile(cfgname.c_str());
+    try{
+        cfg.readFile(cfgname.c_str());
+    } catch ( const std::exception& e){
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
 #ifdef DEBUG
     std::cout << "Config file read success." << std::endl;

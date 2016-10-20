@@ -1,0 +1,29 @@
+README for fluxsolvers
+
+FluxSolvers consist of several components which may be chosen at run time.
+These are:
+
+> FluxCalculator
+    - The 'core' of the FluxSolver. This takes a number of grid parameters
+      and state vectors and returns a numerical flux. Examples include:
+        * Lax-Friedrich
+        * Richtmyer (two-stage Lax-Wendroff)
+        * FORCE
+        * HLLC (approximate Riemann solver)
+    - All FluxSolvers MUST make use of a FluxCalculator
+
+> Reconstructor
+    - A tool which takes a number of StateVectors from the grid and returns
+      a reconstructed state at the desired location. As of writing, the only
+      method implemented so far is the MUSCL reconstruction, though some 
+      Godunov methods may be usable at a future date.
+    - The default reconstructor is the trivial case in which two states are
+      taken on either side of a cell interface, and those two states are
+      immediately returned.
+    - Reconstructors can make use of optional Limiters, described below.
+
+> Limiter
+    - Found in the Reconstructors directory.
+    - An optional component of a Reconstructor. Takes a number of
+      StateVectors, determines the local slope, and limits according to
+      how steep the local gradients are.

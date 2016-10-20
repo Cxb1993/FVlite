@@ -7,7 +7,7 @@
 #define CUTCELLSTD_HPP
 
 #include "CutCellManagerAbstract.hpp"
-#include "FluxSolvers/HLLCfunctions.hpp"
+#include "FluxSolvers/FluxCalculators/HLLCfunctions.hpp"
 #include "Boundaries/BoundaryFunctions.hpp"
 
 namespace FVlite{

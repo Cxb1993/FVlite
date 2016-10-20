@@ -11,14 +11,7 @@
     - The 'Events' themselves should be modifiable. For
       example, an x-sweep will need a flux method, an
       explicit update formula, etc.
-> Improve flux solver implementation
-    - Inheritance structure is quite rigid and requires the
-      user to know a number of opaque names for each solver
-      type. For example, FORCE vs SLIC. Ideally, it should
-      be the case that the user can pick:
-      * flux calculator
-      * Reconstruction method
-      * Limiter
+> remove 'char dim' from everything -- use templates
 > fWlayer implementation
     - Make it part of an 'AbsorbingLayer' class.
 > Template everything over FiniteVolume scheme?

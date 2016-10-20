@@ -1,24 +1,24 @@
-// LimiterNone.hpp
+// LimiterDefault.hpp
 //
-// Finite volume grid updater limiter.
-// No limiter applied
+// Finite volume slope limiter.
+// trivial case - no limiter applied
 
-#ifndef LIMITERNONE_HPP
-#define LIMITERNONE_HPP
+#ifndef LIMITERDEFAULT_HPP
+#define LIMITERDEFAULT_HPP
 
 #include"LimiterAbstract.hpp"
 
 namespace FVlite{
 
-class LimiterNone : public Limiter{
+class LimiterDefault : public Limiter{
 public:
-    LimiterNone(){}
+    LimiterDefault(){}
     virtual StateVector exec(StateVector& r, double omega);
 };
 
-REGISTER(Limiter,None)
+REGISTER(Limiter,Default)
 
-StateVector LimiterNone::exec(StateVector& r, double omega){
+StateVector LimiterDefault::exec(StateVector& r, double omega){
     (void)r; // Prevents unused parameter warnings
     (void)omega;
     StateVector result;
@@ -29,4 +29,4 @@ StateVector LimiterNone::exec(StateVector& r, double omega){
 }
 
 }// Namespace closure
-#endif /* LIMITERNONE_HPP */
+#endif /* LIMITERDEFAULT_HPP */

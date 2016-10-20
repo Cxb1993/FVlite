@@ -1,4 +1,4 @@
-// FluxSolverHLLCbase.hpp
+// FluxCalculatorHLLCbase.hpp
 //
 // Finite volume flux solver.
 // Applies HLLC method.
@@ -17,12 +17,12 @@
 
 namespace FVlite{
 
-class FluxSolverHLLCbase : public virtual FluxSolver{
+class FluxCalculatorHLLC : public FluxCalculator{
 public:
     virtual FluxVector getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR);  
 };
 
-FluxVector FluxSolverHLLCbase::getIntercellFlux( double ds, double dt, char dim, const StateVector& StateL, const StateVector& StateR){
+FluxVector FluxCalculatorHLLC::exec( double ds, double dt, char dim, const StateVector& StateL, const StateVector& StateR){
     // See 'Riemann Solvers & Numerical Methods for Fluid Dynamics',E Toro, section 10.6, for a summary of the HLLC fluxes
     (void)ds;
     (void)dt;
@@ -45,4 +45,4 @@ FluxVector FluxSolverHLLCbase::getIntercellFlux( double ds, double dt, char dim,
 
 
 }// Namespace closure
-#endif /* FLUXFORCE_HPP */
+#endif /* FLUXHLLC_HPP */

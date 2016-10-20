@@ -8,7 +8,7 @@
 #define SOURCEABSTRACT_HPP
 
 #include "Vectors/StateVector.hpp"
-#include "FluxSolvers/FluxSolvers.hpp"
+#include "FluxSolvers/FluxSolver.hpp"
 
 namespace FVlite{
 

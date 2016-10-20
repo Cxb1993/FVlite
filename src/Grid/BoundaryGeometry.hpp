@@ -31,7 +31,7 @@ protected:
 
 public:
 
-    BoundaryGeometry(){}
+    BoundaryGeometry(){ set(0,0,0,0,0,0);}
     BoundaryGeometry( double dx, double dy, double bl, double br, double tl, double tr){ set(dx,dy,bl,br,tl,tr);}
 
     inline double alpha() const{ return mAlpha;}

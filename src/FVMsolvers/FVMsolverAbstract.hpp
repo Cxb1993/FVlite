@@ -12,7 +12,7 @@
 #include <libconfig.h++>
 
 #include "Grid/Grid.hpp"
-#include "FluxSolvers/FluxSolvers.hpp"
+#include "FluxSolvers/FluxSolver.hpp"
 #include "Sources/Sources.hpp"
 #include "CutCellManagers/CutCellManagers.hpp"
 
@@ -26,8 +26,9 @@ class FVMsolver{
 protected:
 
     Grid*       pGrid;
-    FluxSolver* pFlux;
     CutCellManager* pCutCell;
+
+    FluxSolver* pFlux;
 
 public:
 
@@ -48,9 +49,16 @@ ObjectFactory<FVMsolver> FVMsolverFactory;
 void FVMsolver::init( Grid* pGrid, Setting& cfg){
     (*this).pGrid = pGrid;
 
-    string fluxType = cfg.lookup("scheme");
-    pFlux = FluxSolverFactory.create(fluxType);
-    pFlux->init(pGrid,cfg);
+    pFlux = new FluxSolver;
+    // Try to extract "FluxSolver" setting. If not present,
+    // print error and exit. Then, set up pFlux.
+    try{
+        Setting& FluxCfg = cfg.lookup("FluxSolver");
+        pFlux->init(pGrid,FluxCfg);
+    } catch ( const std::exception& e ){
+        std::cerr << "test" << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     string fvmType, cutCellType;
     fvmType = cfg.lookup("type").c_str();

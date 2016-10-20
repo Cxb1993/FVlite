@@ -6,9 +6,9 @@
 #define LIMITERS_HPP
 
 #include"LimiterAbstract.hpp"
+#include"LimiterDefault.hpp"
 #include"LimiterSuperBee.hpp"
 #include"LimiterVanLeer.hpp"
 #include"LimiterMinBee.hpp"
-#include"LimiterNone.hpp"
 
 #endif /* LIMITERS_HPP */

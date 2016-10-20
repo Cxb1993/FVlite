@@ -65,6 +65,7 @@ AbstractProduct* ObjectFactory<AbstractProduct,ProductCreator>::create( const st
         return (iter->second)();
     } else { //error
         std::cerr << "ERROR: Failed to locate factory blueprint with the Id: " << Id << std::endl;
+        std::cerr << "       Perhaps you forgot to REGISTER this class?" << std::endl;
         exit(EXIT_FAILURE);
     }
     return NULL;
@@ -84,7 +85,7 @@ bool ObjectFactory<AbstractProduct,ProductCreator>::eraseBlueprint( const std::s
 /* a is parent, b is child */
 #define REGISTER(a,b) namespace a##b##unique { \
     a * create(){ return new a##b ;}}          \
-    const bool a##b##reg = a##Factory.addBlueprint( #b , a##b##unique::create);
+    __attribute__((unused)) const bool a##b##reg = a##Factory.addBlueprint( #b , a##b##unique::create);
 
 
 #endif /* OBJECTFACTORY_HPP */
