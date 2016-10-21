@@ -1,9 +1,4 @@
 // Updater.hpp
-//
-// Abstract finite volume grid updater.
-//
-// Author: Liam Pattinson
-// Date: Apr 7 2016
 
 #ifndef UPDATER_HPP
 #define UPDATER_HPP
