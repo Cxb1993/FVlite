@@ -1,10 +1,11 @@
 // FVlite.hpp
 //
-// Defines a class for finite volume calculations.
-// Used to solve FVlite scattering problems
+// Defines top-level class which performs initial setup,
+// initialises the key components, and provides a simple
+// interface to them.
 
-#ifndef SOLVER_HPP
-#define SOLVER_HPP
+#ifndef CONTROLLER_HPP
+#define CONTROLLER_HPP
 
 #include <string>
 #include <iostream>
@@ -23,23 +24,21 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class FT_Controller;
-
-class Solver{
-friend class FT_Controller;
+class Controller{
 
 private:
 
-    Grid*        pGrid;
-    Timer*       pTimer;
-    Updater*     pUpdate;
-    Output*      pOutput;
+    Grid*             mpGrid;
+    Timer*            mpTimer;
+    Output*           mpOutput;
+    FVMsolver*        mpFVM;
+    BoundaryManager*  mpBoundaryManager;
 
 public:
 
-    Solver(){}
-    Solver( Config& cfg){ init(cfg);}
-    ~Solver();
+    Controller(){}
+    Controller( Config& cfg){ init(cfg);}
+    ~Controller();
 
     void init( Config& cfg);
 
@@ -47,6 +46,7 @@ public:
     void advance();
     void solve();
     void exec();
+    void check_grid();
 
     // PRINT FUNCTIONS, SHOULD BE DEPRECATED
     void printData(std::ofstream& file);
@@ -54,63 +54,61 @@ public:
     void printLevelSetVertices();
 };
 
-Solver::~Solver(){
-  delete pUpdate;
-  delete pTimer;
-  delete pGrid;
+Controller::~Controller(){
+  delete mpGrid;
+  delete mpTimer;
+  delete mpOutput;
+  delete mpFVM;
+  delete mpBoundaryManager;
 }
 
-void Solver::init( Config& cfg){ 
+void Controller::init( Config& cfg){ 
 
     std::cout << "Begin Building Solver" << std::endl;
 
     // Set up grid
     std::cout << "Building grid.." << std::endl;
     Setting& gridCfg = cfg.lookup("Grid");
-    pGrid = new Grid;
-    pGrid->init(gridCfg);
+    mpGrid = new Grid;
+    mpGrid->init(gridCfg);
 
     // Set up timer
     std::cout << "Building timer..." << std::endl;
     Setting& timerCfg = cfg.lookup("Timing");
-    pTimer = new Timer;
-    pTimer->init(pGrid,timerCfg);
-    pTimer->calibrate_timestep();
+    mpTimer = new Timer;
+    mpTimer->init(mpGrid,timerCfg);
+    mpTimer->calibrate_timestep();
 
     // Output
     std::cout << "Setting up output..." << std::endl;
     Setting& outputCfg = cfg.lookup("Output");
-    pOutput = new Output;
-    pOutput->init(pGrid,pTimer,outputCfg);
+    mpOutput = new Output;
+    mpOutput->init(mpGrid,mpTimer,outputCfg);
 
     // Set up finite volume system
     std::cout << "Building FVM solver..." << std::endl;
     Setting& fvmCfg = cfg.lookup("FVM");
     string fvmType = fvmCfg.lookup("type");
-    FVMsolver* pFVM = FVMsolverFactory.create(fvmType);
-    pFVM->init( pGrid, fvmCfg);
+    mpFVM = FVMsolverFactory.create(fvmType);
+    mpFVM->init( mpGrid, fvmCfg);
 
     // Set up boundary update method
     std::cout << "Building boundary update manager..." << std::endl;
     Setting& boundaryCfg = cfg.lookup("Boundaries");
-    BoundaryManager* pBmanager = new BoundaryManager;
-    pBmanager->init(pGrid,boundaryCfg);
-
-    // Set up updater
-    std::cout << "Building complete time marching system..." << std::endl;
-    pUpdate = new Updater(pGrid,pTimer,pFVM,pBmanager);
+    mpBoundaryManager = new BoundaryManager;
+    mpBoundaryManager->init(mpGrid,boundaryCfg);
 
     // Initialise
     std::cout << "Building initialiser..." << std::endl;
     Setting& initCfg = cfg.lookup("Initialisation");
     InitialisationManager* pImanager = new InitialisationManager;
-    pImanager->init(pGrid,initCfg);
+    pImanager->init(mpGrid,initCfg);
     pImanager->exec();
     pImanager->setup_boundary_geometry();
     delete pImanager;
 
     std::cout << "Solver built successfully" << std::endl;
-    pOutput->prod();
+    mpOutput->prod();
 #ifdef DEBUG
     pOutput->print_geometry();
 #endif
@@ -118,26 +116,101 @@ void Solver::init( Config& cfg){
     return;
 }
 
-bool Solver::is_complete(){
-    return pTimer->is_complete();
+bool Controller::is_complete(){
+    return mpTimer->is_complete();
 }
 
-void Solver::advance(){
-    pUpdate->exec();
-    pOutput->prod();
+void Controller::advance(){
+    // Calibrate time step using largest speed on the grid
+#ifdef EULER
+    mpTimer->calibrate_timestep();
+#endif
+    double t  = mpTimer->t();
+    double dt = mpTimer->dt();
+
+    // Tell FVMsolver that a new time step is occurring
+    mpFVM->newTimeStep();
+
+    // Print current time to screen
+    std::cout << "\rTime: " << t
+#ifdef DEBUG 
+        << std::endl;
+#else
+        << std::flush;
+#endif
+
+    char dim;
+    (void) t;
+
+    dim = 'x';
+    mpBoundaryManager->exec(dim,t);
+    mpFVM->exec(dim,dt); 
+
+#ifdef DEBUG
+    check_grid();
+#endif
+
+    dim = 'y';
+    mpBoundaryManager->exec(dim,t);
+    mpFVM->exec(dim,dt);
+
+#ifdef DEBUG
+    check_grid();
+#endif
+
+//    dim = 'x';
+//    pBmanager->exec(dim,t,dt);
+//    pFVM->exec(dim,0.5*dt);
+//
+//#ifdef DEBUG
+//    checkGrid();
+//#endif
+
+    // Increment time
+    mpTimer->advance();
+    mpOutput->prod();
     return;
 }
 
-void Solver::solve(){
-    while( !pTimer->is_complete()){
+void Controller::solve(){
+    while( !mpTimer->is_complete()){
         advance();
     }
     return;
 }
 
-void Solver::exec(){
+void Controller::exec(){
     solve();
-    pOutput->print();
+    mpOutput->print();
+    return;
+}
+
+void Controller::check_grid(){
+    int startX = mpGrid->startX();
+    int startY = mpGrid->startY();
+    int endX = mpGrid->endX();
+    int endY = mpGrid->endY();
+    StateVector State;
+    FluxVector Flux;
+    bool abort = false;
+    for( int jj=startY; jj<endY; jj++){
+        for( int ii=startX; ii<endX; ii++){
+            State = mpGrid->state(ii,jj);
+            Flux  = mpGrid->flux(ii,jj);
+            if( State.isnan() ){
+                std::cerr << "State("<<ii<<","<<jj<<") contains NaN" << std::endl;
+                abort = true;
+            }
+            if( Flux.isnan() ){
+                std::cerr << "Flux("<<ii<<","<<jj<<") contains NaN" << std::endl;
+                abort = true;
+            }
+        }
+    }
+    if( abort ){
+        std::cerr << "NaNs found in grid. Aborting." << std::endl;
+        exit(EXIT_FAILURE);
+    }
     return;
 }
 
@@ -146,7 +219,7 @@ void Solver::exec(){
 // Should be deprecated!
 
 
-void Solver::printData(std::ofstream& file){
+void Controller::printData(std::ofstream& file){
 #ifdef MAXWELL
     file << "# x y Ex Ey Ez Hx Hy Hz LevelSet" << std::endl;
 #endif
@@ -154,33 +227,33 @@ void Solver::printData(std::ofstream& file){
     file << "# x y rho rhoUx rhoUy E levelset" << std::endl;
 #endif
     StateVector State;
-    for( int ii=pGrid->startX(); ii<pGrid->endX(); ii++){
-        for( int jj=pGrid->startY(); jj<pGrid->endY(); jj++){
-            State = pGrid->state(ii,jj);
-            file << pGrid->x(ii)  << '\t' << pGrid->y(jj)  << '\t';
+    for( int ii=mpGrid->startX(); ii<mpGrid->endX(); ii++){
+        for( int jj=mpGrid->startY(); jj<mpGrid->endY(); jj++){
+            State = mpGrid->state(ii,jj);
+            file << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';
             for( unsigned int kk=0; kk<State.size(); kk++){
                 file << State[kk] << '\t';
             }
-            file << (*pGrid->levelset())(ii,jj) << std::endl;
+            file << (*mpGrid->levelset())(ii,jj) << std::endl;
         }
         file << std::endl;
     }
     return;
 }
 
-void Solver::printGeometry(){
+void Controller::printGeometry(){
     std::ofstream file("geometry.dat");
     file << "# x y levelset betaL betaR betaT betaB alpha Xb[0] Xb[1] Xb[2] Nb[0] Nb[1] Nb[2]" << std::endl;
-    int startX = pGrid->startX();
-    int startY = pGrid->startY();
-    int endX = pGrid->endX();
-    int endY = pGrid->endY();
+    int startX = mpGrid->startX();
+    int startY = mpGrid->startY();
+    int endX = mpGrid->endX();
+    int endY = mpGrid->endY();
     BoundaryGeometry geometry;
     for( int ii=startX; ii<endX; ii++){
         for( int jj=startY; jj<endY; jj++){
-            geometry = pGrid->boundary(ii,jj);
-            file << pGrid->x(ii)  << '\t' << pGrid->y(jj)  << '\t';
-            file << (*pGrid->levelset())(ii,jj) << '\t'; 
+            geometry = mpGrid->boundary(ii,jj);
+            file << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';
+            file << (*mpGrid->levelset())(ii,jj) << '\t'; 
             file << geometry.betaL() << '\t';
             file << geometry.betaR() << '\t';
             file << geometry.betaT() << '\t';
@@ -199,20 +272,20 @@ void Solver::printGeometry(){
     return;
 }
 
-void Solver::printLevelSetVertices(){
+void Controller::printLevelSetVertices(){
     std::ofstream file("vertices.dat");
     file << "# x y levelset" << std::endl;
-    int sizeX = pGrid->sizeX();
-    int sizeY = pGrid->sizeY();
+    int sizeX = mpGrid->sizeX();
+    int sizeY = mpGrid->sizeY();
     double x, y;
-    double dx = pGrid->dx();
-    double dy = pGrid->dy();
+    double dx = mpGrid->dx();
+    double dy = mpGrid->dy();
     for( int ii=1; ii<sizeX; ii++){
-        x = pGrid->x(ii) - 0.5*dx;
+        x = mpGrid->x(ii) - 0.5*dx;
         for( int jj=1; jj<sizeY; jj++){
-            y = pGrid->y(jj) - 0.5*dy;
+            y = mpGrid->y(jj) - 0.5*dy;
             file << x  << '\t' << y  << '\t';
-            file << pGrid->levelset()->interpolate(x,y) << std::endl; 
+            file << mpGrid->levelset()->interpolate(x,y) << std::endl; 
         }
         file << std::endl;
     }
@@ -220,4 +293,4 @@ void Solver::printLevelSetVertices(){
 }
 
 }// Namespace closure
-#endif /* SOLVER_HPP */
+#endif /* CONTROLLER_HPP */

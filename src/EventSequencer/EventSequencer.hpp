@@ -11,8 +11,16 @@
 #include <iostream>
 #include <vector>
 
-namespace FVLite{
+#include <libconfig.h++>
 
+#include "Grid/Grid.hpp"
+#include "Timer/Timer.hpp"
+#include "Solvers/Solver.hpp"
+
+using std::stringl
+using libconfig::Setting;
+
+namespace FVLite{
 
 class EventSequencer {
 
@@ -26,6 +34,20 @@ public:
     ~EventSequencer(){
         for( std::vector<Event*>::iterator It = mEvents.begin(); It != mEvents.end(); ++It){
             delete *It;
+        }
+    }
+
+    // Build up a sequence of events from config file
+    // Must pass in Setting named "Events"
+    void init( Grid* pGrid, Timer* pTimer, Solver* pSolver, Setting& cfg){
+        mpGrid
+        int nEvents = cfg.getLength();
+        for( int count=0; count<nEvents; count++){
+            Setting& eventCfg = cfg[count];
+            string eventType = eventCfg.lookup("type").c_str();
+            Event* pEvent = EventFactory.create( eventType);
+            pEvent->init( pGrid, pTimer, pSolver, eventCfg);
+            add_event( pEvent);
         }
     }
 

@@ -1,7 +1,6 @@
 // FVlite.cpp
 //
 // Code to run FVlite.hpp.
-// Used to solve finite volume problems.
 // See the README for information on how to use this code.
 // TODO Write dat README
 
@@ -41,7 +40,7 @@ int main( int argc, char* argv[]){
     std::cout << "Config file read success." << std::endl;
 #endif
 
-    Solver mySolver(cfg);
+    Controller mySolver(cfg);
     mySolver.exec();
 
     return EXIT_SUCCESS;

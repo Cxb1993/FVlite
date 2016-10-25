@@ -4,10 +4,18 @@
 #define EVENT_HPP
 
 #include <cstdlib>
+#include <string>
 #include <exception>
 
+#include <libconfig.h++>
+
 #include "Utils/ObjectFactory.hpp"
+#include "Grid/Grid.hpp"
 #include "Timer/Timer.hpp"
+#include "Solver/Solver.hpp"
+
+using std::string;
+using libconfig::Setting;
 
 namespace FVlite{
 
@@ -17,6 +25,7 @@ namespace FVlite{
 class Event{
 public:
     virtual ~Event(){}
+    virtual void init( Grid* pGrid, Timer* pTimer, Solver* pSolver, Setting& cfg) = 0;
     virtual void exec() = 0;
 };
 
@@ -39,7 +48,10 @@ class EventTimerIncrement: public Event {
 protected:
     Timer* mpTimer;
 public:
-    virtual void init( Timer* pTimer){
+    virtual void init( Grid* pGrid, Timer* pTimer, Solver* pSolver, Setting& cfg){
+        (void)pGrid;
+        (void)pSolver;
+        (void)cfg;
         mpTimer = pTimer;
     }
     virtual void exec(){
@@ -56,7 +68,10 @@ class EventTimerUpdate: public Event {
 protected:
     Timer* mpTimer;
 public:
-    virtual void init( Timer* pTimer){
+    virtual void init( Grid* pGrid, Timer* pTimer, Solver* pSolver, Setting& cfg){
+        (void)pGrid;
+        (void)pSolver;
+        (void)cfg;
         mpTimer = pTimer;
     }
     virtual void exec(){
