@@ -12,7 +12,7 @@ i="1"
 while [ $i -le $filenumber ]
 do
     echo "Plotting $i..."
-    gnuplot -e "datafile='data/$runname$i.dat';outfile='plots/$runname$i.png'" FVlite.plt
+    gnuplot -e "datafile='data/$runname$i.dat';outfile='plots/$runname$i.png'" ./gnuplot/FVlite.plt
     i=$[$i+1]
 done
 

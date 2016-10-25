@@ -1,37 +1,54 @@
-// CutCellManagerStd.hpp
+// CutCellManager.hpp
 //
-// Owned by the flux solver, updates intercell fluxes to account for cut cells.
+// Updates intercell fluxes to account for cut cells.
 // Method based on Klein, 2009.
 
-#ifndef CUTCELLSTD_HPP
-#define CUTCELLSTD_HPP
+#ifndef CUTCELLMANAGER_HPP
+#define CUTCELLMANAGER_HPP
 
-#include "CutCellManagerAbstract.hpp"
 #include "FluxSolvers/FluxCalculators/HLLCfunctions.hpp"
 #include "Boundaries/BoundaryFunctions.hpp"
 
 namespace FVlite{
 
-class CutCellManagerStd : public CutCellManager {
-    virtual void newTimeStepSetup();
-    virtual void correctFluxes( char dim, double dt);
+class CutCellManager {
+protected:
+    Grid* mpGrid;
+    FluxSolver* mpFlux;
+public:
+
+    CutCellManager(){}
+    ~CutCellManager(){}
+
+    void init( Grid* pGrid, FluxSolver* pFlux);
+
+    void newTimeStepSetup();
+    void correctFluxes( char dim, double dt);
 
     // Component functions used in cut cell scheme
     double getAlphaShielded( const BoundaryGeometry& Boundary, char dim);
-    FluxVector getModifiedFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const StateVector& AuxL, const StateVector& AuxR, const BoundaryGeometry& BL, const BoundaryGeometry& BR);
+    FluxVector getModifiedFlux( double ds, double dt, char dim,
+            const StateVector& UL, const StateVector& UR,
+            const StateVector& AuxL, const StateVector& AuxR,
+            const BoundaryGeometry& BL, const BoundaryGeometry& BR);
 };
 
-REGISTER(CutCellManager,Std)
+// Function definitions
 
+void CutCellManager::init( Grid* pGrid, FluxSolver* pFlux){
+    mpGrid = pGrid;
+    mpFlux = pFlux;
+    return;
+}
 
-void CutCellManagerStd::newTimeStepSetup(){
+void CutCellManager::newTimeStepSetup(){
 #ifdef DEBUG
     std::cout << "NEW TIME STEP" << std::endl;
 #endif
-    int startX=pGrid->startX();
-    int startY=pGrid->startY();
-    int endX=pGrid->endX();
-    int endY=pGrid->endY();
+    int startX=mpGrid->startX();
+    int startY=mpGrid->startY();
+    int endX=mpGrid->endX();
+    int endY=mpGrid->endY();
     StateVector State;
     StateVector BoundaryState;
 #ifdef MAXWELL
@@ -49,10 +66,10 @@ void CutCellManagerStd::newTimeStepSetup(){
     BoundaryGeometry Boundary;
     for( int jj=startY; jj<endY; jj++){
         for( int ii=startX; ii<endX; ii++){
-            Boundary = pGrid->boundary(ii,jj);
+            Boundary = mpGrid->boundary(ii,jj);
             if(Boundary.alpha() == 1. || Boundary.alpha() == 0.) continue;
             
-            State = pGrid->state(ii,jj);
+            State = mpGrid->state(ii,jj);
 
             // Step I
             // Find rotation matrix to convert velocity to tangential/normal frame
@@ -129,18 +146,18 @@ void CutCellManagerStd::newTimeStepSetup(){
 
             // Step VI
             // Store result in reference state
-            pGrid->state_ref(ii,jj) = State;
+            mpGrid->state_ref(ii,jj) = State;
         }
     }
 
     return;
 }
 
-void CutCellManagerStd::correctFluxes( char dim, double dt){
-    int startX=pGrid->startX();
-    int startY=pGrid->startY();
-    int endX=pGrid->endX();
-    int endY=pGrid->endY();
+void CutCellManager::correctFluxes( char dim, double dt){
+    int startX=mpGrid->startX();
+    int startY=mpGrid->startY();
+    int endX=mpGrid->endX();
+    int endY=mpGrid->endY();
     double alphaL, alphaR, betaC;
     BoundaryGeometry BoundaryL, BoundaryR;
     StateVector StateL, StateR, StateAuxL, StateAuxR;
@@ -148,51 +165,53 @@ void CutCellManagerStd::correctFluxes( char dim, double dt){
     double ds;
     switch(dim){
         case 'x':
-        ds = pGrid->dx();
+        ds = mpGrid->dx();
         for( int jj=startY; jj<endY; jj++){
             for( int ii=startX-1; ii<endX; ii++){
-                BoundaryL = pGrid->boundary(ii,jj);
-                BoundaryR = pGrid->boundary(ii+1,jj);
+                BoundaryL = mpGrid->boundary(ii,jj);
+                BoundaryR = mpGrid->boundary(ii+1,jj);
                 alphaL = BoundaryL.alpha();
                 alphaR = BoundaryR.alpha();
                 betaC  = BoundaryL.betaR();
                 if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
-                    StateL = pGrid->state(ii,jj);
-                    StateR = pGrid->state(ii+1,jj);
-                    StateAuxL = pGrid->state_ref(ii,jj);
-                    StateAuxR = pGrid->state_ref(ii+1,jj);
-                    Flux = getModifiedFlux(ds,dt,dim,StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
+                    StateL = mpGrid->state(ii,jj);
+                    StateR = mpGrid->state(ii+1,jj);
+                    StateAuxL = mpGrid->state_ref(ii,jj);
+                    StateAuxR = mpGrid->state_ref(ii+1,jj);
+                    Flux = getModifiedFlux(ds,dt,dim,
+                            StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
 #ifdef DEBUG
                     if( Flux.isnan()){
                         std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
                     }
 #endif
-                    pGrid->flux(ii,jj) = Flux;
+                    mpGrid->flux(ii,jj) = Flux;
                 }
             }
         }
         break;
         case 'y':
-        ds = pGrid->dy();
+        ds = mpGrid->dy();
         for( int jj=startY-1; jj<endY; jj++){
             for( int ii=startX; ii<endX; ii++){
-                BoundaryL = pGrid->boundary(ii,jj);
-                BoundaryR = pGrid->boundary(ii,jj+1);
+                BoundaryL = mpGrid->boundary(ii,jj);
+                BoundaryR = mpGrid->boundary(ii,jj+1);
                 alphaL = BoundaryL.alpha();
                 alphaR = BoundaryR.alpha();
                 betaC  = BoundaryL.betaT();
                 if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
-                    StateL = pGrid->state(ii,jj);
-                    StateR = pGrid->state(ii,jj+1);
-                    StateAuxL = pGrid->state_ref(ii,jj);
-                    StateAuxR = pGrid->state_ref(ii,jj+1);
-                    Flux = getModifiedFlux(ds,dt,dim,StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
+                    StateL = mpGrid->state(ii,jj);
+                    StateR = mpGrid->state(ii,jj+1);
+                    StateAuxL = mpGrid->state_ref(ii,jj);
+                    StateAuxR = mpGrid->state_ref(ii,jj+1);
+                    Flux = getModifiedFlux(ds,dt,dim,
+                            StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
 #ifdef DEBUG
                     if( Flux.isnan()){
                         std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
                     }
 #endif
-                    pGrid->flux(ii,jj) = Flux;
+                    mpGrid->flux(ii,jj) = Flux;
                 }
             }
         }
@@ -201,7 +220,7 @@ void CutCellManagerStd::correctFluxes( char dim, double dt){
     return;
 }
 
-double CutCellManagerStd::getAlphaShielded( const BoundaryGeometry& Boundary, char dim){
+double CutCellManager::getAlphaShielded( const BoundaryGeometry& Boundary, char dim){
     // Case 1
     // Cuts both sides
     // --------------
@@ -252,8 +271,11 @@ double CutCellManagerStd::getAlphaShielded( const BoundaryGeometry& Boundary, ch
     return 0.5*(beta1+beta2);
 }
 
-FluxVector CutCellManagerStd::getModifiedFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const StateVector& AuxL, const StateVector& AuxR, const BoundaryGeometry& BL, const BoundaryGeometry& BR){
-
+FluxVector CutCellManager::getModifiedFlux( double ds, double dt, char dim,
+        const StateVector& UL, const StateVector& UR,
+        const StateVector& AuxL, const StateVector& AuxR,
+        const BoundaryGeometry& BL, const BoundaryGeometry& BR)
+{
     FluxVector Shielded, Unshielded, BoundaryFlux, Modified;
     double alpha_shielded;
     double betaL,betaR,betaC;
@@ -288,7 +310,7 @@ FluxVector CutCellManagerStd::getModifiedFlux( double ds, double dt, char dim, c
 
     //Step 1
     //Compute 'unshielded flux'. This should be a first order HLLC flux between the two states
-    Unshielded = pFlux->getIntercellFlux( ds,dt,dim,UL,UR);
+    Unshielded = mpFlux->getIntercellFlux( ds,dt,dim,UL,UR);
 #ifdef DEBUG
     if( Unshielded.isnan()){
         std::cerr << "Unshielded Flux is nan" << std::endl;

@@ -10,22 +10,35 @@
 #include <libconfig.h++>
 
 #include "Utils/ObjectFactory.hpp"
-#include "Grid/Grid.hpp"
-#include "Timer/Timer.hpp"
-#include "Solver/Solver.hpp"
 
 using std::string;
 using libconfig::Setting;
 
 namespace FVlite{
 
+// Declare core objects, but don't define yet.
+
+class Grid;
+class Timer;
+class Solver;
+
 // The abstract 'Event' class contains nothing and does nothing -- it exists purely for the sake
 // of abstraction, as there is not necessarily anything in common between different events.
+// Templated over the type of object it controls (i.e. Grid, Timer, Solver).
 
 class Event{
+protected:
+    Grid*   mpGrid;
+    Timer*  mpTimer;
+    Solver* mpSolver;
 public:
     virtual ~Event(){}
-    virtual void init( Grid* pGrid, Timer* pTimer, Solver* pSolver, Setting& cfg) = 0;
+    virtual void init( Grid* pGrid, Timer* pTimer, Solver* pSolver, Setting& cfg){
+        (void)cfg;
+        mpGrid   = pGrid;
+        mpTimer  = pTimer;
+        mpSolver = pSolver;
+    }
     virtual void exec() = 0;
 };
 
@@ -42,44 +55,6 @@ class EventException: public std::exception {
     }
 };
 
-// The TimerIncrement Event should be called at the end of each timestep to advance time forward.
-
-class EventTimerIncrement: public Event {
-protected:
-    Timer* mpTimer;
-public:
-    virtual void init( Grid* pGrid, Timer* pTimer, Solver* pSolver, Setting& cfg){
-        (void)pGrid;
-        (void)pSolver;
-        (void)cfg;
-        mpTimer = pTimer;
-    }
-    virtual void exec(){
-        mpTimer->advance();
-    }
-};
-
-REGISTER(Event,TimerIncrement)
-
-// The TimerUpdate Event should be called at the start of each timestep to calibrate the time step
-// for the following cycle.
-
-class EventTimerUpdate: public Event {
-protected:
-    Timer* mpTimer;
-public:
-    virtual void init( Grid* pGrid, Timer* pTimer, Solver* pSolver, Setting& cfg){
-        (void)pGrid;
-        (void)pSolver;
-        (void)cfg;
-        mpTimer = pTimer;
-    }
-    virtual void exec(){
-        mpTimer->calibrate_timestep();
-    }
-};
-
-REGISTER(Event,TimerUpdate)
 
 }//namespace closure
 #endif // EVENT_HPP

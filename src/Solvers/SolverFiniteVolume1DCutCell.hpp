@@ -1,31 +1,48 @@
-// PDEsolverCutCell.hpp
+// SolverFiniteVolume1DCutCell.hpp
 //
-// Finite volume PDE solver.
-// Time marches using Euler method.
-// Rather than using a 'staircase' approximation at boundaries, uses the cut cell method.
+// Variation on 1D finite volume method which is compatible
+// with cut cell methods.
 
-#ifndef FVMCUTCELL_HPP
-#define FVMCUTCELL_HPP
+#ifndef SOLVERFINITEVOLUME1DCUTCELL_HPP
+#define SOLVERFINITEVOLUME1DCUTCELL_HPP
 
 #include <iostream>
 #include <cstdlib>
 
-#include "FVMsolverAbstract.hpp"
+#include "SolverFiniteVolume1D.hpp"
+#include "CutCellManager/CutCellManager.hpp"
 
 namespace FVlite{
 
-class FVMsolverCutCell : public FVMsolver{
+class SolverFiniteVolume1DCutCell : public SolverFiniteVolume1D{
+protected:
+    CutCellManager* mpCutCell;
 public:
+    virtual ~SolverFiniteVolume1DCutCell();
+    virtual void init( Grid* pGrid, Setting& cfg);
     virtual void exec( char dim, double dt);
+    virtual void newTimeStep(){
+        mpCutCell->newTimeStepSetup();
+    }
 };
 
-REGISTER(FVMsolver,CutCell)
+REGISTER(Solver,FiniteVolume1DCutCell)
 
-void FVMsolverCutCell::exec( char dim, double dt){
-    int startX = pGrid->startX();
-    int startY = pGrid->startY();
-    int endX = pGrid->endX();
-    int endY = pGrid->endY();
+SolverFiniteVolume1DCutCell::~SolverFiniteVolume1DCutCell(){
+    delete mpCutCell;
+}
+
+void SolverFiniteVolume1DCutCell::init( Grid* pGrid, Setting& cfg){
+    SolverFiniteVolume1D::init(pGrid,cfg);
+    mpCutCell = new CutCellManager;
+    mpCutCell->init(pGrid,mpFlux);
+}
+
+void SolverFiniteVolume1DCutCell::exec( char dim, double dt){
+    int startX = mpGrid->startX();
+    int startY = mpGrid->startY();
+    int endX = mpGrid->endX();
+    int endY = mpGrid->endY();
     double ds;
     StateVector State;
     BoundaryGeometry Boundary;
@@ -43,33 +60,33 @@ void FVMsolverCutCell::exec( char dim, double dt){
 #ifdef DEBUG
             std::cout<< "Beginning X sweep" << std::endl;
 #endif
-            ds = pGrid->dx();
+            ds = mpGrid->dx();
             // Solve flux
-            pFlux->exec(dim,dt);
-            pCutCell->correctFluxes(dim,dt);
+            mpFlux->exec(dim,dt);
+            mpCutCell->correctFluxes(dim,dt);
             // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
-                    Boundary = pGrid->boundary(ii,jj);
+                    Boundary = mpGrid->boundary(ii,jj);
                     alpha = Boundary.alpha();
                     betaL = Boundary.betaL();
                     betaR = Boundary.betaR();
                     if( alpha == 0.) continue;
                     if( alpha == 1.){
-                        FluxL = pGrid->flux(ii-1,jj);
-                        FluxR = pGrid->flux(ii,jj);
-                        pGrid->state(ii,jj) = pGrid->state(ii,jj) + (FluxL-FluxR) * dt/ds;
+                        FluxL = mpGrid->flux(ii-1,jj);
+                        FluxR = mpGrid->flux(ii,jj);
+                        mpGrid->state(ii,jj) = mpGrid->state(ii,jj) + (FluxL-FluxR) * dt/ds;
                     }else{
-                        BoundaryFlux.set( pGrid->state_ref(ii,jj),dim);
-                        FluxL = pGrid->flux(ii-1,jj);
-                        FluxR = pGrid->flux(ii,jj);
+                        BoundaryFlux.set( mpGrid->state_ref(ii,jj),dim);
+                        FluxL = mpGrid->flux(ii-1,jj);
+                        FluxR = mpGrid->flux(ii,jj);
 //                        if( ii==600){
 //                            std::cout << std::endl;
 //                            std::cout << "FluxL= " << "("<<FluxL[0]<<", "<<FluxL[1]<<", "<<FluxL[2]<<", "<<FluxL[3]<<", "<<FluxL[4]<<", "<<FluxL[5]<< ")"<<std::endl;
 //                            std::cout << "FluxR= " << "("<<FluxR[0]<<", "<<FluxR[1]<<", "<<FluxR[2]<<", "<<FluxR[3]<<", "<<FluxR[4]<<", "<<FluxR[5]<<")"<<std::endl;
 //                            std::cout << "BoundaryFlux= " << "("<<BoundaryFlux[0]<<", "<<BoundaryFlux[1]<<", "<<BoundaryFlux[2]<<", "<<BoundaryFlux[3]<<", "<<BoundaryFlux[4]<<", "<<BoundaryFlux[5] << ")"<<std::endl;
 //                        }
-                        pGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
+                        mpGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
                         
 #if 0
                         if( pGrid->state(ii,jj).Hz() > 10.0){
@@ -94,25 +111,25 @@ void FVMsolverCutCell::exec( char dim, double dt){
 #ifdef DEBUG
             std::cout<< "Beginning Y sweep" << std::endl;
 #endif
-            ds = pGrid->dy();
+            ds = mpGrid->dy();
             // Solve flux
-            pFlux->exec(dim,dt);
-            pCutCell->correctFluxes(dim,dt);
+            mpFlux->exec(dim,dt);
+            mpCutCell->correctFluxes(dim,dt);
             // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
-                    Boundary = pGrid->boundary(ii,jj);
+                    Boundary = mpGrid->boundary(ii,jj);
                     alpha = Boundary.alpha();
                     betaL = Boundary.betaB();
                     betaR = Boundary.betaT();
                     if( alpha == 0.) continue;
                     if( alpha == 1.){
-                        pGrid->state(ii,jj) = pGrid->state(ii,jj) + (pGrid->flux(ii,jj-1)-pGrid->flux(ii,jj)) * dt/ds;
+                        mpGrid->state(ii,jj) = mpGrid->state(ii,jj) + (mpGrid->flux(ii,jj-1)-mpGrid->flux(ii,jj)) * dt/ds;
                     }else{
-                        BoundaryFlux.set( pGrid->state_ref(ii,jj),dim);
-                        FluxL = pGrid->flux(ii,jj-1);
-                        FluxR = pGrid->flux(ii,jj);
-                        pGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
+                        BoundaryFlux.set( mpGrid->state_ref(ii,jj),dim);
+                        FluxL = mpGrid->flux(ii,jj-1);
+                        FluxR = mpGrid->flux(ii,jj);
+                        mpGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
                     }
                 }
             }
@@ -136,4 +153,4 @@ void FVMsolverCutCell::exec( char dim, double dt){
 
 
 }// Namespace closure
-#endif /* FVMCUTCELL_HPP */
+#endif /* SOLVERFINITEVOLUME1DCUTCELL_HPP */

@@ -14,8 +14,10 @@
 #include <libconfig.h++>
 
 #include "Grid/Grid.hpp"
+#include "Timer/Timer.hpp"
+#include "Solvers/Solvers.hpp"
 #include "Initialisation/InitialisationManager.hpp"
-#include "Updaters/Updater.hpp"
+#include "Boundaries/BoundaryManager.hpp"
 #include "Output/Output.hpp"
 
 using std::string;
@@ -30,8 +32,8 @@ private:
 
     Grid*             mpGrid;
     Timer*            mpTimer;
+    Solver*           mpSolver;
     Output*           mpOutput;
-    FVMsolver*        mpFVM;
     BoundaryManager*  mpBoundaryManager;
 
 public:
@@ -57,8 +59,8 @@ public:
 Controller::~Controller(){
   delete mpGrid;
   delete mpTimer;
+  delete mpSolver;
   delete mpOutput;
-  delete mpFVM;
   delete mpBoundaryManager;
 }
 
@@ -85,12 +87,12 @@ void Controller::init( Config& cfg){
     mpOutput = new Output;
     mpOutput->init(mpGrid,mpTimer,outputCfg);
 
-    // Set up finite volume system
-    std::cout << "Building FVM solver..." << std::endl;
-    Setting& fvmCfg = cfg.lookup("FVM");
-    string fvmType = fvmCfg.lookup("type");
-    mpFVM = FVMsolverFactory.create(fvmType);
-    mpFVM->init( mpGrid, fvmCfg);
+    // Set up Solver
+    std::cout << "Building solver..." << std::endl;
+    Setting& solverCfg = cfg.lookup("Solver");
+    string solverType = solverCfg.lookup("type");
+    mpSolver = SolverFactory.create(solverType);
+    mpSolver->init( mpGrid, solverCfg);
 
     // Set up boundary update method
     std::cout << "Building boundary update manager..." << std::endl;
@@ -129,7 +131,7 @@ void Controller::advance(){
     double dt = mpTimer->dt();
 
     // Tell FVMsolver that a new time step is occurring
-    mpFVM->newTimeStep();
+    mpSolver->newTimeStep();
 
     // Print current time to screen
     std::cout << "\rTime: " << t
@@ -144,7 +146,7 @@ void Controller::advance(){
 
     dim = 'x';
     mpBoundaryManager->exec(dim,t);
-    mpFVM->exec(dim,dt); 
+    mpSolver->exec(dim,dt); 
 
 #ifdef DEBUG
     check_grid();
@@ -152,7 +154,7 @@ void Controller::advance(){
 
     dim = 'y';
     mpBoundaryManager->exec(dim,t);
-    mpFVM->exec(dim,dt);
+    mpSolver->exec(dim,dt);
 
 #ifdef DEBUG
     check_grid();
