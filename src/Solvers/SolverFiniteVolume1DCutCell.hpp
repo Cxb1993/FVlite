@@ -19,8 +19,8 @@ protected:
     CutCellManager* mpCutCell;
 public:
     virtual ~SolverFiniteVolume1DCutCell();
-    virtual void init( Grid* pGrid, Setting& cfg);
-    virtual void exec( char dim, double dt);
+    virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg, Solver* p_wrapped);
+    virtual void exec();
     virtual void newTimeStep(){
         mpCutCell->newTimeStepSetup();
     }
@@ -32,17 +32,20 @@ SolverFiniteVolume1DCutCell::~SolverFiniteVolume1DCutCell(){
     delete mpCutCell;
 }
 
-void SolverFiniteVolume1DCutCell::init( Grid* pGrid, Setting& cfg){
-    SolverFiniteVolume1D::init(pGrid,cfg);
+void SolverFiniteVolume1DCutCell::init( Grid* pGrid, Timer* pTimer, Setting& cfg, Solver* p_wrapped){
+    SolverFiniteVolume1D::init(pGrid,pTimer,cfg,p_wrapped);
     mpCutCell = new CutCellManager;
     mpCutCell->init(pGrid,mpFlux);
 }
 
-void SolverFiniteVolume1DCutCell::exec( char dim, double dt){
+void SolverFiniteVolume1DCutCell::exec(){
+    // Call Decorator exec rather than FiniteVolume1D.
+    SolverDecorator::exec();
     int startX = mpGrid->startX();
     int startY = mpGrid->startY();
     int endX = mpGrid->endX();
     int endY = mpGrid->endY();
+    double dt = mpTimer->dt() * m_dt_ratio;
     double ds;
     StateVector State;
     BoundaryGeometry Boundary;
@@ -55,15 +58,15 @@ void SolverFiniteVolume1DCutCell::exec( char dim, double dt){
     // 3) If cell is free (alpha=1), standard explicit update.
     // 4) If cell is mixed, apply cut-cell update
 
-    switch(dim){
+    switch(m_dim){
         case 'x' :
 #ifdef DEBUG
             std::cout<< "Beginning X sweep" << std::endl;
 #endif
             ds = mpGrid->dx();
             // Solve flux
-            mpFlux->exec(dim,dt);
-            mpCutCell->correctFluxes(dim,dt);
+            mpFlux->exec(m_dim,dt);
+            mpCutCell->correctFluxes(m_dim,dt);
             // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
@@ -77,7 +80,7 @@ void SolverFiniteVolume1DCutCell::exec( char dim, double dt){
                         FluxR = mpGrid->flux(ii,jj);
                         mpGrid->state(ii,jj) = mpGrid->state(ii,jj) + (FluxL-FluxR) * dt/ds;
                     }else{
-                        BoundaryFlux.set( mpGrid->state_ref(ii,jj),dim);
+                        BoundaryFlux.set( mpGrid->state_ref(ii,jj),m_dim);
                         FluxL = mpGrid->flux(ii-1,jj);
                         FluxR = mpGrid->flux(ii,jj);
 //                        if( ii==600){
@@ -113,8 +116,8 @@ void SolverFiniteVolume1DCutCell::exec( char dim, double dt){
 #endif
             ds = mpGrid->dy();
             // Solve flux
-            mpFlux->exec(dim,dt);
-            mpCutCell->correctFluxes(dim,dt);
+            mpFlux->exec(m_dim,dt);
+            mpCutCell->correctFluxes(m_dim,dt);
             // Explicit update formula -- Euler method
             for( int jj=startY; jj<endY; jj++){
                 for( int ii=startX; ii<endX; ii++){
@@ -126,7 +129,7 @@ void SolverFiniteVolume1DCutCell::exec( char dim, double dt){
                     if( alpha == 1.){
                         mpGrid->state(ii,jj) = mpGrid->state(ii,jj) + (mpGrid->flux(ii,jj-1)-mpGrid->flux(ii,jj)) * dt/ds;
                     }else{
-                        BoundaryFlux.set( mpGrid->state_ref(ii,jj),dim);
+                        BoundaryFlux.set( mpGrid->state_ref(ii,jj),m_dim);
                         FluxL = mpGrid->flux(ii,jj-1);
                         FluxR = mpGrid->flux(ii,jj);
                         mpGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);

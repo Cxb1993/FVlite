@@ -17,7 +17,6 @@
 #include "Timer/Timer.hpp"
 #include "Solvers/Solvers.hpp"
 #include "Initialisation/InitialisationManager.hpp"
-#include "Boundaries/BoundaryManager.hpp"
 #include "Output/Output.hpp"
 
 using std::string;
@@ -34,7 +33,6 @@ private:
     Timer*            mpTimer;
     Solver*           mpSolver;
     Output*           mpOutput;
-    BoundaryManager*  mpBoundaryManager;
 
 public:
 
@@ -61,7 +59,6 @@ Controller::~Controller(){
   delete mpTimer;
   delete mpSolver;
   delete mpOutput;
-  delete mpBoundaryManager;
 }
 
 void Controller::init( Config& cfg){ 
@@ -90,15 +87,18 @@ void Controller::init( Config& cfg){
     // Set up Solver
     std::cout << "Building solver..." << std::endl;
     Setting& solverCfg = cfg.lookup("Solver");
-    string solverType = solverCfg.lookup("type");
-    mpSolver = SolverFactory.create(solverType);
-    mpSolver->init( mpGrid, solverCfg);
-
-    // Set up boundary update method
-    std::cout << "Building boundary update manager..." << std::endl;
-    Setting& boundaryCfg = cfg.lookup("Boundaries");
-    mpBoundaryManager = new BoundaryManager;
-    mpBoundaryManager->init(mpGrid,boundaryCfg);
+    int nSolvers = solverCfg.getLength();
+    Solver* pSolver;
+    mpSolver = new Solver;
+    mpSolver->init( mpGrid, mpTimer, solverCfg);
+    string solverType;
+    for( int count=0; count<nSolvers; count++){
+        Setting& thisCfg = solverCfg[count];
+        solverType = thisCfg.lookup("type").c_str();
+        pSolver = SolverFactory.create(solverType);
+        pSolver->init( mpGrid, mpTimer, thisCfg, mpSolver);
+        mpSolver = pSolver;
+    }
 
     // Initialise
     std::cout << "Building initialiser..." << std::endl;
@@ -127,21 +127,20 @@ void Controller::advance(){
 #ifdef EULER
     mpTimer->calibrate_timestep();
 #endif
-    double t  = mpTimer->t();
-    double dt = mpTimer->dt();
 
     // Tell FVMsolver that a new time step is occurring
     mpSolver->newTimeStep();
 
     // Print current time to screen
-    std::cout << "\rTime: " << t
+    std::cout << "\rTime: " << mpTimer->t()
 #ifdef DEBUG 
         << std::endl;
 #else
         << std::flush;
 #endif
 
-    char dim;
+    mpSolver->exec();
+/*    char dim;
     (void) t;
 
     dim = 'x';
@@ -159,7 +158,7 @@ void Controller::advance(){
 #ifdef DEBUG
     check_grid();
 #endif
-
+*/
 //    dim = 'x';
 //    pBmanager->exec(dim,t,dt);
 //    pFVM->exec(dim,0.5*dt);

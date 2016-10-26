@@ -35,8 +35,6 @@ public:
 
     void add_module( m* Module);
     void sort_modules();
-    void exec( char dim, double t);
-    void exec();
 
     // Function used to sort modules by 'rank'
     static bool compare_modules( m* Mod1, m* Mod2);
@@ -59,22 +57,6 @@ void GridManager<m>::add_module( m* pModule){
 template<class m>
 void GridManager<m>::sort_modules(){
     Modules.sort(GridManager::compare_modules);
-    return;
-}
-
-template<class m>
-void GridManager<m>::exec( char dim, double t){
-    for( iter=Modules.begin(); iter!=Modules.end(); iter++){
-        (*iter)->exec(dim,t);
-    }
-    return;
-}
-
-template<class m>
-void GridManager<m>::exec(){
-    for( iter=Modules.begin(); iter!=Modules.end(); iter++){
-        (*iter)->exec();
-    }
     return;
 }
 

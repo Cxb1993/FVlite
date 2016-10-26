@@ -5,9 +5,14 @@
 #ifndef SOLVERS_HPP
 #define SOLVERS_HPP
 
+// Core
 #include "Solver.hpp"
+#include "SolverDecorator.hpp"
 
-// finite volume
+// Utils
+#include "SolverBoundaryManager.hpp"
+
+// Finite Volume
 #include "SolverFiniteVolume1D.hpp"
 #include "SolverFiniteVolume1DCutCell.hpp"
 

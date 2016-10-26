@@ -22,6 +22,7 @@ protected:
 public:
     InitialisationManager(){}
     virtual void init( Grid* pGrid, Setting& cfg);
+    void exec();
     void setup_boundary_geometry();
     void fix_edges();
 };
@@ -41,6 +42,13 @@ void InitialisationManager::init( Grid* pGrid, Setting& cfg){
     sort_modules();
     return;
 }
+
+void InitialisationManager::exec(){
+    for( iter=Modules.begin(); iter!=Modules.end(); iter++){
+        (*iter)->exec();
+    }
+}
+
 
 void InitialisationManager::setup_boundary_geometry(){
     

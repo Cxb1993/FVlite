@@ -31,8 +31,10 @@ int main( int argc, char* argv[]){
     libconfig::Config cfg;
     try{
         cfg.readFile(cfgname.c_str());
-    } catch ( const std::exception& e){
+    } catch ( const libconfig::ParseException& e){
         std::cerr << e.what() << std::endl;
+        std::cerr << e.getError() << std::endl;
+        std::cerr << "Line: " << e.getLine() << std::endl;
         exit(EXIT_FAILURE);
     }
 
