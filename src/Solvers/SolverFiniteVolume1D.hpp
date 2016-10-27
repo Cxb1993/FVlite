@@ -13,6 +13,7 @@
 
 #include "Solvers/SolverDecorator.hpp"
 #include "FluxSolvers/FluxSolver.hpp"
+#include "ExplicitUpdaters/ExplicitUpdaters.hpp"
 
 using std::string;
 using libconfig::Setting;
@@ -24,6 +25,7 @@ protected:
     char m_dim;         // sweep direction for dimensional splitting
     double m_dt_ratio;  // the fraction of dt to advance each time step
     FluxSolver* mpFlux;
+    ExplicitUpdater* mpUpdate;
 public:
 
     SolverFiniteVolume1D(){}
@@ -65,54 +67,27 @@ void SolverFiniteVolume1D::init( Grid* pGrid, Timer* pTimer, Setting& cfg, Solve
         std::cerr << "Failed to build FluxSolver" << std::endl;
         exit(EXIT_FAILURE);
     }
+    // Build a new explicit updater
+    try{
+        Setting& updateCfg = cfg.lookup("ExplicitUpdater");
+        string updateStr = updateCfg.lookup("type");
+        mpUpdate = ExplicitUpdaterFactory.create(updateStr);
+    } catch ( const std::exception& e){
+        std::cerr << "WARNING: Desired updater not found" << std::endl;
+        std::cerr << "Setting to Euler" << std::endl;
+        mpUpdate = ExplicitUpdaterFactory.create("Euler");
+    }
+    mpUpdate->init( mpGrid, mpTimer, cfg); 
     return;
 }
 
 void SolverFiniteVolume1D::exec(){
     SolverDecorator::exec();
-    int startX = mpGrid->startX();
-    int startY = mpGrid->startY();
-    int endX = mpGrid->endX();
-    int endY = mpGrid->endY();
     double dt = mpTimer->dt() * m_dt_ratio;
-    double ds;
-    double levelset;
-    StateVector State;
-    switch(m_dim){
-        case 'x' :
-            ds = mpGrid->dx();
-            // Solve flux
-            mpFlux->exec(m_dim,dt);
-            // Explicit update formula -- Euler method
-            for( int jj=startY; jj<endY; jj++){
-                for( int ii=startX; ii<endX; ii++){
-                    levelset = mpGrid->levelset(ii,jj);
-                    if( levelset > 0) continue;
-                    mpGrid->state(ii,jj) = mpGrid->state(ii,jj) + (mpGrid->flux(ii-1,jj)-mpGrid->flux(ii,jj)) * dt/ds;
-                }
-            }
-            break;
-        case 'y' :
-            ds = mpGrid->dy();
-            // Solve flux
-            mpFlux->exec(m_dim,dt);
-            // Explicit update formula -- Euler method
-            for( int jj=startY; jj<endY; jj++){
-                for( int ii=startX; ii<endX; ii++){
-                    levelset = mpGrid->levelset(ii,jj);
-                    if( levelset > 0) continue;
-                    mpGrid->state(ii,jj) = mpGrid->state(ii,jj) + (mpGrid->flux(ii,jj-1)-mpGrid->flux(ii,jj)) * dt/ds;
-                }
-            }
-            break;
-        case 'z' :
-            std::cerr << "Error, z direction not implemented" << std::endl;
-            exit(EXIT_FAILURE);
-            break;
-        default:
-            std::cerr << "Error, invalid direction specifier" << std::endl;
-            exit(EXIT_FAILURE);
-    }
+    // Solve flux
+    mpFlux->exec(m_dim,dt);
+    // Explicit Update
+    mpUpdate->exec(m_dim,dt);
     return;
 }
 

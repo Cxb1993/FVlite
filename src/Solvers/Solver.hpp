@@ -31,7 +31,6 @@ public:
 
     virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg, Solver* p_solver = NULL);
     virtual void exec(){}
-    virtual void newTimeStep(){}
 };
 
 // Declare factory
