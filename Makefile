@@ -1,19 +1,13 @@
 # Makefile for FVlite
-#
-# Author: Liam Pattinson
-# Date: 01/04/16
 
-COMP = g++-4.9
+COMP = g++
 CFLAGS = -Wall -Wextra -pedantic -O3 -std=c++11 -fmax-errors=3
 DEBUG  = ${CFLAGS} -DDEBUG -g -pg
-#DEBUG  = ${CFLAGS} -DDEBUG 
-LIBLOCS = -L/home/cdt1507/lib/libconfig/lib/ -L/usr/lib/ 
-INCLOCS = -I./src -I/home/cdt1507/lib/libconfig/include/ -I/usr/include/ 
+LIBLOCS = -L/usr/lib/ 
+INCLOCS = -I./src -I/usr/include/ 
 FILES = src/FVlite.cpp
 EXEC = FVlite.exe
-LIBS = -lfftw3 -lm -lconfig++ 
-TESTFILES = test.cpp
-TESTEXEC  = test.exe
+LIBS = -lm -lconfig++ 
 
 euler: ${FILES}
 	${COMP} ${CFLAGS} -DEULER  ${INCLOCS} -o ${EXEC} ${FILES} ${LIBLOCS} ${LIBS}
@@ -27,6 +21,12 @@ debug: ${FILES}
 test: ${TESTFILES}
 	${COMP} ${CFLAGS} ${TYPE} ${LIBLOCS} ${INCLOCS} -o ${TESTEXEC} ${TESTFILES} ${LIBS}
 	rm -f ${TESTEXEC}
+
+install:
+	mkdir -p data
+	mkdir -p plots
+	mkdir -p saved_data
+	mkdir -p saved_plots
 
 clean:
 	rm -f ${EXEC}
