@@ -22,49 +22,78 @@ using libconfig::Setting;
 
 namespace FVlite{
 
+typedef std::pair<StateVector,StateVector> StatePair;
+
 class ExplicitUpdaterEuler : public ExplicitUpdater {
-    virtual void exec( char dim, double dt);
+    void exec(char dim, double dt, double ds, int ii, int jj);
 };
-
-// Register with factory
-
-REGISTER( ExplicitUpdater, Euler)
 
 // Function defintions
 
-void ExplicitUpdaterEuler::exec( char dim, double dt){
-    double ds, levelset;
+FluxSolver::~FluxSolver(){
+    delete mpFluxCalculator;
+    delete mpReconstructor;
+}
+
+void FluxSolver::init( Grid* pGrid, Setting& cfg){
+    string calcType, reconType, limitType;
+    // Get flux calculator type
+    try{
+        calcType = cfg.lookup("type").c_str();
+    } catch( const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    // Get reconstruction scheme. Rely on default if not specified.
+    try{
+        reconType = cfg.lookup("reconstructor").c_str();
+    } catch( const std::exception&) {
+        reconType = "Default";
+    }
+
+    mpGrid = pGrid;
+    mpFluxCalculator = FluxCalculatorFactory.create(calcType);
+    mpReconstructor = ReconstructorFactory.create(reconType);
+    mpReconstructor->init(pGrid,cfg);
+    return;
+}
+
+void FluxSolver::exec( char dim, double dt){
+    double ds;
     int startX = mpGrid->startX();
     int startY = mpGrid->startY();
     int endX = mpGrid->endX();
     int endY = mpGrid->endY();
-    // get offset start points
-    int startXL = startX;
-    int startYL = startY;
+    StatePair States;
+    FluxVector Flux;
+    // Account for the fact that a row of N cells has N+1 interfaces which need
+    // to be determined (including boundary ghost cells).
     switch(dim){
         case 'x' :
             ds = mpGrid->dx();
-            startXL -= 1;
+            startX -= 1;
             break;
         case 'y' :
             ds = mpGrid->dy();
-            startYL -= 1;
+            startY -= 1;
             break;
         case 'z' :
         default:
             ds = mpGrid->dx();
-            startXL -= 1;
     }
-    // Update
-    for( int jj = startY, jjL = startYL ; jj<endY; ++jj, ++jjL){
-        for( int ii = startX, iiL = startXL; ii<endX; ++ii, ++iiL){
-            levelset = mpGrid->levelset(ii,jj);
-            if( levelset > 0) continue;
-            mpGrid->state(ii,jj) = mpGrid->state(ii,jj) +
-                (mpGrid->flux(iiL,jjL)-mpGrid->flux(ii,jj)) * dt/ds;
+    // Sweep through grid, calculating each flux in turn
+    for( int jj=startY; jj<endY; jj++){
+        for( int ii=startX; ii<endX; ii++){
+            States = mpReconstructor->exec( ds, dt, dim, ii, jj);
+            Flux = mpFluxCalculator->exec( ds, dt, dim, States.first, States.second);
+            mpGrid->flux(ii,jj) = Flux;
         }
     }
     return;
+}
+
+FluxVector FluxSolver::getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR){
+    return mpFluxCalculator->exec( ds, dt, dim, UL, UR);
 }
 
 }// Namespace closure

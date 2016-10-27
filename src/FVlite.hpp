@@ -128,6 +128,9 @@ void Controller::advance(){
     mpTimer->calibrate_timestep();
 #endif
 
+    // Tell FVMsolver that a new time step is occurring
+    mpSolver->newTimeStep();
+
     // Print current time to screen
     std::cout << "\rTime: " << mpTimer->t()
 #ifdef DEBUG 
@@ -137,6 +140,32 @@ void Controller::advance(){
 #endif
 
     mpSolver->exec();
+/*    char dim;
+    (void) t;
+
+    dim = 'x';
+    mpBoundaryManager->exec(dim,t);
+    mpSolver->exec(dim,dt); 
+
+#ifdef DEBUG
+    check_grid();
+#endif
+
+    dim = 'y';
+    mpBoundaryManager->exec(dim,t);
+    mpSolver->exec(dim,dt);
+
+#ifdef DEBUG
+    check_grid();
+#endif
+*/
+//    dim = 'x';
+//    pBmanager->exec(dim,t,dt);
+//    pFVM->exec(dim,0.5*dt);
+//
+//#ifdef DEBUG
+//    checkGrid();
+//#endif
 
     // Increment time
     mpTimer->advance();

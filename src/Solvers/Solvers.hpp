@@ -11,9 +11,9 @@
 
 // Utils
 #include "SolverBoundaryManager.hpp"
-#include "SolverCutCellNewCycle.hpp"
 
 // Finite Volume
 #include "SolverFiniteVolume1D.hpp"
+#include "SolverFiniteVolume1DCutCell.hpp"
 
 #endif /* SOLVERS_HPP */
