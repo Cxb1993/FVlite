@@ -158,7 +158,8 @@ void Output::print(){
             }
 
         }
-//        File << std::endl;
+        // Blank line, for gnuplot
+        File << std::endl;
     }
 
     // Close file

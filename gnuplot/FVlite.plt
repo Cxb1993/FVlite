@@ -30,7 +30,6 @@ set palette defined (0 "magenta", 1 "white", 2 "blue")
 
 #set size square
 set size ratio 0.6
-set xyplane 0.1
 #set view 90, 0 
 
 
@@ -38,11 +37,11 @@ set xyplane 0.1
 #set object circle at 1.5,0.25 size 0.125 front fillcolor rgb "#white" fillstyle solid
 #set object circle at 1.5,0.25 size 0.125 front fillcolor rgb "#black" fillstyle empty
 
-
+set pm3d at b map
 set view map
 
 #MAXWELL
-plot datafile using 1:2:8 with image
+splot datafile using 1:2:8 
 
 #MAXWELL ELECTROSTATIC
 #plot datafile using 1:2:3 with image
