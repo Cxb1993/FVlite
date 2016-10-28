@@ -52,7 +52,7 @@ public:
     inline bool is_complete(){ return (mT>=mTmax);}
 
     // Set timestep according to maximum grid speed
-    inline void calibrate_timestep();
+    inline void calibrate();
 };
 
 void Timer::init( Grid* pGrid, Setting& cfg){
@@ -73,7 +73,7 @@ void Timer::advance(double ratio){
     return;
 }
 
-void Timer::calibrate_timestep(){
+void Timer::calibrate(){
     double maxSpeed = mpGrid->maxSpeed();
     double ds = (mpGrid->dx() < mpGrid->dy()) ? mpGrid->dx() : mpGrid->dy();
     mDt = (ds*mCFL)/maxSpeed; // Courant condition

@@ -76,7 +76,7 @@ void Controller::init( Config& cfg){
     Setting& timerCfg = cfg.lookup("Timing");
     mpTimer = new Timer;
     mpTimer->init(mpGrid,timerCfg);
-    mpTimer->calibrate_timestep();
+    mpTimer->calibrate();
 
     // Output
     std::cout << "Setting up output..." << std::endl;
@@ -87,11 +87,16 @@ void Controller::init( Config& cfg){
     // Set up Solver
     std::cout << "Building solver..." << std::endl;
     Setting& solverCfg = cfg.lookup("Solver");
-    int nSolvers = solverCfg.getLength();
-    Solver* pSolver;
     mpSolver = new Solver;
     mpSolver->init( mpGrid, mpTimer, solverCfg);
+    // Start process with timer calibration
+    Solver* pSolver;
+    pSolver = SolverFactory.create("TimerCalibrate");
+    pSolver->init( mpGrid, mpTimer, solverCfg, mpSolver);
+    mpSolver = pSolver;
+    // Find all user-specified solvers, wrap in order
     string solverType;
+    int nSolvers = solverCfg.getLength();
     for( int count=0; count<nSolvers; count++){
         Setting& thisCfg = solverCfg[count];
         solverType = thisCfg.lookup("type").c_str();
@@ -99,6 +104,10 @@ void Controller::init( Config& cfg){
         pSolver->init( mpGrid, mpTimer, thisCfg, mpSolver);
         mpSolver = pSolver;
     }
+    // Finalise with timer increment
+    pSolver = SolverFactory.create("TimerIncrement");
+    pSolver->init( mpGrid, mpTimer, solverCfg, mpSolver);
+    mpSolver = pSolver;
 
     // Initialise
     std::cout << "Building initialiser..." << std::endl;
@@ -111,10 +120,6 @@ void Controller::init( Config& cfg){
 
     std::cout << "Solver built successfully" << std::endl;
     mpOutput->prod();
-#ifdef DEBUG
-    pOutput->print_geometry();
-#endif
-
     return;
 }
 
@@ -123,23 +128,11 @@ bool Controller::is_complete(){
 }
 
 void Controller::advance(){
-    // Calibrate time step using largest speed on the grid
-#ifdef EULER
-    mpTimer->calibrate_timestep();
-#endif
-
     // Print current time to screen
-    std::cout << "\rTime: " << mpTimer->t()
-#ifdef DEBUG 
-        << std::endl;
-#else
-        << std::flush;
-#endif
-
+    std::cout << "\rTime: " << mpTimer->t() << std::flush;
+    // Execute main solver
     mpSolver->exec();
-
-    // Increment time
-    mpTimer->advance();
+    // Request IO
     mpOutput->prod();
     return;
 }

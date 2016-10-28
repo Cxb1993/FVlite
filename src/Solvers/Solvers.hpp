@@ -10,6 +10,8 @@
 #include "SolverDecorator.hpp"
 
 // Utils
+#include "SolverTimerIncrement.hpp"
+#include "SolverTimerCalibrate.hpp"
 #include "SolverBoundaryManager.hpp"
 #include "SolverCutCellNewCycle.hpp"
 

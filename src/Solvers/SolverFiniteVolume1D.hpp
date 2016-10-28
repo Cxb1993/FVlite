@@ -94,6 +94,7 @@ void SolverFiniteVolume1D::exec(){
 
 SolverFiniteVolume1D::~SolverFiniteVolume1D(){
     delete mpFlux;
+    delete mpUpdate;
 }
 
 
