@@ -8,7 +8,7 @@
 #include <list>
 #include <libconfig.h++>
 
-#include "Utils/GridManager.hpp"
+#include "Utils/Composite.hpp"
 #include "InitialisationModules.hpp"
 
 using std::string;
@@ -16,13 +16,12 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class InitialisationManager : public GridManager<InitialisationModule>{
+class InitialisationManager : public Composite<InitialisationModule>{
 protected:
     Grid* pGrid;
 public:
     InitialisationManager(){}
     virtual void init( Grid* pGrid, Setting& cfg);
-    void exec();
     void setup_boundary_geometry();
     void fix_edges();
 };
@@ -37,18 +36,10 @@ void InitialisationManager::init( Grid* pGrid, Setting& cfg){
         modType = modCfg.lookup("type").c_str();
         pImod = InitialisationModuleFactory.create( modType);
         pImod->init( pGrid, modCfg);
-        add_module( pImod);
+        add_element( pImod);
     }
-    sort_modules();
     return;
 }
-
-void InitialisationManager::exec(){
-    for( iter=Modules.begin(); iter!=Modules.end(); iter++){
-        (*iter)->exec();
-    }
-}
-
 
 void InitialisationManager::setup_boundary_geometry(){
     
@@ -151,10 +142,7 @@ void InitialisationManager::fix_edges(){
         pGrid->boundary(ii,startY-1) = BoundaryL;
         pGrid->boundary(ii,endY) = BoundaryR;
     }
-
-    return;
 }
-
 
 }// Namespace closure
 #endif /* INITIALISATIONMANAGER_HPP */

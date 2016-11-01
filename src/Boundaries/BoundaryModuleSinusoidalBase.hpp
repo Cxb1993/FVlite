@@ -23,12 +23,11 @@ protected:
     double mFreq;
     double mAmp;
 public:
-    virtual void init( Grid* pGrid, Setting& cfg);
+    virtual void init( Setting& cfg);
 };
 
 
-void BoundaryModuleSinusoidalBase::init( Grid* pGrid, Setting& cfg){
-    BoundaryModuleDrivenBase::init(pGrid,cfg);
+void BoundaryModuleSinusoidalBase::init( Setting& cfg){
     Setting& params = cfg.lookup("params");
     mFreq = params.lookup("frequency");
     mAmp  = params.lookup("amplitude");

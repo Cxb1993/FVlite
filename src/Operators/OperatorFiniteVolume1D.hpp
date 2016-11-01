@@ -1,17 +1,17 @@
-// SolverFiniteVolume1D.hpp
+// OperatorFiniteVolume1D.hpp
 //
 // Abstract finite volume solver. Solves 1D case. Can be used in
 // higher-dimensional schemes using dimensional splitting.
 
-#ifndef SOLVERFINITEVOLUME1D_HPP
-#define SOLVERFINITEVOLUME1D_HPP
+#ifndef OPERATORFINITEVOLUME1D_HPP
+#define OPERATORFINITEVOLUME1D_HPP
 
 #include <string>
 #include <iostream>
 #include <cstdlib>
 #include <libconfig.h++>
 
-#include "Solvers/SolverDecorator.hpp"
+#include "Operator.hpp"
 #include "FluxSolvers/FluxSolver.hpp"
 #include "ExplicitUpdaters/ExplicitUpdaters.hpp"
 
@@ -20,7 +20,7 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class SolverFiniteVolume1D : public SolverDecorator {
+class OperatorFiniteVolume1D : public Operator {
 protected:
     char m_dim;         // sweep direction for dimensional splitting
     double m_dt_ratio;  // the fraction of dt to advance each time step
@@ -28,21 +28,26 @@ protected:
     ExplicitUpdater* mpUpdate;
 public:
 
-    SolverFiniteVolume1D(){}
-    virtual ~SolverFiniteVolume1D();
+    OperatorFiniteVolume1D(){}
+    virtual ~OperatorFiniteVolume1D();
 
-    virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg, Solver* pWrapped);
+    virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
     virtual void exec();
 };
 
 // Register with factory
 
-REGISTER( Solver, FiniteVolume1D)
+REGISTER( Operator, FiniteVolume1D)
 
 // Function definitions
 
-void SolverFiniteVolume1D::init( Grid* pGrid, Timer* pTimer, Setting& cfg, Solver* pWrapped){
-    SolverDecorator::init(pGrid,pTimer,cfg,pWrapped);
+OperatorFiniteVolume1D::~OperatorFiniteVolume1D(){
+    delete mpFlux;
+    delete mpUpdate;
+}
+
+void OperatorFiniteVolume1D::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
+    Operator::init(pGrid,pTimer,cfg);
     // Set time step ratio
     try{
         m_dt_ratio = cfg.lookup("dt_ratio");
@@ -78,25 +83,15 @@ void SolverFiniteVolume1D::init( Grid* pGrid, Timer* pTimer, Setting& cfg, Solve
         mpUpdate = ExplicitUpdaterFactory.create("Euler");
     }
     mpUpdate->init( mpGrid, mpTimer, cfg); 
-    return;
 }
 
-void SolverFiniteVolume1D::exec(){
-    SolverDecorator::exec();
+void OperatorFiniteVolume1D::exec(){
     double dt = mpTimer->dt() * m_dt_ratio;
     // Solve flux
     mpFlux->exec(m_dim,dt);
     // Explicit Update
     mpUpdate->exec(m_dim,dt);
-    return;
 }
-
-
-SolverFiniteVolume1D::~SolverFiniteVolume1D(){
-    delete mpFlux;
-    delete mpUpdate;
-}
-
 
 }// Namespace closure
 #endif /* SOLVERFINITEVOLUME1D_HPP */

@@ -24,12 +24,11 @@ protected:
     double mStdDev;
     double mMean;
 public:
-    virtual void init( Grid* pGrid, Setting& cfg);
+    virtual void init( Setting& cfg);
 };
 
 
-void BoundaryModuleGaussianBase::init( Grid* pGrid, Setting& cfg){
-    BoundaryModuleDrivenBase::init(pGrid,cfg);
+void BoundaryModuleGaussianBase::init( Setting& cfg){
     Setting& params = cfg.lookup("params");
     mAmp = params.lookup("amplitude");
     mStdDev = params.lookup("stddev");

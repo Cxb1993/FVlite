@@ -15,7 +15,7 @@
 
 #include "Grid/Grid.hpp"
 #include "Timer/Timer.hpp"
-#include "Solvers/Solvers.hpp"
+#include "Operators/Operators.hpp"
 #include "Initialisation/InitialisationManager.hpp"
 #include "Output/Output.hpp"
 
@@ -31,8 +31,8 @@ private:
 
     Grid*             mpGrid;
     Timer*            mpTimer;
-    Solver*           mpSolver;
     Output*           mpOutput;
+    Composite<Operator> mSolver;
 
 public:
 
@@ -57,7 +57,6 @@ public:
 Controller::~Controller(){
   delete mpGrid;
   delete mpTimer;
-  delete mpSolver;
   delete mpOutput;
 }
 
@@ -87,27 +86,25 @@ void Controller::init( Config& cfg){
     // Set up Solver
     std::cout << "Building solver..." << std::endl;
     Setting& solverCfg = cfg.lookup("Solver");
-    mpSolver = new Solver;
-    mpSolver->init( mpGrid, mpTimer, solverCfg);
     // Start process with timer calibration
-    Solver* pSolver;
-    pSolver = SolverFactory.create("TimerCalibrate");
-    pSolver->init( mpGrid, mpTimer, solverCfg, mpSolver);
-    mpSolver = pSolver;
+    Operator* pOperator;
+    pOperator = OperatorFactory.create("TimerCalibrate");
+    pOperator->init( mpGrid, mpTimer, solverCfg);
+    mSolver.add_element( pOperator);
     // Find all user-specified solvers, wrap in order
-    string solverType;
-    int nSolvers = solverCfg.getLength();
-    for( int count=0; count<nSolvers; count++){
+    string operatorType;
+    int nOperators = solverCfg.getLength();
+    for( int count=0; count<nOperators; count++){
         Setting& thisCfg = solverCfg[count];
-        solverType = thisCfg.lookup("type").c_str();
-        pSolver = SolverFactory.create(solverType);
-        pSolver->init( mpGrid, mpTimer, thisCfg, mpSolver);
-        mpSolver = pSolver;
+        operatorType = thisCfg.lookup("type").c_str();
+        pOperator = OperatorFactory.create(operatorType);
+        pOperator->init( mpGrid, mpTimer, thisCfg);
+        mSolver.add_element( pOperator);
     }
     // Finalise with timer increment
-    pSolver = SolverFactory.create("TimerIncrement");
-    pSolver->init( mpGrid, mpTimer, solverCfg, mpSolver);
-    mpSolver = pSolver;
+    pOperator = OperatorFactory.create("TimerIncrement");
+    pOperator->init( mpGrid, mpTimer, solverCfg);
+    mSolver.add_element( pOperator);
 
     // Initialise
     std::cout << "Building initialiser..." << std::endl;
@@ -131,7 +128,7 @@ void Controller::advance(){
     // Print current time to screen
     std::cout << "\rTime: " << mpTimer->t() << std::flush;
     // Execute main solver
-    mpSolver->exec();
+    mSolver.exec();
     // Request IO
     mpOutput->prod();
     return;

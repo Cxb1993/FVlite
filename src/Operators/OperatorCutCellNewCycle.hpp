@@ -1,13 +1,14 @@
-// SolverCutCellNewCycle.hpp
+// OperatorCutCellNewCycle.hpp
 //
 // To be called at the start of each time step, if using cut cells.
 // Sets up reference states.
 
-#ifndef SOLVERCUTCELLNEWCYCLE_HPP
-#define SOLVERCUTCELLNEWCYCLE_HPP
+#ifndef OPERATORCUTCELLNEWCYCLE_HPP
+#define OPERATORCUTCELLNEWCYCLE_HPP
 
 #include <libconfig.h++>
 
+#include "Operator.hpp"
 #include "FluxSolvers/FluxCalculators/FluxCalculators.hpp"
 #include "Boundaries/BoundaryFunctions.hpp"
 
@@ -16,18 +17,18 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class SolverCutCellNewCycle : public SolverDecorator {
+class OperatorCutCellNewCycle : public Operator {
 public:
     void exec();
 };
 
 // Register with factory
 
-REGISTER( Solver, CutCellNewCycle)
+REGISTER( Operator, CutCellNewCycle)
 
 // Function definitions
 
-void SolverCutCellNewCycle::exec(){
+void OperatorCutCellNewCycle::exec(){
 #ifdef DEBUG
     std::cout << "NEW TIME STEP" << std::endl;
 #endif
@@ -140,4 +141,4 @@ void SolverCutCellNewCycle::exec(){
 }
 
 } // namespace closure
-#endif /* SOLVERCUTCELLNEWCYCLE_HPP */
+#endif /* OPERATORCUTCELLNEWCYCLE_HPP */

@@ -28,14 +28,13 @@ class BoundaryModuleDrivenBase : public BoundaryModule {
 protected:
     POLARISATION mPOL;
 public:
-    virtual void init( Grid* pGrid, Setting& cfg);
+    virtual void init( Setting& cfg);
     virtual StateVector getBoundary( const StateVector& Reference, const char dim, const double t);
     virtual double getDrivenTerm( const double t) = 0;
 };
 
 
-void BoundaryModuleDrivenBase::init( Grid* pGrid, Setting& cfg){
-    BoundaryModule::init(pGrid,cfg);
+void BoundaryModuleDrivenBase::init( Setting& cfg){
     Setting& params = cfg.lookup("params");
     string polString = params.lookup("polarisation");
     if( polString == "x" || polString == "TE") mPOL = TE;
