@@ -12,6 +12,7 @@
 // Utils
 #include "OperatorTimerIncrement.hpp"
 #include "OperatorTimerCalibrate.hpp"
+#include "OperatorInitialisationManager.hpp"
 #include "OperatorBoundaryManager.hpp"
 #include "OperatorCutCellNewCycle.hpp"
 

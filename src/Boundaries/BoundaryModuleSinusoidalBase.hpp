@@ -28,6 +28,7 @@ public:
 
 
 void BoundaryModuleSinusoidalBase::init( Setting& cfg){
+    BoundaryModuleDrivenBase::init(cfg);
     Setting& params = cfg.lookup("params");
     mFreq = params.lookup("frequency");
     mAmp  = params.lookup("amplitude");

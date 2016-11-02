@@ -30,8 +30,6 @@ class OperatorBoundary : public Operator{
 
 protected:
 
-    Grid* mpGrid;
-    Timer* mpTimer;
     BoundaryModule* mpBmod;
 
     char mDim;
@@ -57,8 +55,7 @@ OperatorBoundary::~OperatorBoundary(){
 }
 
 void OperatorBoundary::init( Grid* pGrid, Timer* pTimer, char dim, Setting& cfg){
-    mpGrid = pGrid;
-    mpTimer = pTimer;
+    Operator::init( pGrid, pTimer, cfg);
     mDim = dim;
     string region = cfg.lookup("region");
     if( region == "leftwall")  mREGION = LEFTWALL;
@@ -73,7 +70,6 @@ void OperatorBoundary::init( Grid* pGrid, Timer* pTimer, char dim, Setting& cfg)
 }
 
 void OperatorBoundary::exec(){
-
     int bound  = mpGrid->bound();
     int startX = mpGrid->startX();
     int startY = mpGrid->startY();
@@ -159,8 +155,6 @@ void OperatorBoundary::exec(){
             std::cerr << "ERROR: OperatorBoundary bad region: " << mREGION << std::endl;
             exit(EXIT_FAILURE);
     }
-
-    return;
 }
 
 }// Namespace closure

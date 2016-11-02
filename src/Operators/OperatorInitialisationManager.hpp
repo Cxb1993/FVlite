@@ -9,39 +9,43 @@
 #include <libconfig.h++>
 
 #include "Utils/Composite.hpp"
-#include "InitialisationModules.hpp"
+#include "OperatorInitialisation.hpp"
 
 using std::string;
 using libconfig::Setting;
 
 namespace FVlite{
 
-class InitialisationManager : public Composite<InitialisationModule>{
-protected:
-    Grid* pGrid;
+class OperatorInitialisationManager : public Composite<OperatorInitialisation>{
 public:
-    InitialisationManager(){}
-    virtual void init( Grid* pGrid, Setting& cfg);
+    OperatorInitialisationManager(){}
+    virtual void init( Grid* pGrid, Timer* pTimer,  Setting& cfg);
     void setup_boundary_geometry();
     void fix_edges();
 };
 
-void InitialisationManager::init( Grid* pGrid, Setting& cfg){
-    (*this).pGrid = pGrid;
+REGISTER( Operator, InitialisationManager)
+
+void OperatorInitialisationManager::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
+    Operator::init(pGrid,pTimer,cfg);
     int nMods = cfg.getLength();
-    InitialisationModule* pImod;
+    OperatorInitialisation* pOperator;
     string modType;
     for( int count=0; count<nMods; count++){
         Setting& modCfg = cfg[count];
-        modType = modCfg.lookup("type").c_str();
-        pImod = InitialisationModuleFactory.create( modType);
-        pImod->init( pGrid, modCfg);
-        add_element( pImod);
+        try{
+            modType = modCfg.lookup("type").c_str();
+        } catch( const std::exception& e){
+            // skip if other information found
+            continue;
+        }
+        pOperator = new OperatorInitialisation;
+        pOperator->init( pGrid, pTimer, modCfg);
+        add_element( pOperator);
     }
-    return;
 }
 
-void InitialisationManager::setup_boundary_geometry(){
+void OperatorInitialisationManager::setup_boundary_geometry(){
     
     // Scan through grid, use level set function to determine geometry at boundaries.
     // Calculation at each cell performed by BoundaryGeometry class.
@@ -58,39 +62,39 @@ void InitialisationManager::setup_boundary_geometry(){
 
     double x,y; // cell center locations
 
-    int sizeX = pGrid->sizeX();
-    int sizeY = pGrid->sizeY();
-    double dx = pGrid->dx();
-    double dy = pGrid->dy();
+    int sizeX = mpGrid->sizeX();
+    int sizeY = mpGrid->sizeY();
+    double dx = mpGrid->dx();
+    double dy = mpGrid->dy();
 
     BoundaryGeometry Boundary;
 
     for( int jj=1; jj<sizeY-1; jj++){
-        y = pGrid->y(jj);
+        y = mpGrid->y(jj);
         for( int ii=1; ii<sizeX-1; ii++){
-            x = pGrid->x(ii);
+            x = mpGrid->x(ii);
             // Get level set at corners
-            levelset_bl = pGrid->levelset()->interpolate(x-0.5*dx,y-0.5*dy);
-            levelset_br = pGrid->levelset()->interpolate(x+0.5*dx,y-0.5*dy);
-            levelset_tl = pGrid->levelset()->interpolate(x-0.5*dx,y+0.5*dy);
-            levelset_tr = pGrid->levelset()->interpolate(x+0.5*dx,y+0.5*dy);
+            levelset_bl = mpGrid->levelset()->interpolate(x-0.5*dx,y-0.5*dy);
+            levelset_br = mpGrid->levelset()->interpolate(x+0.5*dx,y-0.5*dy);
+            levelset_tl = mpGrid->levelset()->interpolate(x-0.5*dx,y+0.5*dy);
+            levelset_tr = mpGrid->levelset()->interpolate(x+0.5*dx,y+0.5*dy);
             // Calculate geometry parameters
             Boundary.set( dx, dy, levelset_bl, levelset_br, levelset_tl, levelset_tr);
-            pGrid->boundary(ii,jj) = Boundary;
+            mpGrid->boundary(ii,jj) = Boundary;
         }
     }
     fix_edges();
     return;
 }
 
-void InitialisationManager::fix_edges(){
+void OperatorInitialisationManager::fix_edges(){
     // Errors are introduced if attempting to allow any solid to extend into edge boundaries.
     // This function fixes that.
 
-    int startX = pGrid->startX();
-    int startY = pGrid->startY();
-    int endX   = pGrid->endX();
-    int endY   = pGrid->endY();
+    int startX = mpGrid->startX();
+    int startY = mpGrid->startY();
+    int endX   = mpGrid->endX();
+    int endY   = mpGrid->endY();
 
     BoundaryGeometry BoundaryL, BoundaryR;
     double temp;
@@ -98,8 +102,8 @@ void InitialisationManager::fix_edges(){
 
     // Left/right boundary
     for( int jj=startY; jj<endY; jj++){
-        BoundaryL = pGrid->boundary(startX,jj);
-        BoundaryR = pGrid->boundary(endX-1,jj);
+        BoundaryL = mpGrid->boundary(startX,jj);
+        BoundaryR = mpGrid->boundary(endX-1,jj);
 
         temp = BoundaryL.betaL();
         BoundaryL.betaL() = BoundaryL.betaR();
@@ -115,15 +119,15 @@ void InitialisationManager::fix_edges(){
         Nb[1] = -Nb[1];
         BoundaryR.Nb() = Nb;
 
-        pGrid->boundary(startX-1,jj) = BoundaryL;
-        pGrid->boundary(endX,jj) = BoundaryR;
+        mpGrid->boundary(startX-1,jj) = BoundaryL;
+        mpGrid->boundary(endX,jj) = BoundaryR;
     }
 
 
     // Top/bottom boundary
     for( int ii=startX; ii<endX; ii++){
-        BoundaryL = pGrid->boundary(ii,startY);
-        BoundaryR = pGrid->boundary(ii,endY-1);
+        BoundaryL = mpGrid->boundary(ii,startY);
+        BoundaryR = mpGrid->boundary(ii,endY-1);
 
         temp = BoundaryL.betaB();
         BoundaryL.betaB() = BoundaryL.betaT();
@@ -139,10 +143,10 @@ void InitialisationManager::fix_edges(){
         Nb[0] = -Nb[0];
         BoundaryR.Nb() = Nb;
 
-        pGrid->boundary(ii,startY-1) = BoundaryL;
-        pGrid->boundary(ii,endY) = BoundaryR;
+        mpGrid->boundary(ii,startY-1) = BoundaryL;
+        mpGrid->boundary(ii,endY) = BoundaryR;
     }
 }
 
 }// Namespace closure
-#endif /* INITIALISATIONMANAGER_HPP */
+#endif /* OPERATORINITIALISATIONMANAGER_HPP */

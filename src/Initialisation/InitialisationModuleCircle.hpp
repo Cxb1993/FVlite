@@ -25,15 +25,15 @@ protected:
 public:
 
     InitialisationModuleCircle(){}
-    virtual void init_params( Setting& cfg);
-    virtual double getLevelSet( double x, double y);
+    virtual void init( Setting& cfg);
+    virtual double exec( double x, double y);
 
 };
 
 REGISTER(InitialisationModule,Circle)
 
 
-void InitialisationModuleCircle::init_params( Setting& cfg){
+void InitialisationModuleCircle::init( Setting& cfg){
     mCenterX = cfg.lookup("center.x");
     mCenterY = cfg.lookup("center.y");
     mRadius  = cfg.lookup("radius");
@@ -41,7 +41,7 @@ void InitialisationModuleCircle::init_params( Setting& cfg){
 }
 
 
-double InitialisationModuleCircle::getLevelSet( double x, double y){
+double InitialisationModuleCircle::exec( double x, double y){
     double distance = sqrt((x-mCenterX)*(x-mCenterX)+(y-mCenterY)*(y-mCenterY));
     return mRadius - distance;
 }

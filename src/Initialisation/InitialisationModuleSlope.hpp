@@ -26,15 +26,15 @@ protected:
 public:
 
     InitialisationModuleSlope(){}
-    virtual void init_params( Setting& cfg);
-    virtual double getLevelSet( double x, double y);
+    virtual void init( Setting& cfg);
+    virtual double exec( double x, double y);
 
 };
 
 REGISTER(InitialisationModule,Slope)
 
 
-void InitialisationModuleSlope::init_params( Setting& cfg){
+void InitialisationModuleSlope::init( Setting& cfg){
     mPoint1X = cfg.lookup("point1.x");
     mPoint1Y = cfg.lookup("point1.y");
     mPoint2X = cfg.lookup("point2.x");
@@ -43,7 +43,7 @@ void InitialisationModuleSlope::init_params( Setting& cfg){
 }
 
 
-double InitialisationModuleSlope::getLevelSet( double x, double y){
+double InitialisationModuleSlope::exec( double x, double y){
     // copied code form older source, hence the pointless redefinitions
     double x1=mPoint1X;
     double x2=mPoint2X;

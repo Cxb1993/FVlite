@@ -36,7 +36,7 @@ public:
 
 void BoundaryModuleDrivenBase::init( Setting& cfg){
     Setting& params = cfg.lookup("params");
-    string polString = params.lookup("polarisation");
+    string polString  = params.lookup("polarisation");
     if( polString == "x" || polString == "TE") mPOL = TE;
     if( polString == "y" || polString == "TM") mPOL = TM;
     return;
@@ -83,8 +83,10 @@ StateVector BoundaryModuleDrivenBase::getBoundary( const StateVector& Reference,
                     break;
             }
             break;
+        default:
+            std::cerr << "ERROR -> Bad dim: " << dim << std::endl;
+            exit(EXIT_FAILURE);
     }
-    
     return Boundary;
 }
 

@@ -1,0 +1,7 @@
+TODO, initialisation
+
+> redefine InitialisationModules to something more descriptive
+  i.e. LevelSetCalculatorSphere, etc.
+> Allow read in from data files.
+> Remove cut-cell specific options. Make these plug-in features.
+  Perhaps decorator?

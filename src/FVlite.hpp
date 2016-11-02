@@ -16,7 +16,6 @@
 #include "Grid/Grid.hpp"
 #include "Timer/Timer.hpp"
 #include "Operators/Operators.hpp"
-#include "Initialisation/InitialisationManager.hpp"
 #include "Output/Output.hpp"
 
 using std::string;
@@ -109,8 +108,8 @@ void Controller::init( Config& cfg){
     // Initialise
     std::cout << "Building initialiser..." << std::endl;
     Setting& initCfg = cfg.lookup("Initialisation");
-    InitialisationManager* pImanager = new InitialisationManager;
-    pImanager->init(mpGrid,initCfg);
+    OperatorInitialisationManager* pImanager = new OperatorInitialisationManager;
+    pImanager->init(mpGrid,mpTimer,initCfg);
     pImanager->exec();
     pImanager->setup_boundary_geometry();
     delete pImanager;

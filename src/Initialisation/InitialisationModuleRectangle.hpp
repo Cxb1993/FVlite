@@ -27,15 +27,15 @@ protected:
 public:
 
     InitialisationModuleRectangle(){}
-    virtual void init_params( Setting& cfg);
-    virtual double getLevelSet( double x, double y);
+    virtual void init( Setting& cfg);
+    virtual double exec( double x, double y);
 
 };
 
 REGISTER(InitialisationModule,Rectangle)
 
 
-void InitialisationModuleRectangle::init_params( Setting& cfg){
+void InitialisationModuleRectangle::init( Setting& cfg){
     mLowerLeftX = cfg.lookup("lowerleft.x");
     mLowerLeftY = cfg.lookup("lowerleft.y");
     mUpperRightX = cfg.lookup("upperright.x");
@@ -44,7 +44,7 @@ void InitialisationModuleRectangle::init_params( Setting& cfg){
 }
 
 
-double InitialisationModuleRectangle::getLevelSet( double x, double y){
+double InitialisationModuleRectangle::exec( double x, double y){
     double levelset=0;
     double LLx = mLowerLeftX;
     double LLy = mLowerLeftY;

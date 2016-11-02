@@ -26,6 +26,7 @@ public:
 REGISTER(Operator,BoundaryManager)
 
 void OperatorBoundaryManager::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
+    Operator::init( pGrid, pTimer, cfg);
     char dim;
     try{
         dim = cfg.lookup("dim").c_str()[0];

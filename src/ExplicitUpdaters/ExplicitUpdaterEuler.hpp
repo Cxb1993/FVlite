@@ -33,7 +33,7 @@ REGISTER( ExplicitUpdater, Euler)
 // Function defintions
 
 void ExplicitUpdaterEuler::exec( char dim, double dt){
-    double ds, levelset;
+    double ds;
     int startX = mpGrid->startX();
     int startY = mpGrid->startY();
     int endX = mpGrid->endX();
@@ -58,8 +58,7 @@ void ExplicitUpdaterEuler::exec( char dim, double dt){
     // Update
     for( int jj = startY, jjL = startYL ; jj<endY; ++jj, ++jjL){
         for( int ii = startX, iiL = startXL; ii<endX; ++ii, ++iiL){
-            levelset = mpGrid->levelset(ii,jj);
-            if( levelset > 0) continue;
+            if( mpGrid->levelset(ii,jj) > 0) continue;
             mpGrid->state(ii,jj) = mpGrid->state(ii,jj) +
                 (mpGrid->flux(iiL,jjL)-mpGrid->flux(ii,jj)) * dt/ds;
         }
