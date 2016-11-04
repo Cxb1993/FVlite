@@ -8,7 +8,7 @@
 
 #include <libconfig.h++>
 
-#include "FluxSolvers/FluxCalculators/FluxCalculators.hpp"
+#include "FiniteVolume/FluxSolvers/FluxCalculators/FluxCalculators.hpp"
 #include "Boundaries/BoundaryFunctions.hpp"
 
 using std::string;

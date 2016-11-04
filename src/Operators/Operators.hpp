@@ -9,14 +9,19 @@
 #include "Operator.hpp"
 #include "Utils/Composite.hpp"
 
-// Utils
-#include "OperatorTimerIncrement.hpp"
-#include "OperatorTimerCalibrate.hpp"
-#include "OperatorInitialisationManager.hpp"
-#include "OperatorBoundaryManager.hpp"
-#include "OperatorCutCellNewCycle.hpp"
+// Timer
+#include "Timer/OperatorTimerIncrement.hpp"
+#include "Timer/OperatorTimerCalibrate.hpp"
+
+// Initialisation
+#include "Initialisation/OperatorInitialisation.hpp"
+#include "Initialisation/OperatorInitialisationManager.hpp"
+
+// Boundaries
+#include "Boundaries/OperatorBoundary.hpp"
+#include "Boundaries/OperatorBoundaryManager.hpp"
 
 // Finite Volume
-#include "OperatorFiniteVolume1D.hpp"
+#include "FiniteVolume/FiniteVolumeOperators.hpp"
 
 #endif /* OPERATORS_HPP */

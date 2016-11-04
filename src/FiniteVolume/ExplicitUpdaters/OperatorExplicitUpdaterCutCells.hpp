@@ -1,11 +1,11 @@
-// ExplicitUpdaterCutCell.hpp
+// OperatorExplicitUpdaterCutCell.hpp
 //
 // Finite volume explicit update calculator.
-// Variation on ExplicitUpdaterEuler which accounts
+// Variation on OperatorExplicitUpdaterEuler which accounts
 // for presence of cut cells.
 
-#ifndef EXPLICITUPDATERCUTCELLS_HPP
-#define EXPLICITUPDATERCUTCELLS_HPP
+#ifndef OPERATOREXPLICITUPDATERCUTCELLS_HPP
+#define OPERATOREXPLICITUPDATERCUTCELLS_HPP
 
 #include <cstdlib>
 #include <utility>
@@ -14,40 +14,41 @@
 
 #include <libconfig.h++>
 
-#include "ExplicitUpdaters/ExplicitUpdater.hpp"
-#include "CutCellManager/CutCellManager.hpp"
+#include "OperatorExplicitUpdater.hpp"
+#include "FiniteVolume/CutCells/CutCellManager.hpp"
 
 using std::string;
 using libconfig::Setting;
 
 namespace FVlite{
 
-class ExplicitUpdaterCutCells : public ExplicitUpdater {
+class OperatorExplicitUpdaterCutCells : public OperatorExplicitUpdater {
 protected:
     CutCellManager* mpCutCell;
 public:
-    virtual ~ExplicitUpdaterCutCells();
+    virtual ~OperatorExplicitUpdaterCutCells();
     virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
-    virtual void exec( char dim, double dt);
+    virtual void exec();
 };
 
 // Register with factory
 
-REGISTER( ExplicitUpdater, CutCells)
+REGISTER( Operator, ExplicitUpdaterCutCells)
 
 // Function defintions
 
-ExplicitUpdaterCutCells::~ExplicitUpdaterCutCells(){
+OperatorExplicitUpdaterCutCells::~OperatorExplicitUpdaterCutCells(){
     delete mpCutCell;
 }
 
-void ExplicitUpdaterCutCells::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
-    ExplicitUpdater::init(pGrid,pTimer,cfg);
+void OperatorExplicitUpdaterCutCells::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
+    OperatorExplicitUpdater::init(pGrid,pTimer,cfg);
     mpCutCell = new CutCellManager;
     mpCutCell->init(pGrid,cfg);
 }
 
-void ExplicitUpdaterCutCells::exec( char dim, double dt){
+void OperatorExplicitUpdaterCutCells::exec(){
+    double dt = mpTimer->dt() * m_dt_ratio;
     double ds;
     int startX = mpGrid->startX();
     int startY = mpGrid->startY();
@@ -56,7 +57,7 @@ void ExplicitUpdaterCutCells::exec( char dim, double dt){
     // get offset start points
     int startXL = startX;
     int startYL = startY;
-    switch(dim){
+    switch(m_dim){
         case 'x' :
             ds = mpGrid->dx();
             startXL -= 1;
@@ -71,7 +72,7 @@ void ExplicitUpdaterCutCells::exec( char dim, double dt){
             startXL -= 1;
     }
     // Apply cut cell corrections
-    mpCutCell->correctFluxes( dim, dt);
+    mpCutCell->correctFluxes( m_dim, dt);
     // Update
     StateVector State;
     BoundaryGeometry Boundary;
@@ -89,7 +90,7 @@ void ExplicitUpdaterCutCells::exec( char dim, double dt){
             if( alpha == 1.){
                 mpGrid->state(ii,jj) = mpGrid->state(ii,jj) + (FluxL-FluxR) * dt/ds;
             }else{
-                BoundaryFlux.set( mpGrid->state_ref(ii,jj),dim);
+                BoundaryFlux.set( mpGrid->state_ref(ii,jj),m_dim);
                 mpGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - 
                     (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
             }

@@ -32,6 +32,10 @@ FluxVector::FluxVector( const StateVector& State, const char dim){
 }
 
 void FluxVector::set( const StateVector& State, const char dim){
+    // TODO:
+    // This switch-case could be avoided with templates. Fairly
+    // important as this is a very frequently called function.
+    // Also may be able to optimise algebraic steps.
     double ux = State.ux();
     double uy = State.uy();
     switch(dim){

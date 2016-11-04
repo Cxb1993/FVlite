@@ -1,12 +1,12 @@
-// ExplicitUpdaterEuler.hpp
+// OperatorExplicitUpdaterEuler.hpp
 //
 // Finite volume explicit update calculator.
 // Uses Euler method to march forward in time.
 // Note that 'Euler' refers to the approximate method
 // for solving ODEs, not the Euler equations!
 
-#ifndef EXPLICITUPDATEREULER_HPP
-#define EXPLICITUPDATEREULER_HPP
+#ifndef OPERATOREXPLICITUPDATEREULER_HPP
+#define OPERATOREXPLICITUPDATEREULER_HPP
 
 #include <cstdlib>
 #include <utility>
@@ -15,24 +15,25 @@
 
 #include <libconfig.h++>
 
-#include "ExplicitUpdaters/ExplicitUpdater.hpp"
+#include "OperatorExplicitUpdater.hpp"
 
 using std::string;
 using libconfig::Setting;
 
 namespace FVlite{
 
-class ExplicitUpdaterEuler : public ExplicitUpdater {
-    virtual void exec( char dim, double dt);
+class OperatorExplicitUpdaterEuler : public OperatorExplicitUpdater {
+    virtual void exec();
 };
 
 // Register with factory
 
-REGISTER( ExplicitUpdater, Euler)
+REGISTER( Operator, ExplicitUpdaterEuler)
 
 // Function defintions
 
-void ExplicitUpdaterEuler::exec( char dim, double dt){
+void OperatorExplicitUpdaterEuler::exec(){
+    double dt = mpTimer->dt() * m_dt_ratio;
     double ds;
     int startX = mpGrid->startX();
     int startY = mpGrid->startY();
@@ -41,7 +42,7 @@ void ExplicitUpdaterEuler::exec( char dim, double dt){
     // get offset start points
     int startXL = startX;
     int startYL = startY;
-    switch(dim){
+    switch(m_dim){
         case 'x' :
             ds = mpGrid->dx();
             startXL -= 1;
@@ -67,4 +68,4 @@ void ExplicitUpdaterEuler::exec( char dim, double dt){
 }
 
 }// Namespace closure
-#endif /* EXPLICITUPDATEREULER_HPP */
+#endif /* OPERATOREXPLICITUPDATEREULER_HPP */

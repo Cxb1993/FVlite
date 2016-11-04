@@ -8,7 +8,7 @@
 #ifndef OPERATORTIMERINCREMENT_HPP
 #define OPERATORTIMERINCREMENT_HPP
 
-#include "Operator.hpp"
+#include "Operators/Operator.hpp"
 
 namespace FVlite{
 

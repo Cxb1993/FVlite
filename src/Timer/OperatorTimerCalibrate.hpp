@@ -8,7 +8,7 @@
 #ifndef OPERATORTIMERCALIBRATE_HPP
 #define OPERATORTIMERCALIBRATE_HPP
 
-#include "Operator.hpp"
+#include "Operators/Operator.hpp"
 
 namespace FVlite{
 
