@@ -65,8 +65,20 @@ void OperatorExplicitUpdaterCutCells::exec(){
             Boundary = mpGrid->boundary(ii,jj);
             alpha = Boundary.alpha();
             if( alpha == 0.) continue;
-            betaL = Boundary.betaL();
-            betaR = Boundary.betaR();
+            // TODO get this switch out of here!
+            switch( m_dim){
+                case 'x':
+                    betaL = Boundary.betaL();
+                    betaR = Boundary.betaR();
+                    break;
+                case 'y':
+                    betaL = Boundary.betaB();
+                    betaR = Boundary.betaT();
+                    break;
+                default:
+                    betaL = Boundary.betaL();
+                    betaR = Boundary.betaR();
+            }
             FluxL = mpGrid->flux(iiL,jjL);
             FluxR = mpGrid->flux(ii,jj);
             if( alpha == 1.){
