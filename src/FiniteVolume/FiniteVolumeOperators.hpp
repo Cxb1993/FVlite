@@ -15,6 +15,6 @@
 
 // Cut-Cells
 #include "CutCells/OperatorCutCellNewCycle.hpp"
-#include "CutCells/CutCellManager.hpp"
+#include "CutCells/OperatorCutCellFluxCorrector.hpp"
 
 #endif // FINITEVOLUMEOPERATORS_HPP

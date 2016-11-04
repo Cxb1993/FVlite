@@ -1,13 +1,14 @@
-// CutCellManager.hpp
+// OperatorCutCellFluxCorrector.hpp
 //
 // Updates intercell fluxes to account for cut cells.
 // Method based on Klein, 2009.
 
-#ifndef CUTCELLMANAGER_HPP
-#define CUTCELLMANAGER_HPP
+#ifndef OPERATORCUTCELLFLUXCORRECTOR_HPP
+#define OPERATORCUTCELLFLUXCORRECTOR_HPP
 
 #include <libconfig.h++>
 
+#include "Utils/Decorator.hpp"
 #include "FiniteVolume/FluxSolvers/FluxCalculators/FluxCalculators.hpp"
 #include "Boundaries/BoundaryFunctions.hpp"
 
@@ -16,18 +17,15 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class CutCellManager {
+class OperatorCutCellFluxCorrector : public Decorator<Operator> {
 protected:
-    Grid* mpGrid;
+    char m_dim;
+    double m_dt_ratio;
     FluxCalculator* mpFlux;
 public:
-
-    CutCellManager(){}
-    ~CutCellManager(){}
-
-    void init( Grid* pGrid, Setting& cfg);
-
-    void correctFluxes( char dim, double dt);
+    using Decorator::Decorator;
+    void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
+    void exec();
 
     // Component functions used in cut cell scheme
     double getAlphaShielded( const BoundaryGeometry& Boundary, char dim);
@@ -39,21 +37,29 @@ public:
 
 // Function definitions
 
-void CutCellManager::init( Grid* pGrid, Setting& cfg){
-    mpGrid = pGrid;
+void OperatorCutCellFluxCorrector::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
+    Operator::init(pGrid,pTimer,cfg);
+    m_dim = cfg.lookup("dim").c_str()[0];
+    try{
+        m_dt_ratio = cfg.lookup("dt_ratio");
+    } catch ( const std::exception& e){
+        m_dt_ratio = 1.0;
+    }
     Setting& fluxCfg = cfg.lookup("FluxSolver");
     try{
         string fluxStr = fluxCfg.lookup("type");
         mpFlux = FluxCalculatorFactory.create(fluxStr);
     } catch ( const std::exception& e) {
-        std::cerr << "Error building CutCellManager" << std::endl;
+        std::cerr << "Error building OperatorCutCellFluxCorrector" << std::endl;
         std::cerr << "Could not determine flux calculator" << std::endl;
         exit(EXIT_FAILURE);
     }
     return;
 }
 
-void CutCellManager::correctFluxes( char dim, double dt){
+void OperatorCutCellFluxCorrector::exec(){
+    Decorator<Operator>::exec();
+    double dt = mpTimer->dt() * m_dt_ratio;
     int startX=mpGrid->startX();
     int startY=mpGrid->startY();
     int endX=mpGrid->endX();
@@ -63,7 +69,7 @@ void CutCellManager::correctFluxes( char dim, double dt){
     StateVector StateL, StateR, StateAuxL, StateAuxR;
     FluxVector Flux;
     double ds;
-    switch(dim){
+    switch(m_dim){
         case 'x':
         ds = mpGrid->dx();
         for( int jj=startY; jj<endY; jj++){
@@ -78,7 +84,7 @@ void CutCellManager::correctFluxes( char dim, double dt){
                     StateR = mpGrid->state(ii+1,jj);
                     StateAuxL = mpGrid->state_ref(ii,jj);
                     StateAuxR = mpGrid->state_ref(ii+1,jj);
-                    Flux = getModifiedFlux(ds,dt,dim,
+                    Flux = getModifiedFlux(ds,dt,m_dim,
                             StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
 #ifdef DEBUG
                     if( Flux.isnan()){
@@ -104,7 +110,7 @@ void CutCellManager::correctFluxes( char dim, double dt){
                     StateR = mpGrid->state(ii,jj+1);
                     StateAuxL = mpGrid->state_ref(ii,jj);
                     StateAuxR = mpGrid->state_ref(ii,jj+1);
-                    Flux = getModifiedFlux(ds,dt,dim,
+                    Flux = getModifiedFlux(ds,dt,m_dim,
                             StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
 #ifdef DEBUG
                     if( Flux.isnan()){
@@ -120,7 +126,7 @@ void CutCellManager::correctFluxes( char dim, double dt){
     return;
 }
 
-double CutCellManager::getAlphaShielded( const BoundaryGeometry& Boundary, char dim){
+double OperatorCutCellFluxCorrector::getAlphaShielded( const BoundaryGeometry& Boundary, char dim){
     // Case 1
     // Cuts both sides
     // --------------
@@ -171,7 +177,7 @@ double CutCellManager::getAlphaShielded( const BoundaryGeometry& Boundary, char 
     return 0.5*(beta1+beta2);
 }
 
-FluxVector CutCellManager::getModifiedFlux( double ds, double dt, char dim,
+FluxVector OperatorCutCellFluxCorrector::getModifiedFlux( double ds, double dt, char dim,
         const StateVector& UL, const StateVector& UR,
         const StateVector& AuxL, const StateVector& AuxR,
         const BoundaryGeometry& BL, const BoundaryGeometry& BR)

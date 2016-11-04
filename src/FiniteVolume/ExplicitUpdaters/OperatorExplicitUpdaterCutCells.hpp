@@ -15,7 +15,6 @@
 #include <libconfig.h++>
 
 #include "OperatorExplicitUpdater.hpp"
-#include "FiniteVolume/CutCells/CutCellManager.hpp"
 
 using std::string;
 using libconfig::Setting;
@@ -23,11 +22,6 @@ using libconfig::Setting;
 namespace FVlite{
 
 class OperatorExplicitUpdaterCutCells : public OperatorExplicitUpdater {
-protected:
-    CutCellManager* mpCutCell;
-public:
-    virtual ~OperatorExplicitUpdaterCutCells();
-    virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
     virtual void exec();
 };
 
@@ -36,16 +30,6 @@ public:
 REGISTER( Operator, ExplicitUpdaterCutCells)
 
 // Function defintions
-
-OperatorExplicitUpdaterCutCells::~OperatorExplicitUpdaterCutCells(){
-    delete mpCutCell;
-}
-
-void OperatorExplicitUpdaterCutCells::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
-    OperatorExplicitUpdater::init(pGrid,pTimer,cfg);
-    mpCutCell = new CutCellManager;
-    mpCutCell->init(pGrid,cfg);
-}
 
 void OperatorExplicitUpdaterCutCells::exec(){
     double dt = mpTimer->dt() * m_dt_ratio;
@@ -71,8 +55,6 @@ void OperatorExplicitUpdaterCutCells::exec(){
             ds = mpGrid->dx();
             startXL -= 1;
     }
-    // Apply cut cell corrections
-    mpCutCell->correctFluxes( m_dim, dt);
     // Update
     StateVector State;
     BoundaryGeometry Boundary;
@@ -100,4 +82,4 @@ void OperatorExplicitUpdaterCutCells::exec(){
 }
 
 }// Namespace closure
-#endif /* EXPLICITUPDATERCUTCELLS_HPP */
+#endif /* OPERATOREXPLICITUPDATERCUTCELLS_HPP */

@@ -14,6 +14,7 @@
 #include "Operators/Operator.hpp"
 #include "FluxSolvers/OperatorFluxSolver.hpp"
 #include "ExplicitUpdaters/OperatorExplicitUpdaters.hpp"
+#include "CutCells/OperatorCutCellFluxCorrector.hpp"
 
 using std::string;
 using libconfig::Setting;
@@ -46,16 +47,23 @@ void OperatorFiniteVolume1D::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
     }
     // Build a new explicit updater
     Operator* pUpdate;
+    string updateStr;
     try{
         Setting& updateCfg = cfg.lookup("ExplicitUpdater");
-        string updateStr = updateCfg.lookup("type");
+        updateStr = updateCfg.lookup("type").c_str();
         pUpdate = OperatorFactory.create("ExplicitUpdater"+updateStr);
     } catch ( const std::exception& e){
-        std::cerr << "WARNING: Desired updater not found" << std::endl;
-        std::cerr << "Setting to Euler" << std::endl;
-        pUpdate = OperatorFactory.create("ExplicitUpdaterEuler");
+        std::cerr << e.what() << std::endl;
+        std::cerr << "Failed to build ExplicitUpdater" << std::endl;
+        exit(EXIT_FAILURE);
     }
     pUpdate->init( mpGrid, mpTimer, cfg); 
+    // Are we using CutCells?
+    if ( updateStr == "CutCells" ){
+        Operator* pCutCells = new OperatorCutCellFluxCorrector( pFlux);
+        pCutCells->init( mpGrid, mpTimer, cfg);
+        pFlux = pCutCells;
+    }
     // Finalise
     add_element( pFlux);
     add_element( pUpdate);

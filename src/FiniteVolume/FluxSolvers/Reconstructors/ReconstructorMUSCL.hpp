@@ -66,10 +66,10 @@ StatePair ReconstructorMUSCL::exec( double ds, double dt, char dim, int ii, int 
     }
 
     // Handle case in which stencil includes some mixed cells
-    if( BoundaryL.alpha()==0.
-        || BoundaryCL.alpha()==0.
-        || BoundaryCR.alpha()==0. 
-        || BoundaryR.alpha()==0.)
+    if( BoundaryL.alpha()<1.
+        || BoundaryCL.alpha()<1.
+        || BoundaryCR.alpha()<1. 
+        || BoundaryR.alpha()<1.)
     {
         States = std::make_pair(StateCL,StateCR);
         return States;
