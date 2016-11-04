@@ -1,9 +1,10 @@
 # TODO
 # list of things to work on
 
-> Further Solver overhaul
-    - Decorator pattern not ideal.
-    - Use Composite instead
+> KNOWN BUGS
+  - Cut cells bug introduced when new cycle updates were
+    separated from cutcellmanager. Very high priority.
+
 > Overhaul looping
     - Code could be greatly sped up by replacing double nested
       loops with single nested loops and clever iterators.
