@@ -2,8 +2,7 @@
 # list of things to work on
 
 > KNOWN BUGS
-  - Cut cells bug introduced when new cycle updates were
-    separated from cutcellmanager. Very high priority.
+    - None for now
 
 > Overhaul looping
     - Code could be greatly sped up by replacing double nested
@@ -17,7 +16,7 @@
       pointer?
         * no, way faster to add a constant at the start and iterate. But
           then how will larger stencils be handled?
-        * boom, implement an iterating stencil class! The stencil could change
+        * Implement an iterating stencil class! The stencil could change
           to account for x-sweeps vs y-sweeps, and everything else would
           remain the same!
     - It is not immediately obvious how to skip over ghost cells efficiently.
@@ -26,8 +25,6 @@
     - Perhaps the stencil should store the current coordinate? It could iterate
       over ii too, perform a check to see if ii>=ghosts, and if so set ii=0 and jj++.
       Similar for kk.
-> Implement stencil class
-    - see above for intended purpose
     - what should create it? Should it be passed all the way down to flux
       calculators?
 > remove 'char dim' from everything -- use templates
