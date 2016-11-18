@@ -15,6 +15,7 @@
 #include <libconfig.h++>
 
 #include "Utils/ObjectFactory.hpp"
+#include "Utils/Visitor.hpp"
 #include "Grid/Grid.hpp"
 
 using std::string;
@@ -22,16 +23,11 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class Operator {
-protected:
-    Grid* mpGrid;
-    Timer* mpTimer;
+class Operator : public Visitable<Operator>{
 public:
     Operator(){}
     virtual ~Operator(){}
-
-    virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
-    virtual void exec() = 0;
+    virtual void init( Setting& cfg);
 };
 
 // Declare factory
@@ -40,10 +36,8 @@ ObjectFactory<Operator> OperatorFactory;
 
 // function definitions
 
-void Operator::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
+void Operator::init( Setting& cfg){
     (void)cfg;
-    mpGrid=pGrid;
-    mpTimer=pTimer;
 }
 
 } // namespace closure
