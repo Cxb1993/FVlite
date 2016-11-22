@@ -27,18 +27,12 @@ class Operator : public Visitable<Operator>{
 public:
     Operator(){}
     virtual ~Operator(){}
-    virtual void init( Setting& cfg);
+    virtual void init( Setting& cfg) = 0;
 };
 
 // Declare factory
 
 ObjectFactory<Operator> OperatorFactory;
-
-// function definitions
-
-void Operator::init( Setting& cfg){
-    (void)cfg;
-}
 
 } // namespace closure
 #endif // OPERATOR_HPP

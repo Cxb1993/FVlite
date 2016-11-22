@@ -10,8 +10,6 @@
 #include <iostream>
 #include <libconfig.h++>
 
-#include "Grid/Grid.hpp"
-
 using libconfig::Setting;
 
 namespace FVlite{
@@ -25,24 +23,22 @@ private:
     double mCFL;
     double mTmax;
 
-    Grid* mpGrid;
-
 public:
 
     Timer(){}
 
-    void init( Grid* pGrid, Setting& cfg); 
+    void init( Setting& cfg); 
 
     // Access functions
     inline double t(){ return mT;}
     inline double dt(){ return mDt;}
-    inline double CFL(){ return mCFL;}
+    inline double cfl(){ return mCFL;}
     inline double tmax(){ return mTmax;}
 
     // Setters (shouldn't be needed, but for some problems this allows greater flexibility)
-    inline void setDt( double dt){ mDt = dt; return;}
-    inline void setTmax( double tmax){ mTmax = tmax; return;}
-    inline void setCFL( double CFL){ mCFL = CFL; return;}
+    inline void set_dt( double dt){ mDt = dt; return;}
+    inline void set_tmax( double tmax){ mTmax = tmax; return;}
+    inline void set_cfl( double CFL){ mCFL = CFL; return;}
 
     // Incrementers
     inline void advance(double ratio); // incremenets by ratio*dt
@@ -50,9 +46,6 @@ public:
 
     // Test whether t>tmax
     inline bool is_complete(){ return (mT>=mTmax);}
-
-    // Set timestep according to maximum grid speed
-    inline void calibrate();
 };
 
 void Timer::init( Grid* pGrid, Setting& cfg){
@@ -60,8 +53,6 @@ void Timer::init( Grid* pGrid, Setting& cfg){
     mDt = 0;
     mCFL  = cfg.lookup("CFL");
     mTmax = cfg.lookup("tmax");
-    mpGrid = pGrid;
-    return;
 }
 
 void Timer::advance(double ratio){ 
@@ -70,14 +61,6 @@ void Timer::advance(double ratio){
         exit(EXIT_FAILURE);
     }
     mT+=ratio*mDt;
-    return;
-}
-
-void Timer::calibrate(){
-    double maxSpeed = mpGrid->maxSpeed();
-    double ds = (mpGrid->dx() < mpGrid->dy()) ? mpGrid->dx() : mpGrid->dy();
-    mDt = (ds*mCFL)/maxSpeed; // Courant condition
-    return;
 }
 
 }// Namespace closure

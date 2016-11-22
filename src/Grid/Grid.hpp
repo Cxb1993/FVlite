@@ -80,8 +80,9 @@ public:
     int sizeX() const { return mSizeX;}
     int sizeY() const { return mSizeY;}
 
-    // Get max speed
-    double maxSpeed();
+    // Get max speed or minimum ds
+    double max_speed();
+    double min_ds();
 };
 
 // Function definitions
@@ -128,7 +129,7 @@ Grid::~Grid(){
     delete pLevelSet;
 }
 
-double Grid::maxSpeed(){
+double Grid::max_speed(){
     double max = 0.;
     double local_sound_speed;
     double max_local_speed;
@@ -154,6 +155,10 @@ double Grid::maxSpeed(){
     }
 #endif
     return max;
+}
+
+double Grid::min_ds(){
+    return (mDx<mDy) ? mDx : mDy;
 }
 
 }// Namespace closure

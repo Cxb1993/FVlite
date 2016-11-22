@@ -20,13 +20,12 @@ namespace FVlite{
 class OperatorBoundaryManager : public Composite<OperatorBoundary>{
 public:
     OperatorBoundaryManager(){}
-    virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
+    virtual void init( Setting& cfg);
 };
 
 REGISTER(Operator,BoundaryManager)
 
-void OperatorBoundaryManager::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
-    Operator::init( pGrid, pTimer, cfg);
+void OperatorBoundaryManager::init( Setting& cfg){
     char dim;
     try{
         dim = cfg.lookup("dim").c_str()[0];
@@ -45,10 +44,9 @@ void OperatorBoundaryManager::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
             continue;
         }
         pOperator = new OperatorBoundary;
-        pOperator->init( pGrid, pTimer, dim, modCfg);
+        pOperator->init( dim, modCfg);
         add_element( pOperator);
     }
-    return;
 }
 
 }// Namespace closure

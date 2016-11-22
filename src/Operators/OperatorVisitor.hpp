@@ -30,23 +30,26 @@ public:
     }
 
     void visit( OperatorTimerCalibrate& op){
-        op.exec( m_grid, m_timer);
+        double max_speed = m_grid.max_speed();
+        double min_ds = m_grid.min_ds();
+        op.exec( m_timer, max_speed, min_ds);
     }
 
     void visit( OperatorInitialisation& op){
-        op.exec( m_grid);
+        op.accept( m_grid);
     }
 
     void visit( OperatorInitialisationManager& op){
-        op.exec( m_grid);
+        op.accept( *this);
     }
 
     void visit( OperatorBoundary& op){
-        op.exec( m_grid, m_timer);
+        double t = m_timer.t();
+        op.exec( m_grid, t);
     }
 
     void visit( OperatorBoundaryManager& op){
-        op.exec( m_grid, m_timer);
+        op.accept( *this);
     }
 
 };

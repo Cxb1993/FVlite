@@ -12,9 +12,9 @@
 
 namespace FVlite{
 
-class OperatorTimerIncrement : public Operator {
+class OperatorTimerIncrement : public Operator , public Visitable<OperatorTimerIncrement>{
 public:
-    void exec();
+    void exec( Timer& timer);
 };
 
 // Register with factory
@@ -23,9 +23,8 @@ REGISTER( Operator, TimerIncrement)
 
 // Function definitions
 
-void OperatorTimerIncrement::exec(){
-    mpTimer->advance();
-    return;
+void OperatorTimerIncrement::exec( Timer& timer){
+    timer.advance();
 }
 
 } // namespace closure

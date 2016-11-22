@@ -22,11 +22,11 @@ public:
 
     Decorator( T* p_wrappee);
     virtual ~Decorator();
-    virtual void exec();
 
     template<class VisitorDerived>
     virtual void accept( VisitorDerived& visitor){
         mp_inner->accept<VisitorDerived>(visitor);
+        Visitable<Decorator<T>>.accept<VisitorDerived>(visitor);
     }
 
 };
@@ -39,9 +39,5 @@ Decorator<T>::~Decorator(){
     delete mp_inner;
 }
 
-template<class T>
-void Decorator<T>::exec(){
-    mp_inner->exec();
-}
 
 #endif /* DECORATOR_HPP */

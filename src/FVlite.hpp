@@ -109,9 +109,9 @@ void Controller::init( Config& cfg){
     std::cout << "Building initialiser..." << std::endl;
     Setting& initCfg = cfg.lookup("Initialisation");
     OperatorInitialisationManager* pImanager = new OperatorInitialisationManager;
-    pImanager->init(mpGrid,mpTimer,initCfg);
-    pImanager->exec();
-    pImanager->setup_boundary_geometry();
+    pImanager->init(initCfg);
+    pImanager->exec(*mpGrid);
+    pImanager->setup_boundary_geometry(*mpGrid);
     delete pImanager;
 
     std::cout << "Solver built successfully" << std::endl;
