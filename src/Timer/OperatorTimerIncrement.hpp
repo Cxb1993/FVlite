@@ -14,7 +14,7 @@ namespace FVlite{
 
 class OperatorTimerIncrement : public Operator {
 public:
-    void exec();
+    void exec( Grid& grid, Timer& timer);
 };
 
 // Register with factory
@@ -23,8 +23,9 @@ REGISTER( Operator, TimerIncrement)
 
 // Function definitions
 
-void OperatorTimerIncrement::exec(){
-    mpTimer->advance();
+void OperatorTimerIncrement::exec( Grid& grid, Timer& timer){
+    (void)grid;
+    timer.advance();
     return;
 }
 

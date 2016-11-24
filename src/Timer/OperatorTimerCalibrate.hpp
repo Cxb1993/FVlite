@@ -14,7 +14,7 @@ namespace FVlite{
 
 class OperatorTimerCalibrate : public Operator {
 public:
-    void exec();
+    void exec( Grid& grid, Timer& timer);
 };
 
 // Register with factory
@@ -23,10 +23,11 @@ REGISTER( Operator, TimerCalibrate)
 
 // Function definitions
 
-void OperatorTimerCalibrate::exec(){
-#ifndef MAXWELL /* No need to calibrate if max-speed is constant */
-    mpTimer->calibrate();
-#endif
+void OperatorTimerCalibrate::exec( Grid& grid, Timer& timer){
+    double max_speed = grid.max_speed();
+    double min_ds = grid.min_ds();
+    double cfl = timer.cfl();
+    timer.set_dt( min_ds*cfl/max_speed);
 }
 
 } // namespace closure

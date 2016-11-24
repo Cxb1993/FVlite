@@ -23,7 +23,7 @@ using libconfig::Setting;
 namespace FVlite{
 
 class OperatorExplicitUpdaterEuler : public OperatorExplicitUpdater {
-    virtual void exec();
+    virtual void exec( Grid& grid, Timer& timer);
 };
 
 // Register with factory
@@ -32,36 +32,36 @@ REGISTER( Operator, ExplicitUpdaterEuler)
 
 // Function defintions
 
-void OperatorExplicitUpdaterEuler::exec(){
-    double dt = mpTimer->dt() * m_dt_ratio;
+void OperatorExplicitUpdaterEuler::exec( Grid& grid, Timer& timer){
+    double dt = timer.dt() * m_dt_ratio;
     double ds;
-    int startX = mpGrid->startX();
-    int startY = mpGrid->startY();
-    int endX = mpGrid->endX();
-    int endY = mpGrid->endY();
+    int startX = grid.startX();
+    int startY = grid.startY();
+    int endX = grid.endX();
+    int endY = grid.endY();
     // get offset start points
     int startXL = startX;
     int startYL = startY;
     switch(m_dim){
         case 'x' :
-            ds = mpGrid->dx();
+            ds = grid.dx();
             startXL -= 1;
             break;
         case 'y' :
-            ds = mpGrid->dy();
+            ds = grid.dy();
             startYL -= 1;
             break;
         case 'z' :
         default:
-            ds = mpGrid->dx();
+            ds = grid.dx();
             startXL -= 1;
     }
     // Update
     for( int jj = startY, jjL = startYL ; jj<endY; ++jj, ++jjL){
         for( int ii = startX, iiL = startXL; ii<endX; ++ii, ++iiL){
-            if( mpGrid->levelset(ii,jj) > 0) continue;
-            mpGrid->state(ii,jj) = mpGrid->state(ii,jj) +
-                (mpGrid->flux(iiL,jjL)-mpGrid->flux(ii,jj)) * dt/ds;
+            if( grid.levelset(ii,jj) > 0) continue;
+            grid.state(ii,jj) = grid.state(ii,jj) +
+                (grid.flux(iiL,jjL)-grid.flux(ii,jj)) * dt/ds;
         }
     }
     return;

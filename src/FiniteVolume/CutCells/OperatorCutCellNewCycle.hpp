@@ -19,7 +19,7 @@ namespace FVlite{
 
 class OperatorCutCellNewCycle : public Operator {
 public:
-    void exec();
+    void exec( Grid& grid, Timer& timer);
 };
 
 // Register with factory
@@ -28,14 +28,15 @@ REGISTER( Operator, CutCellNewCycle)
 
 // Function definitions
 
-void OperatorCutCellNewCycle::exec(){
+void OperatorCutCellNewCycle::exec( Grid& grid, Timer& timer){
+    (void)timer;
 #ifdef DEBUG
     std::cout << "NEW TIME STEP" << std::endl;
 #endif
-    int startX=mpGrid->startX();
-    int startY=mpGrid->startY();
-    int endX=mpGrid->endX();
-    int endY=mpGrid->endY();
+    int startX=grid.startX();
+    int startY=grid.startY();
+    int endX=grid.endX();
+    int endY=grid.endY();
     StateVector State;
     StateVector BoundaryState;
 #ifdef MAXWELL
@@ -53,10 +54,10 @@ void OperatorCutCellNewCycle::exec(){
     BoundaryGeometry Boundary;
     for( int jj=startY; jj<endY; jj++){
         for( int ii=startX; ii<endX; ii++){
-            Boundary = mpGrid->boundary(ii,jj);
+            Boundary = grid.boundary(ii,jj);
             if(Boundary.alpha() == 1. || Boundary.alpha() == 0.) continue;
             
-            State = mpGrid->state(ii,jj);
+            State = grid.state(ii,jj);
 
             // Step I
             // Find rotation matrix to convert velocity to tangential/normal frame
@@ -133,7 +134,7 @@ void OperatorCutCellNewCycle::exec(){
 
             // Step VI
             // Store result in reference state
-            mpGrid->state_ref(ii,jj) = State;
+            grid.state_ref(ii,jj) = State;
         }
     }
 

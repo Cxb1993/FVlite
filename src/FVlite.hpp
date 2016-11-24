@@ -9,6 +9,7 @@
 
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 
 #include <libconfig.h++>
@@ -28,16 +29,16 @@ class Controller{
 
 private:
 
-    Grid*             mpGrid;
-    Timer*            mpTimer;
-    Output*           mpOutput;
-    Composite<Operator> mSolver;
+    Grid   mGrid;
+    Timer  mTimer;
+    Output mOutput;
+
+    CompositeOperator<Operator> mSolver;
 
 public:
 
     Controller(){}
     Controller( Config& cfg){ init(cfg);}
-    ~Controller();
 
     void init( Config& cfg);
 
@@ -53,12 +54,6 @@ public:
     void printLevelSetVertices();
 };
 
-Controller::~Controller(){
-  delete mpGrid;
-  delete mpTimer;
-  delete mpOutput;
-}
-
 void Controller::init( Config& cfg){ 
 
     std::cout << "Begin Building Solver" << std::endl;
@@ -66,21 +61,17 @@ void Controller::init( Config& cfg){
     // Set up grid
     std::cout << "Building grid.." << std::endl;
     Setting& gridCfg = cfg.lookup("Grid");
-    mpGrid = new Grid;
-    mpGrid->init(gridCfg);
+    mGrid.init(gridCfg);
 
     // Set up timer
     std::cout << "Building timer..." << std::endl;
     Setting& timerCfg = cfg.lookup("Timing");
-    mpTimer = new Timer;
-    mpTimer->init(mpGrid,timerCfg);
-    mpTimer->calibrate();
+    mTimer.init(timerCfg);
 
     // Output
     std::cout << "Setting up output..." << std::endl;
     Setting& outputCfg = cfg.lookup("Output");
-    mpOutput = new Output;
-    mpOutput->init(mpGrid,mpTimer,outputCfg);
+    mOutput.init(&mGrid,&mTimer,outputCfg);
 
     // Set up Solver
     std::cout << "Building solver..." << std::endl;
@@ -88,7 +79,7 @@ void Controller::init( Config& cfg){
     // Start process with timer calibration
     Operator* pOperator;
     pOperator = OperatorFactory.create("TimerCalibrate");
-    pOperator->init( mpGrid, mpTimer, solverCfg);
+    pOperator->init(solverCfg);
     mSolver.add_element( pOperator);
     // Find all user-specified solvers, wrap in order
     string operatorType;
@@ -97,44 +88,52 @@ void Controller::init( Config& cfg){
         Setting& thisCfg = solverCfg[count];
         operatorType = thisCfg.lookup("type").c_str();
         pOperator = OperatorFactory.create(operatorType);
-        pOperator->init( mpGrid, mpTimer, thisCfg);
+        pOperator->init(thisCfg);
         mSolver.add_element( pOperator);
     }
     // Finalise with timer increment
     pOperator = OperatorFactory.create("TimerIncrement");
-    pOperator->init( mpGrid, mpTimer, solverCfg);
-    mSolver.add_element( pOperator);
+    pOperator->init(solverCfg);
+    mSolver.add_element(pOperator);
 
     // Initialise
     std::cout << "Building initialiser..." << std::endl;
     Setting& initCfg = cfg.lookup("Initialisation");
-    OperatorInitialisationManager* pImanager = new OperatorInitialisationManager;
-    pImanager->init(mpGrid,mpTimer,initCfg);
-    pImanager->exec();
-    pImanager->setup_boundary_geometry();
-    delete pImanager;
+    // Build objects on grid
+    OperatorInitialisationManager init_manager;
+    init_manager.init(initCfg);
+    init_manager.exec( mGrid, mTimer);
+    init_manager.setup_boundary_geometry(mGrid);
+    // Build and use temporary TimerCalibrate Operator
+    OperatorTimerCalibrate init_calibration;
+    init_calibration.exec( mGrid, mTimer);
 
     std::cout << "Solver built successfully" << std::endl;
-    mpOutput->prod();
+    mOutput.prod();
     return;
 }
 
 bool Controller::is_complete(){
-    return mpTimer->is_complete();
+    return mTimer.is_complete();
 }
 
 void Controller::advance(){
     // Print current time to screen
-    std::cout << "\rTime: " << mpTimer->t() << std::flush;
+    std::cout << "\r| Time: "
+        << std::setw(16) << std::setprecision(10) << std::right << mTimer.t() 
+        << " | Tmax: "
+        << std::setw(16) << std::setprecision(10) << std::right << mTimer.tmax()
+        << " |"
+        << std::flush;
     // Execute main solver
-    mSolver.exec();
+    mSolver.exec( mGrid, mTimer);
     // Request IO
-    mpOutput->prod();
+    mOutput.prod();
     return;
 }
 
 void Controller::solve(){
-    while( !mpTimer->is_complete()){
+    while( !mTimer.is_complete()){
         advance();
     }
     return;
@@ -142,22 +141,22 @@ void Controller::solve(){
 
 void Controller::exec(){
     solve();
-    mpOutput->print();
+    mOutput.print();
     return;
 }
 
 void Controller::check_grid(){
-    int startX = mpGrid->startX();
-    int startY = mpGrid->startY();
-    int endX = mpGrid->endX();
-    int endY = mpGrid->endY();
+    int startX = mGrid.startX();
+    int startY = mGrid.startY();
+    int endX = mGrid.endX();
+    int endY = mGrid.endY();
     StateVector State;
     FluxVector Flux;
     bool abort = false;
     for( int jj=startY; jj<endY; jj++){
         for( int ii=startX; ii<endX; ii++){
-            State = mpGrid->state(ii,jj);
-            Flux  = mpGrid->flux(ii,jj);
+            State = mGrid.state(ii,jj);
+            Flux  = mGrid.flux(ii,jj);
             if( State.isnan() ){
                 std::cerr << "State("<<ii<<","<<jj<<") contains NaN" << std::endl;
                 abort = true;
@@ -169,7 +168,7 @@ void Controller::check_grid(){
         }
     }
     if( abort ){
-        std::cerr << "NaNs found in grid. Aborting." << std::endl;
+        std::cerr << "NaNs found in mGrid. Aborting." << std::endl;
         exit(EXIT_FAILURE);
     }
     return;
@@ -188,14 +187,14 @@ void Controller::printData(std::ofstream& file){
     file << "# x y rho rhoUx rhoUy E levelset" << std::endl;
 #endif
     StateVector State;
-    for( int ii=mpGrid->startX(); ii<mpGrid->endX(); ii++){
-        for( int jj=mpGrid->startY(); jj<mpGrid->endY(); jj++){
-            State = mpGrid->state(ii,jj);
-            file << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';
+    for( int ii=mGrid.startX(); ii<mGrid.endX(); ii++){
+        for( int jj=mGrid.startY(); jj<mGrid.endY(); jj++){
+            State = mGrid.state(ii,jj);
+            file << mGrid.x(ii)  << '\t' << mGrid.y(jj)  << '\t';
             for( unsigned int kk=0; kk<State.size(); kk++){
                 file << State[kk] << '\t';
             }
-            file << (*mpGrid->levelset())(ii,jj) << std::endl;
+            file << (*mGrid.levelset())(ii,jj) << std::endl;
         }
         file << std::endl;
     }
@@ -205,16 +204,16 @@ void Controller::printData(std::ofstream& file){
 void Controller::printGeometry(){
     std::ofstream file("geometry.dat");
     file << "# x y levelset betaL betaR betaT betaB alpha Xb[0] Xb[1] Xb[2] Nb[0] Nb[1] Nb[2]" << std::endl;
-    int startX = mpGrid->startX();
-    int startY = mpGrid->startY();
-    int endX = mpGrid->endX();
-    int endY = mpGrid->endY();
+    int startX = mGrid.startX();
+    int startY = mGrid.startY();
+    int endX = mGrid.endX();
+    int endY = mGrid.endY();
     BoundaryGeometry geometry;
     for( int ii=startX; ii<endX; ii++){
         for( int jj=startY; jj<endY; jj++){
-            geometry = mpGrid->boundary(ii,jj);
-            file << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';
-            file << (*mpGrid->levelset())(ii,jj) << '\t'; 
+            geometry = mGrid.boundary(ii,jj);
+            file << mGrid.x(ii)  << '\t' << mGrid.y(jj)  << '\t';
+            file << (*mGrid.levelset())(ii,jj) << '\t'; 
             file << geometry.betaL() << '\t';
             file << geometry.betaR() << '\t';
             file << geometry.betaT() << '\t';
@@ -236,17 +235,17 @@ void Controller::printGeometry(){
 void Controller::printLevelSetVertices(){
     std::ofstream file("vertices.dat");
     file << "# x y levelset" << std::endl;
-    int sizeX = mpGrid->sizeX();
-    int sizeY = mpGrid->sizeY();
+    int sizeX = mGrid.sizeX();
+    int sizeY = mGrid.sizeY();
     double x, y;
-    double dx = mpGrid->dx();
-    double dy = mpGrid->dy();
+    double dx = mGrid.dx();
+    double dy = mGrid.dy();
     for( int ii=1; ii<sizeX; ii++){
-        x = mpGrid->x(ii) - 0.5*dx;
+        x = mGrid.x(ii) - 0.5*dx;
         for( int jj=1; jj<sizeY; jj++){
-            y = mpGrid->y(jj) - 0.5*dy;
+            y = mGrid.y(jj) - 0.5*dy;
             file << x  << '\t' << y  << '\t';
-            file << mpGrid->levelset()->interpolate(x,y) << std::endl; 
+            file << mGrid.levelset()->interpolate(x,y) << std::endl; 
         }
         file << std::endl;
     }

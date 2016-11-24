@@ -28,7 +28,6 @@ class Reconstructor {
 
 protected:
 
-    Grid* mpGrid;
     Limiter* mpLimiter;
 
 public:
@@ -36,9 +35,9 @@ public:
     Reconstructor(){}
     virtual ~Reconstructor();
 
-    void init( Grid* pGrid, Setting& cfg);
+    void init( Setting& cfg);
 
-    virtual StatePair exec( double ds, double dt, char dim, int ii, int jj)=0;
+    virtual StatePair exec( Grid& grid, double ds, double dt, char dim, int ii, int jj)=0;
     virtual int stencilSize() = 0;
 };
 
@@ -52,7 +51,7 @@ Reconstructor::~Reconstructor(){
     delete mpLimiter;
 }
 
-void Reconstructor::init( Grid* pGrid, Setting& cfg){
+void Reconstructor::init( Setting& cfg){
     string limitType;
     // Get limiter. Rely on default if not specified
     try{
@@ -60,7 +59,6 @@ void Reconstructor::init( Grid* pGrid, Setting& cfg){
     } catch( const std::exception&) {
         limitType = "Default";
     }
-    mpGrid = pGrid;
     mpLimiter = LimiterFactory.create(limitType);
     return;
 }

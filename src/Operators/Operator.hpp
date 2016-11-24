@@ -16,6 +16,7 @@
 
 #include "Utils/ObjectFactory.hpp"
 #include "Grid/Grid.hpp"
+#include "Timer/Timer.hpp"
 
 using std::string;
 using libconfig::Setting;
@@ -23,28 +24,16 @@ using libconfig::Setting;
 namespace FVlite{
 
 class Operator {
-protected:
-    Grid* mpGrid;
-    Timer* mpTimer;
 public:
     Operator(){}
     virtual ~Operator(){}
-
-    virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
-    virtual void exec() = 0;
+    virtual void init( Setting& cfg){ (void)cfg; }
+    virtual void exec( Grid& grid, Timer& timer) = 0;
 };
 
 // Declare factory
 
 ObjectFactory<Operator> OperatorFactory;
-
-// function definitions
-
-void Operator::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
-    (void)cfg;
-    mpGrid=pGrid;
-    mpTimer=pTimer;
-}
 
 } // namespace closure
 #endif // OPERATOR_HPP

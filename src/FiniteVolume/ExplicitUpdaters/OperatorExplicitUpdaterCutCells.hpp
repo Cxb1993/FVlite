@@ -22,7 +22,7 @@ using libconfig::Setting;
 namespace FVlite{
 
 class OperatorExplicitUpdaterCutCells : public OperatorExplicitUpdater {
-    virtual void exec();
+    virtual void exec( Grid& grid, Timer& timer);
 };
 
 // Register with factory
@@ -31,28 +31,28 @@ REGISTER( Operator, ExplicitUpdaterCutCells)
 
 // Function defintions
 
-void OperatorExplicitUpdaterCutCells::exec(){
-    double dt = mpTimer->dt() * m_dt_ratio;
+void OperatorExplicitUpdaterCutCells::exec( Grid& grid, Timer& timer){
+    double dt = timer.dt() * m_dt_ratio;
     double ds;
-    int startX = mpGrid->startX();
-    int startY = mpGrid->startY();
-    int endX = mpGrid->endX();
-    int endY = mpGrid->endY();
+    int startX = grid.startX();
+    int startY = grid.startY();
+    int endX = grid.endX();
+    int endY = grid.endY();
     // get offset start points
     int startXL = startX;
     int startYL = startY;
     switch(m_dim){
         case 'x' :
-            ds = mpGrid->dx();
+            ds = grid.dx();
             startXL -= 1;
             break;
         case 'y' :
-            ds = mpGrid->dy();
+            ds = grid.dy();
             startYL -= 1;
             break;
         case 'z' :
         default:
-            ds = mpGrid->dx();
+            ds = grid.dx();
             startXL -= 1;
     }
     // Update
@@ -62,7 +62,7 @@ void OperatorExplicitUpdaterCutCells::exec(){
     double alpha, betaL, betaR;
     for( int jj = startY, jjL = startYL ; jj<endY; ++jj, ++jjL){
         for( int ii = startX, iiL = startXL; ii<endX; ++ii, ++iiL){
-            Boundary = mpGrid->boundary(ii,jj);
+            Boundary = grid.boundary(ii,jj);
             alpha = Boundary.alpha();
             if( alpha == 0.) continue;
             // TODO get this switch out of here!
@@ -79,13 +79,13 @@ void OperatorExplicitUpdaterCutCells::exec(){
                     betaL = Boundary.betaL();
                     betaR = Boundary.betaR();
             }
-            FluxL = mpGrid->flux(iiL,jjL);
-            FluxR = mpGrid->flux(ii,jj);
+            FluxL = grid.flux(iiL,jjL);
+            FluxR = grid.flux(ii,jj);
             if( alpha == 1.){
-                mpGrid->state(ii,jj) = mpGrid->state(ii,jj) + (FluxL-FluxR) * dt/ds;
+                grid.state(ii,jj) = grid.state(ii,jj) + (FluxL-FluxR) * dt/ds;
             }else{
-                BoundaryFlux.set( mpGrid->state_ref(ii,jj),m_dim);
-                mpGrid->state(ii,jj) += (betaL*FluxL - betaR*FluxR - 
+                BoundaryFlux.set( grid.state_ref(ii,jj),m_dim);
+                grid.state(ii,jj) += (betaL*FluxL - betaR*FluxR - 
                     (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
             }
         }

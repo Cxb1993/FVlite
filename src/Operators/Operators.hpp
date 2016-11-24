@@ -7,7 +7,8 @@
 
 // Core
 #include "Operator.hpp"
-#include "Utils/Composite.hpp"
+#include "CompositeOperator.hpp"
+#include "DecoratorOperator.hpp"
 
 // Timer
 #include "Timer/OperatorTimerIncrement.hpp"

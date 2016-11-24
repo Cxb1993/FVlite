@@ -40,8 +40,8 @@ public:
     OperatorFluxSolver(){}
     ~OperatorFluxSolver();
 
-    void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
-    void exec();
+    void init( Setting& cfg);
+    void exec( Grid& grid, Timer& timer);
     FluxVector getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR);
 
 };
@@ -53,8 +53,7 @@ OperatorFluxSolver::~OperatorFluxSolver(){
     delete mpReconstructor;
 }
 
-void OperatorFluxSolver::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
-    Operator::init(pGrid,pTimer,cfg);
+void OperatorFluxSolver::init( Setting& cfg){
     // Get basic info
     m_dim = cfg.lookup("dim").c_str()[0];
     try{
@@ -79,43 +78,42 @@ void OperatorFluxSolver::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
         reconType = "Default";
     }
 
-    mpGrid = pGrid;
     mpFluxCalculator = FluxCalculatorFactory.create(calcType);
     mpReconstructor = ReconstructorFactory.create(reconType);
-    mpReconstructor->init(mpGrid,cfg);
+    mpReconstructor->init(cfg);
     return;
 }
 
-void OperatorFluxSolver::exec(){
-    double dt = mpTimer->dt() * m_dt_ratio;
+void OperatorFluxSolver::exec( Grid& grid, Timer& timer){
+    double dt = timer.dt() * m_dt_ratio;
     double ds;
-    int startX = mpGrid->startX();
-    int startY = mpGrid->startY();
-    int endX = mpGrid->endX();
-    int endY = mpGrid->endY();
+    int startX = grid.startX();
+    int startY = grid.startY();
+    int endX = grid.endX();
+    int endY = grid.endY();
     StatePair States;
     FluxVector Flux;
     // Account for the fact that a row of N cells has N+1 interfaces which need
     // to be determined (including boundary ghost cells).
     switch(m_dim){
         case 'x' :
-            ds = mpGrid->dx();
+            ds = grid.dx();
             startX -= 1;
             break;
         case 'y' :
-            ds = mpGrid->dy();
+            ds = grid.dy();
             startY -= 1;
             break;
         case 'z' :
         default:
-            ds = mpGrid->dx();
+            ds = grid.dx();
     }
     // Sweep through grid, calculating each flux in turn
     for( int jj=startY; jj<endY; jj++){
         for( int ii=startX; ii<endX; ii++){
-            States = mpReconstructor->exec( ds, dt, m_dim, ii, jj);
+            States = mpReconstructor->exec( grid, ds, dt, m_dim, ii, jj);
             Flux = mpFluxCalculator->exec( ds, dt, m_dim, States.first, States.second);
-            mpGrid->flux(ii,jj) = Flux;
+            grid.flux(ii,jj) = Flux;
         }
     }
     return;

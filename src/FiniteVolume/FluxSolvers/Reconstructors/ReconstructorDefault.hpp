@@ -12,23 +12,23 @@ namespace FVlite{
 
 class ReconstructorDefault : public Reconstructor{
 public:
-    virtual StatePair exec( double ds, double dt, char dim, int ii, int jj);
+    virtual StatePair exec( Grid& grid, double ds, double dt, char dim, int ii, int jj);
     virtual int stencilSize(){ return 2;}
 };
 
 REGISTER(Reconstructor,Default)
 
-StatePair ReconstructorDefault::exec( double ds, double dt, char dim, int ii, int jj){
+StatePair ReconstructorDefault::exec( Grid& grid, double ds, double dt, char dim, int ii, int jj){
     (void)ds;
     (void)dt;
-    StateVector StateL = mpGrid->state(ii,jj);
+    StateVector StateL = grid.state(ii,jj);
     StateVector StateR;
     switch(dim){
         case 'x' :
-            StateR = mpGrid->state(ii+1,jj);
+            StateR = grid.state(ii+1,jj);
             break;
         case 'y' :
-            StateR = mpGrid->state(ii,jj+1);
+            StateR = grid.state(ii,jj+1);
             break;
         case 'z' :
             // Not yet implemented

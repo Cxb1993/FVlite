@@ -35,8 +35,8 @@ public:
     OperatorInitialisation(){}
     virtual ~OperatorInitialisation(){}
 
-    void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
-    void exec();
+    void init( Setting& cfg);
+    void exec( Grid& grid, Timer& timer);
 };
 
 // Register with factory
@@ -45,8 +45,7 @@ REGISTER( Operator, Initialisation)
 
 // Function definitions
 
-void OperatorInitialisation::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
-    Operator::init( pGrid, pTimer, cfg);
+void OperatorInitialisation::init( Setting& cfg){
     mSolid = cfg.lookup("solid");
     mInner = cfg.lookup("inner");
     if( !mSolid ){
@@ -72,7 +71,8 @@ void OperatorInitialisation::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
 }
 
 
-void OperatorInitialisation::exec(){
+void OperatorInitialisation::exec( Grid& grid, Timer& timer){
+    (void)timer;
 
     // Scan through grid, determine level set function.
     // If fluid:
@@ -83,26 +83,26 @@ void OperatorInitialisation::exec(){
     //  inner  -> merge()
     //  !inner -> intersect()
 
-    int startX = mpGrid->startX();
-    int startY = mpGrid->startY();
-    int endX = mpGrid->endX();
-    int endY = mpGrid->endY();
-    int sizeX = mpGrid->sizeX();
-    int sizeY = mpGrid->sizeY();
+    int startX = grid.startX();
+    int startY = grid.startY();
+    int endX = grid.endX();
+    int endY = grid.endY();
+    int sizeX = grid.sizeX();
+    int sizeY = grid.sizeY();
     double x,y,levelset;
 
     for( int jj=0; jj<sizeY; jj++){
-        y = mpGrid->y(jj);
+        y = grid.y(jj);
         for( int ii=0; ii<sizeX; ii++){
-            x = mpGrid->x(ii);
+            x = grid.x(ii);
             levelset = mpInitMod->exec(x,y);
 
             if( mSolid){
-                mpGrid->levelset()->workspace(ii,jj) = levelset;
+                grid.levelset()->workspace(ii,jj) = levelset;
             } else {
                 if( ii>=startX && ii<endX && jj>=startY && jj<endY){
                     if( (mInner && levelset>0) || (!mInner && levelset<0) ){
-                        mpGrid->state(ii,jj) = mState;
+                        grid.state(ii,jj) = mState;
                     }
                 }
             }
@@ -110,8 +110,8 @@ void OperatorInitialisation::exec(){
     }
 
     if(mSolid){
-        if(mInner) mpGrid->levelset()->merge();
-        else mpGrid->levelset()->intersect();
+        if(mInner) grid.levelset()->merge();
+        else grid.levelset()->intersect();
     }
 
     return;

@@ -21,9 +21,9 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class OperatorFiniteVolume1D : public Composite<Operator> {
+class OperatorFiniteVolume1D : public CompositeOperator<Operator> {
 public:
-    virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
+    virtual void init( Setting& cfg);
 };
 
 // Register with factory
@@ -32,36 +32,35 @@ REGISTER( Operator, FiniteVolume1D)
 
 // Function definitions
 
-void OperatorFiniteVolume1D::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
-    Operator::init(pGrid,pTimer,cfg);
+void OperatorFiniteVolume1D::init( Setting& cfg){
     // Build a new flux solver
-    Operator* pFlux = new OperatorFluxSolver;
+    OperatorFluxSolver* pFlux = new OperatorFluxSolver;
     // Try to extract "FluxSolver" setting. If not present,
     // print error and exit. Then, set up pFlux.
     try{
-        pFlux->init(mpGrid,mpTimer,cfg);
+        pFlux->init(cfg);
     } catch ( const std::exception& e ){
         std::cerr << e.what() << std::endl;
         std::cerr << "Failed to build FluxSolver" << std::endl;
         exit(EXIT_FAILURE);
     }
     // Build a new explicit updater
-    Operator* pUpdate;
+    OperatorExplicitUpdater* pUpdate;
     string updateStr;
     try{
         Setting& updateCfg = cfg.lookup("ExplicitUpdater");
         updateStr = updateCfg.lookup("type").c_str();
-        pUpdate = OperatorFactory.create("ExplicitUpdater"+updateStr);
+        pUpdate = static_cast<OperatorExplicitUpdater*>(OperatorFactory.create("ExplicitUpdater"+updateStr));
     } catch ( const std::exception& e){
         std::cerr << e.what() << std::endl;
         std::cerr << "Failed to build ExplicitUpdater" << std::endl;
         exit(EXIT_FAILURE);
     }
-    pUpdate->init( mpGrid, mpTimer, cfg); 
+    pUpdate->init( cfg); 
     // Are we using CutCells?
     if ( updateStr == "CutCells" ){
-        Operator* pCutCells = new OperatorCutCellFluxCorrector( pFlux);
-        pCutCells->init( mpGrid, mpTimer, cfg);
+        OperatorCutCellFluxCorrector* pCutCells = new OperatorCutCellFluxCorrector( pFlux);
+        pCutCells->init(cfg);
         pFlux = pCutCells;
     }
     // Finalise

@@ -30,12 +30,11 @@ public:
     OperatorExplicitUpdater(){}
     virtual ~OperatorExplicitUpdater(){}
 
-    virtual void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
-    virtual void exec() = 0;
+    virtual void init( Setting& cfg);
+    virtual void exec( Grid& grid, Timer& timer) = 0;
 };
 
-void OperatorExplicitUpdater::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
-    Operator::init(pGrid,pTimer,cfg);
+void OperatorExplicitUpdater::init( Setting& cfg){
     m_dim = cfg.lookup("dim").c_str()[0];
     try{
         m_dt_ratio = cfg.lookup("dt_ratio");

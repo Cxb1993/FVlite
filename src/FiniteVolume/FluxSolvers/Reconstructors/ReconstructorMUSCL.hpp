@@ -19,7 +19,7 @@ namespace FVlite{
 
 class ReconstructorMUSCL : public Reconstructor{
 public:
-    virtual StatePair exec( double ds, double dt, char dim, int ii, int jj);
+    virtual StatePair exec( Grid& grid, double ds, double dt, char dim, int ii, int jj);
     virtual int stencilSize(){ return 4;}
     
     StateVector getLimitedSlope(
@@ -33,7 +33,7 @@ public:
 
 REGISTER(Reconstructor,MUSCL)
 
-StatePair ReconstructorMUSCL::exec( double ds, double dt, char dim, int ii, int jj){
+StatePair ReconstructorMUSCL::exec( Grid& grid, double ds, double dt, char dim, int ii, int jj){
     BoundaryGeometry BoundaryL, BoundaryCL, BoundaryCR, BoundaryR;
     StateVector StateL, StateCL, StateCR, StateR;
     StatePair States;
@@ -41,24 +41,24 @@ StatePair ReconstructorMUSCL::exec( double ds, double dt, char dim, int ii, int 
     // Get States
     switch(dim){
         case 'x':
-            BoundaryL  = mpGrid->boundary(ii-1,jj);
-            BoundaryCL = mpGrid->boundary(ii,jj);
-            BoundaryCR = mpGrid->boundary(ii+1,jj);
-            BoundaryR  = mpGrid->boundary(ii+2,jj);
-            StateL  = mpGrid->state(ii-1,jj);
-            StateCL = mpGrid->state(ii,jj);
-            StateCR = mpGrid->state(ii+1,jj);
-            StateR  = mpGrid->state(ii+2,jj);
+            BoundaryL  = grid.boundary(ii-1,jj);
+            BoundaryCL = grid.boundary(ii,jj);
+            BoundaryCR = grid.boundary(ii+1,jj);
+            BoundaryR  = grid.boundary(ii+2,jj);
+            StateL  = grid.state(ii-1,jj);
+            StateCL = grid.state(ii,jj);
+            StateCR = grid.state(ii+1,jj);
+            StateR  = grid.state(ii+2,jj);
             break;
         case 'y':
-            BoundaryL  = mpGrid->boundary(ii,jj-1);
-            BoundaryCL = mpGrid->boundary(ii,jj);
-            BoundaryCR = mpGrid->boundary(ii,jj+1);
-            BoundaryR  = mpGrid->boundary(ii,jj+2);
-            StateL  = mpGrid->state(ii,jj-1);
-            StateCL = mpGrid->state(ii,jj);
-            StateCR = mpGrid->state(ii,jj+1);
-            StateR  = mpGrid->state(ii,jj+2);
+            BoundaryL  = grid.boundary(ii,jj-1);
+            BoundaryCL = grid.boundary(ii,jj);
+            BoundaryCR = grid.boundary(ii,jj+1);
+            BoundaryR  = grid.boundary(ii,jj+2);
+            StateL  = grid.state(ii,jj-1);
+            StateCL = grid.state(ii,jj);
+            StateCR = grid.state(ii,jj+1);
+            StateR  = grid.state(ii,jj+2);
             break;
         case 'z':
             // Not yet implemented

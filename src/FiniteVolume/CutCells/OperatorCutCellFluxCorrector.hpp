@@ -17,15 +17,15 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class OperatorCutCellFluxCorrector : public Decorator<Operator> {
+class OperatorCutCellFluxCorrector : public DecoratorOperator<OperatorFluxSolver> {
 protected:
     char m_dim;
     double m_dt_ratio;
     FluxCalculator* mpFlux;
 public:
-    using Decorator::Decorator;
-    void init( Grid* pGrid, Timer* pTimer, Setting& cfg);
-    void exec();
+    using DecoratorOperator::DecoratorOperator;
+    void init( Setting& cfg);
+    void exec( Grid& grid, Timer& timer);
 
     // Component functions used in cut cell scheme
     double getAlphaShielded( const BoundaryGeometry& Boundary, char dim);
@@ -37,8 +37,7 @@ public:
 
 // Function definitions
 
-void OperatorCutCellFluxCorrector::init( Grid* pGrid, Timer* pTimer, Setting& cfg){
-    Operator::init(pGrid,pTimer,cfg);
+void OperatorCutCellFluxCorrector::init( Setting& cfg){
     m_dim = cfg.lookup("dim").c_str()[0];
     try{
         m_dt_ratio = cfg.lookup("dt_ratio");
@@ -57,13 +56,15 @@ void OperatorCutCellFluxCorrector::init( Grid* pGrid, Timer* pTimer, Setting& cf
     return;
 }
 
-void OperatorCutCellFluxCorrector::exec(){
-    Decorator<Operator>::exec();
-    double dt = mpTimer->dt() * m_dt_ratio;
-    int startX=mpGrid->startX();
-    int startY=mpGrid->startY();
-    int endX=mpGrid->endX();
-    int endY=mpGrid->endY();
+void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
+    // Call wrapped flux update first
+    DecoratorOperator<OperatorFluxSolver>::exec(grid,timer);
+    // Perform correction
+    double dt = timer.dt() * m_dt_ratio;
+    int startX=grid.startX();
+    int startY=grid.startY();
+    int endX=grid.endX();
+    int endY=grid.endY();
     double alphaL, alphaR, betaC;
     BoundaryGeometry BoundaryL, BoundaryR;
     StateVector StateL, StateR, StateAuxL, StateAuxR;
@@ -71,19 +72,19 @@ void OperatorCutCellFluxCorrector::exec(){
     double ds;
     switch(m_dim){
         case 'x':
-        ds = mpGrid->dx();
+        ds = grid.dx();
         for( int jj=startY; jj<endY; jj++){
             for( int ii=startX-1; ii<endX; ii++){
-                BoundaryL = mpGrid->boundary(ii,jj);
-                BoundaryR = mpGrid->boundary(ii+1,jj);
+                BoundaryL = grid.boundary(ii,jj);
+                BoundaryR = grid.boundary(ii+1,jj);
                 alphaL = BoundaryL.alpha();
                 alphaR = BoundaryR.alpha();
                 betaC  = BoundaryL.betaR();
                 if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
-                    StateL = mpGrid->state(ii,jj);
-                    StateR = mpGrid->state(ii+1,jj);
-                    StateAuxL = mpGrid->state_ref(ii,jj);
-                    StateAuxR = mpGrid->state_ref(ii+1,jj);
+                    StateL = grid.state(ii,jj);
+                    StateR = grid.state(ii+1,jj);
+                    StateAuxL = grid.state_ref(ii,jj);
+                    StateAuxR = grid.state_ref(ii+1,jj);
                     Flux = getModifiedFlux(ds,dt,m_dim,
                             StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
 #ifdef DEBUG
@@ -91,25 +92,25 @@ void OperatorCutCellFluxCorrector::exec(){
                         std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
                     }
 #endif
-                    mpGrid->flux(ii,jj) = Flux;
+                    grid.flux(ii,jj) = Flux;
                 }
             }
         }
         break;
         case 'y':
-        ds = mpGrid->dy();
+        ds = grid.dy();
         for( int jj=startY-1; jj<endY; jj++){
             for( int ii=startX; ii<endX; ii++){
-                BoundaryL = mpGrid->boundary(ii,jj);
-                BoundaryR = mpGrid->boundary(ii,jj+1);
+                BoundaryL = grid.boundary(ii,jj);
+                BoundaryR = grid.boundary(ii,jj+1);
                 alphaL = BoundaryL.alpha();
                 alphaR = BoundaryR.alpha();
                 betaC  = BoundaryL.betaT();
                 if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
-                    StateL = mpGrid->state(ii,jj);
-                    StateR = mpGrid->state(ii,jj+1);
-                    StateAuxL = mpGrid->state_ref(ii,jj);
-                    StateAuxR = mpGrid->state_ref(ii,jj+1);
+                    StateL = grid.state(ii,jj);
+                    StateR = grid.state(ii,jj+1);
+                    StateAuxL = grid.state_ref(ii,jj);
+                    StateAuxR = grid.state_ref(ii,jj+1);
                     Flux = getModifiedFlux(ds,dt,m_dim,
                             StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
 #ifdef DEBUG
@@ -117,7 +118,7 @@ void OperatorCutCellFluxCorrector::exec(){
                         std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
                     }
 #endif
-                    mpGrid->flux(ii,jj) = Flux;
+                    grid.flux(ii,jj) = Flux;
                 }
             }
         }

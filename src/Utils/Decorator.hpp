@@ -8,17 +8,13 @@
 
 template<class T>
 class Decorator : public T {
-
+private:
+    Decorator() {}
 protected:
-
     T* mp_inner;
-
 public:
-
     Decorator( T* p_wrappee);
     virtual ~Decorator();
-    virtual void exec();
-
 };
 
 template<class T>
@@ -29,9 +25,5 @@ Decorator<T>::~Decorator(){
     delete mp_inner;
 }
 
-template<class T>
-void Decorator<T>::exec(){
-    mp_inner->exec();
-}
 
 #endif /* DECORATOR_HPP */

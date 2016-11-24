@@ -18,6 +18,7 @@ using libconfig::Setting;
 
 namespace FVlite{
 
+// TODO: template this away
 enum BOUNDARY_REGION{
     LEFTWALL,
     RIGHTWALL,
@@ -40,8 +41,8 @@ public:
     OperatorBoundary(){}
     virtual ~OperatorBoundary();
 
-    virtual void init( Grid* pGrid, Timer* pTimer, char dim, Setting& cfg);
-    void exec();
+    virtual void init( char dim, Setting& cfg);
+    void exec( Grid& grid, Timer& timer);
 };
 
 // Register with factory
@@ -54,8 +55,7 @@ OperatorBoundary::~OperatorBoundary(){
     delete mpBmod;
 }
 
-void OperatorBoundary::init( Grid* pGrid, Timer* pTimer, char dim, Setting& cfg){
-    Operator::init( pGrid, pTimer, cfg);
+void OperatorBoundary::init( char dim, Setting& cfg){
     mDim = dim;
     string region = cfg.lookup("region");
     if( region == "leftwall")  mREGION = LEFTWALL;
@@ -69,13 +69,13 @@ void OperatorBoundary::init( Grid* pGrid, Timer* pTimer, char dim, Setting& cfg)
     return;
 }
 
-void OperatorBoundary::exec(){
-    int bound  = mpGrid->bound();
-    int startX = mpGrid->startX();
-    int startY = mpGrid->startY();
-    int endX   = mpGrid->endX();
-    int endY   = mpGrid->endY();
-    double t = mpTimer->t();
+void OperatorBoundary::exec( Grid& grid, Timer& timer){
+    int bound  = grid.bound();
+    int startX = grid.startX();
+    int startY = grid.startY();
+    int endX   = grid.endX();
+    int endY   = grid.endY();
+    double t = timer.t();
     double levelset;
 
     switch( mREGION ){
@@ -83,7 +83,7 @@ void OperatorBoundary::exec(){
             if( mDim != 'x') break;
             for( int ii=0; ii<bound; ii++){
                 for( int jj=startY; jj<endY; jj++){
-                    mpGrid->state(startX-1-ii,jj) = mpBmod->getBoundary(mpGrid->state(startX+ii,jj),mDim,t);
+                    grid.state(startX-1-ii,jj) = mpBmod->getBoundary(grid.state(startX+ii,jj),mDim,t);
                 }
             }
             break;
@@ -91,7 +91,7 @@ void OperatorBoundary::exec(){
             if( mDim != 'x') break;
             for( int ii=0; ii<bound; ii++){
                 for( int jj=startY; jj<endY; jj++){
-                    mpGrid->state(endX+ii,jj) = mpBmod->getBoundary(mpGrid->state(endX-1-ii,jj),mDim,t);
+                    grid.state(endX+ii,jj) = mpBmod->getBoundary(grid.state(endX-1-ii,jj),mDim,t);
                 }
             }
             break;
@@ -99,7 +99,7 @@ void OperatorBoundary::exec(){
             if( mDim != 'y') break;
             for( int ii=startX; ii<endX; ii++){
                 for( int jj=0; jj<bound; jj++){
-                    mpGrid->state(ii,startY-1-jj) = mpBmod->getBoundary(mpGrid->state(ii,startY+jj),mDim,t);
+                    grid.state(ii,startY-1-jj) = mpBmod->getBoundary(grid.state(ii,startY+jj),mDim,t);
                 }
             }
             break;
@@ -107,7 +107,7 @@ void OperatorBoundary::exec(){
             if( mDim != 'y') break;
             for( int ii=startX; ii<endX; ii++){
                 for( int jj=0; jj<bound; jj++){
-                    mpGrid->state(ii,endY+jj) = mpBmod->getBoundary(mpGrid->state(ii,endY-1-jj),mDim,t);
+                    grid.state(ii,endY+jj) = mpBmod->getBoundary(grid.state(ii,endY-1-jj),mDim,t);
                 }
             }
             break;
@@ -115,16 +115,16 @@ void OperatorBoundary::exec(){
             if( mDim=='x'){
                 for( int jj=startY; jj<endY; jj++){
                     for( int ii=startX; ii<endX; ii++){
-                        levelset = mpGrid->levelset(ii,jj);
-                        if( levelset > 0){ // PEC
-                            if( mpGrid->levelset(ii-1,jj) * levelset < 0 ){ // sign changes
+                        levelset = grid.levelset(ii,jj);
+                        if( levelset > 0){ // if hard boundary
+                            if( grid.levelset(ii-1,jj) * levelset < 0 ){ // sign changes
                                 for( int kk=0; kk<bound; kk++){
-                                    mpGrid->state(ii+kk,jj) = mpBmod->getBoundary(mpGrid->state(ii-1-kk,jj),mDim,t);
+                                    grid.state(ii+kk,jj) = mpBmod->getBoundary(grid.state(ii-1-kk,jj),mDim,t);
                                 }
                             }
-                            if( mpGrid->levelset(ii+1,jj) * levelset < 0){ // sign changes
+                            if( grid.levelset(ii+1,jj) * levelset < 0){ // sign changes
                                 for( int kk=0; kk<bound; kk++){
-                                    mpGrid->state(ii-kk,jj) = mpBmod->getBoundary(mpGrid->state(ii+1+kk,jj),mDim,t);
+                                    grid.state(ii-kk,jj) = mpBmod->getBoundary(grid.state(ii+1+kk,jj),mDim,t);
                                 }
                             }
                         }
@@ -134,16 +134,16 @@ void OperatorBoundary::exec(){
             if( mDim=='y'){
                 for( int jj=startY; jj<endY; jj++){
                     for( int ii=startX; ii<endX; ii++){
-                        levelset = mpGrid->levelset(ii,jj);
-                        if( levelset > 0){ // PEC
-                            if( mpGrid->levelset(ii,jj-1) * levelset < 0 ){ // sign changes
+                        levelset = grid.levelset(ii,jj);
+                        if( levelset > 0){ // if hard boundary
+                            if( grid.levelset(ii,jj-1) * levelset < 0 ){ // sign changes
                                 for( int kk=0; kk<bound; kk++){
-                                    mpGrid->state(ii,jj+kk) = mpBmod->getBoundary(mpGrid->state(ii,jj-1-kk),mDim,t);
+                                    grid.state(ii,jj+kk) = mpBmod->getBoundary(grid.state(ii,jj-1-kk),mDim,t);
                                 }
                             }
-                            if( mpGrid->levelset(ii,jj+1) * levelset < 0){ // sign changes
+                            if( grid.levelset(ii,jj+1) * levelset < 0){ // sign changes
                                 for( int kk=0; kk<bound; kk++){
-                                    mpGrid->state(ii,jj-kk) = mpBmod->getBoundary(mpGrid->state(ii,jj+1+kk),mDim,t);
+                                    grid.state(ii,jj-kk) = mpBmod->getBoundary(grid.state(ii,jj+1+kk),mDim,t);
                                 }
                             }
                         }
