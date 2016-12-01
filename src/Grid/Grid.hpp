@@ -130,16 +130,13 @@ Grid::~Grid(){
 }
 
 double Grid::max_speed(){
+#ifdef MAXWELL
+    double max = c_c; // Speed of light
+#else
     double max = 0.;
     double local_sound_speed;
     double max_local_speed;
     double total_local_speed;
-#ifdef MAXWELL
-    (void)local_sound_speed;
-    (void)max_local_speed;
-    (void)total_local_speed;
-    max = c_c; // Speed of light
-#else
     for( int jj=mStartY; jj<mEndY; jj++){
         for( int ii=mStartX; ii<mEndX; ii++){
             max_local_speed = fabs(state(ii,jj).ux());
