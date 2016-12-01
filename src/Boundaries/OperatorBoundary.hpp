@@ -70,11 +70,11 @@ void OperatorBoundary::init( char dim, Setting& cfg){
 }
 
 void OperatorBoundary::exec( Grid& grid, Timer& timer){
-    int bound  = grid.bound();
-    int startX = grid.startX();
-    int startY = grid.startY();
-    int endX   = grid.endX();
-    int endY   = grid.endY();
+    int bound  = grid.ghosts();
+    int startX = grid.start(DIM_X);
+    int startY = grid.start(DIM_Y);
+    int endX   = grid.end(DIM_X);
+    int endY   = grid.end(DIM_Y);
     double t = timer.t();
     double levelset;
 

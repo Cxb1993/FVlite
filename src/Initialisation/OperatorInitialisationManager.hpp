@@ -61,22 +61,22 @@ void OperatorInitialisationManager::setup_boundary_geometry(Grid& grid){
 
     double x,y; // cell center locations
 
-    int sizeX = grid.sizeX();
-    int sizeY = grid.sizeY();
-    double dx = grid.dx();
-    double dy = grid.dy();
+    int sizeX = grid.size(DIM_X);
+    int sizeY = grid.size(DIM_Y);
+    double dx = grid.ds(DIM_X);
+    double dy = grid.ds(DIM_Y);
 
     BoundaryGeometry Boundary;
 
     for( int jj=1; jj<sizeY-1; jj++){
-        y = grid.y(jj);
+        y = grid.position(DIM_Y,jj);
         for( int ii=1; ii<sizeX-1; ii++){
-            x = grid.x(ii);
+            x = grid.position(DIM_X,ii);
             // Get level set at corners
-            levelset_bl = grid.levelset()->interpolate(x-0.5*dx,y-0.5*dy);
-            levelset_br = grid.levelset()->interpolate(x+0.5*dx,y-0.5*dy);
-            levelset_tl = grid.levelset()->interpolate(x-0.5*dx,y+0.5*dy);
-            levelset_tr = grid.levelset()->interpolate(x+0.5*dx,y+0.5*dy);
+            levelset_bl = grid.interpolate(x-0.5*dx,y-0.5*dy);
+            levelset_br = grid.interpolate(x+0.5*dx,y-0.5*dy);
+            levelset_tl = grid.interpolate(x-0.5*dx,y+0.5*dy);
+            levelset_tr = grid.interpolate(x+0.5*dx,y+0.5*dy);
             // Calculate geometry parameters
             Boundary.set( dx, dy, levelset_bl, levelset_br, levelset_tl, levelset_tr);
             grid.boundary(ii,jj) = Boundary;
@@ -90,10 +90,10 @@ void OperatorInitialisationManager::fix_edges( Grid& grid){
     // Errors are introduced if attempting to allow any solid to extend into edge boundaries.
     // This function fixes that.
 
-    int startX = grid.startX();
-    int startY = grid.startY();
-    int endX   = grid.endX();
-    int endY   = grid.endY();
+    int startX = grid.start(DIM_X);
+    int startY = grid.start(DIM_Y);
+    int endX   = grid.end(DIM_X);
+    int endY   = grid.end(DIM_Y);
 
     BoundaryGeometry BoundaryL, BoundaryR;
     double temp;

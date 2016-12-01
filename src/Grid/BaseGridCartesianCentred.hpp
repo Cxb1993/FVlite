@@ -29,7 +29,7 @@ protected:
     double mLs[dim];          // Physical length of grid in each direction
     double mDs[dim];          // Grid spacing, L/N
     unsigned int mGhosts;     // Number of ghost cells. Uniform across directions.
-protected:
+public:
     BaseGridCartesianCentred(){}
     BaseGridCartesianCentred( double Ls[dim], unsigned int Ns[dim], unsigned int ghosts) { 
         mGhosts = ghosts;
@@ -71,6 +71,11 @@ protected:
     // Get grid spacing, in dim s
     double ds( unsigned int s) const {
         return mDs[s];
+    }
+
+    // Get physical position of location
+    double position( unsigned int s, unsigned int ii) const {
+        return (ii-ghosts()+0.5)*ds(s);
     }
 
     // Get minimum grid spacing

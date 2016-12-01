@@ -33,10 +33,10 @@ void OperatorCutCellNewCycle::exec( Grid& grid, Timer& timer){
 #ifdef DEBUG
     std::cout << "NEW TIME STEP" << std::endl;
 #endif
-    int startX=grid.startX();
-    int startY=grid.startY();
-    int endX=grid.endX();
-    int endY=grid.endY();
+    int startX=grid.start(DIM_X);
+    int startY=grid.start(DIM_Y);
+    int endX=grid.end(DIM_X);
+    int endY=grid.end(DIM_Y);
     StateVector State;
     StateVector BoundaryState;
 #ifdef MAXWELL
@@ -134,7 +134,7 @@ void OperatorCutCellNewCycle::exec( Grid& grid, Timer& timer){
 
             // Step VI
             // Store result in reference state
-            grid.state_ref(ii,jj) = State;
+            grid.boundary_state(ii,jj) = State;
         }
     }
 

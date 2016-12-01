@@ -129,15 +129,15 @@ void Output::print(){
     double alpha;
 //    for( int ii=mpGrid->startX(); ii<mpGrid->endX(); ii++){
 //        for( int jj=mpGrid->startY(); jj<mpGrid->endY(); jj++){
-    for( int ii=0; ii<mpGrid->sizeX(); ii++){
-        for( int jj=0; jj<mpGrid->sizeY(); jj++){
+    for( unsigned int ii=0; ii<mpGrid->size(DIM_X); ii++){
+        for( unsigned int jj=0; jj<mpGrid->size(DIM_Y); jj++){
 
             Boundary = mpGrid->boundary(ii,jj);
             alpha = Boundary.alpha();
             if( !mPrintCutCells || (alpha!=0. && alpha!=1.)){
 
                 // Print position
-                File << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';
+                File << mpGrid->position(DIM_X,ii)  << '\t' << mpGrid->position(DIM_Y,jj)  << '\t';
 
                 // Print conserved data
                 State = mpGrid->state(ii,jj);
@@ -147,14 +147,14 @@ void Output::print(){
             
 #ifdef DEBUG
                 // Print auxiliary data
-                State = mpGrid->state_ref(ii,jj);
+                State = mpGrid->boundary_state(ii,jj);
                 for( unsigned int kk=0; kk<State.size(); kk++){
                     File << State[kk] << '\t';
                 }
 #endif
 
                 // Print level set function
-                File << (*mpGrid->levelset())(ii,jj) << std::endl;
+                File << mpGrid->levelset(ii,jj) << std::endl;
             }
 
         }
@@ -200,14 +200,14 @@ void Output::print_geometry(){
     // Print data
 
     BoundaryGeometry Boundary;
-    for( int ii=0; ii<mpGrid->sizeX(); ii++){
-        for( int jj=0; jj<mpGrid->sizeY(); jj++){
+    for( unsigned int ii=0; ii<mpGrid->size(DIM_X); ii++){
+        for( unsigned int jj=0; jj<mpGrid->size(DIM_Y); jj++){
 
             // Print grid location
             File << ii  << '\t' << jj << '\t';
 
             // Print position
-            File << mpGrid->x(ii)  << '\t' << mpGrid->y(jj)  << '\t';
+            File << mpGrid->position(DIM_X,ii)  << '\t' << mpGrid->position(DIM_Y,jj)  << '\t';
 
             // Print boundary data
             Boundary = mpGrid->boundary(ii,jj); 

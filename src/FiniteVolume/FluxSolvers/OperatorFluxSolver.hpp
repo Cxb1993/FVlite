@@ -87,26 +87,26 @@ void OperatorFluxSolver::init( Setting& cfg){
 void OperatorFluxSolver::exec( Grid& grid, Timer& timer){
     double dt = timer.dt() * m_dt_ratio;
     double ds;
-    int startX = grid.startX();
-    int startY = grid.startY();
-    int endX = grid.endX();
-    int endY = grid.endY();
+    int startX = grid.start(DIM_X);
+    int startY = grid.start(DIM_Y);
+    int endX = grid.end(DIM_X);
+    int endY = grid.end(DIM_Y);
     StatePair States;
     FluxVector Flux;
     // Account for the fact that a row of N cells has N+1 interfaces which need
     // to be determined (including boundary ghost cells).
     switch(m_dim){
         case 'x' :
-            ds = grid.dx();
+            ds = grid.ds(DIM_X);
             startX -= 1;
             break;
         case 'y' :
-            ds = grid.dy();
+            ds = grid.ds(DIM_Y);
             startY -= 1;
             break;
         case 'z' :
         default:
-            ds = grid.dx();
+            ds = grid.ds(DIM_X);
     }
     // Sweep through grid, calculating each flux in turn
     for( int jj=startY; jj<endY; jj++){

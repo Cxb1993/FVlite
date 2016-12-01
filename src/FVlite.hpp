@@ -37,8 +37,8 @@ private:
 
 public:
 
-    Controller(){}
-    Controller( Config& cfg){ init(cfg);}
+//    Controller(){}
+    Controller( Grid& grid, Config& cfg) : mGrid(grid) { init(cfg);}
 
     void init( Config& cfg);
 
@@ -46,22 +46,18 @@ public:
     void advance();
     void solve();
     void exec();
-    void check_grid();
+//    void check_grid();
 
     // PRINT FUNCTIONS, SHOULD BE DEPRECATED
-    void printData(std::ofstream& file);
-    void printGeometry();
-    void printLevelSetVertices();
+//    void printData(std::ofstream& file);
+//    void printGeometry();
+//    void printLevelSetVertices();
 };
 
 void Controller::init( Config& cfg){ 
 
     std::cout << "Begin Building Solver" << std::endl;
 
-    // Set up grid
-    std::cout << "Building grid.." << std::endl;
-    Setting& gridCfg = cfg.lookup("Grid");
-    mGrid.init(gridCfg);
 
     // Set up timer
     std::cout << "Building timer..." << std::endl;
@@ -144,7 +140,7 @@ void Controller::exec(){
     mOutput.print();
     return;
 }
-
+/*
 void Controller::check_grid(){
     int startX = mGrid.startX();
     int startY = mGrid.startY();
@@ -251,6 +247,6 @@ void Controller::printLevelSetVertices(){
     }
     return;
 }
-
+*/
 }// Namespace closure
 #endif /* CONTROLLER_HPP */

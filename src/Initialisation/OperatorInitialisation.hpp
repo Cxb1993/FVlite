@@ -83,22 +83,24 @@ void OperatorInitialisation::exec( Grid& grid, Timer& timer){
     //  inner  -> merge()
     //  !inner -> intersect()
 
-    int startX = grid.startX();
-    int startY = grid.startY();
-    int endX = grid.endX();
-    int endY = grid.endY();
-    int sizeX = grid.sizeX();
-    int sizeY = grid.sizeY();
+    int startX = grid.start(DIM_X);
+    int startY = grid.start(DIM_Y);
+    int endX = grid.end(DIM_X);
+    int endY = grid.end(DIM_Y);
+    int sizeX = grid.size(DIM_X);
+    int sizeY = grid.size(DIM_Y);
     double x,y,levelset;
 
+    grid.reset_workspace();
+
     for( int jj=0; jj<sizeY; jj++){
-        y = grid.y(jj);
+        y = grid.position(DIM_Y,jj);
         for( int ii=0; ii<sizeX; ii++){
-            x = grid.x(ii);
+            x = grid.position(DIM_X,ii);
             levelset = mpInitMod->exec(x,y);
 
             if( mSolid){
-                grid.levelset()->workspace(ii,jj) = levelset;
+                grid.workspace(ii,jj) = levelset;
             } else {
                 if( ii>=startX && ii<endX && jj>=startY && jj<endY){
                     if( (mInner && levelset>0) || (!mInner && levelset<0) ){
@@ -110,8 +112,8 @@ void OperatorInitialisation::exec( Grid& grid, Timer& timer){
     }
 
     if(mSolid){
-        if(mInner) grid.levelset()->merge();
-        else grid.levelset()->intersect();
+        if(mInner) grid.merge_levelset();
+        else grid.intersect_levelset();
     }
 
     return;

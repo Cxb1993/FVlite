@@ -61,10 +61,10 @@ void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
     DecoratorOperator<OperatorFluxSolver>::exec(grid,timer);
     // Perform correction
     double dt = timer.dt() * m_dt_ratio;
-    int startX=grid.startX();
-    int startY=grid.startY();
-    int endX=grid.endX();
-    int endY=grid.endY();
+    int startX=grid.start(DIM_X);
+    int startY=grid.start(DIM_Y);
+    int endX=grid.end(DIM_X);
+    int endY=grid.end(DIM_Y);
     double alphaL, alphaR, betaC;
     BoundaryGeometry BoundaryL, BoundaryR;
     StateVector StateL, StateR, StateAuxL, StateAuxR;
@@ -72,7 +72,7 @@ void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
     double ds;
     switch(m_dim){
         case 'x':
-        ds = grid.dx();
+        ds = grid.ds(DIM_X);
         for( int jj=startY; jj<endY; jj++){
             for( int ii=startX-1; ii<endX; ii++){
                 BoundaryL = grid.boundary(ii,jj);
@@ -83,8 +83,8 @@ void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
                 if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
                     StateL = grid.state(ii,jj);
                     StateR = grid.state(ii+1,jj);
-                    StateAuxL = grid.state_ref(ii,jj);
-                    StateAuxR = grid.state_ref(ii+1,jj);
+                    StateAuxL = grid.boundary_state(ii,jj);
+                    StateAuxR = grid.boundary_state(ii+1,jj);
                     Flux = getModifiedFlux(ds,dt,m_dim,
                             StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
 #ifdef DEBUG
@@ -98,7 +98,7 @@ void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
         }
         break;
         case 'y':
-        ds = grid.dy();
+        ds = grid.ds(DIM_Y);
         for( int jj=startY-1; jj<endY; jj++){
             for( int ii=startX; ii<endX; ii++){
                 BoundaryL = grid.boundary(ii,jj);
@@ -109,8 +109,8 @@ void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
                 if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
                     StateL = grid.state(ii,jj);
                     StateR = grid.state(ii,jj+1);
-                    StateAuxL = grid.state_ref(ii,jj);
-                    StateAuxR = grid.state_ref(ii,jj+1);
+                    StateAuxL = grid.boundary_state(ii,jj);
+                    StateAuxR = grid.boundary_state(ii,jj+1);
                     Flux = getModifiedFlux(ds,dt,m_dim,
                             StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
 #ifdef DEBUG

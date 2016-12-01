@@ -10,6 +10,7 @@
 #include "StateGridCartesianCentred.hpp"
 #include "FluxGridCartesianCentred.hpp"
 #include "LevelSetGridCartesianCentred.hpp"
+#include "CutCellGrids.hpp"
 
 using namespace FVlite;
 
@@ -21,7 +22,9 @@ typedef CartesianGridImplementation<
     MY_DIM,
     StateGridCartesianCentred<MY_DIM>,
     FluxGridCartesianCentred<MY_DIM>,
-    LevelSetGridCartesianCentred<MY_DIM>
+    LevelSetGridCartesianCentred<MY_DIM>,
+    CutCellBoundaryStateGrid<MY_DIM>,
+    CutCellGeometryGrid<MY_DIM>
 > Grid;
 
 // Test it out

@@ -35,25 +35,25 @@ REGISTER( Operator, ExplicitUpdaterEuler)
 void OperatorExplicitUpdaterEuler::exec( Grid& grid, Timer& timer){
     double dt = timer.dt() * m_dt_ratio;
     double ds;
-    int startX = grid.startX();
-    int startY = grid.startY();
-    int endX = grid.endX();
-    int endY = grid.endY();
+    int startX = grid.start(DIM_X);
+    int startY = grid.start(DIM_Y);
+    int endX = grid.end(DIM_X);
+    int endY = grid.end(DIM_Y);
     // get offset start points
     int startXL = startX;
     int startYL = startY;
     switch(m_dim){
         case 'x' :
-            ds = grid.dx();
+            ds = grid.ds(DIM_X);
             startXL -= 1;
             break;
         case 'y' :
-            ds = grid.dy();
+            ds = grid.ds(DIM_Y);
             startYL -= 1;
             break;
         case 'z' :
         default:
-            ds = grid.dx();
+            ds = grid.ds(DIM_X);
             startXL -= 1;
     }
     // Update

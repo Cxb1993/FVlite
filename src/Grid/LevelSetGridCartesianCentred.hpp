@@ -6,6 +6,7 @@
 #define LEVELSETGRIDCARTESIANCENTRED_HPP
 
 #include "BaseGridCartesianCentred.hpp"
+#include <cmath>
 #include <vector>
 
 namespace FVlite{
@@ -13,11 +14,19 @@ namespace FVlite{
 template<unsigned int dim>
 class LevelSetGridCartesianCentred : public virtual BaseGridCartesianCentred<dim> {
     protected:
+        double min_level_set;
         std::vector<double> mLevelSet;
+        std::vector<double> mWorkspace;
     public:
         LevelSetGridCartesianCentred() 
         {
-            mLevelSet.resize( this->total_cells(), /*val=*/0.0);
+            double lengths_squared = 0.0;
+            for (unsigned int s=0; s<dim; s++){
+                lengths_squared += this->length(s) * this->length(s);
+            }
+            min_level_set = -1.0 * sqrt(lengths_squared);
+            mLevelSet.resize( this->total_cells(), /*val=*/min_level_set);
+            mWorkspace.resize( this->total_cells(), /*val=*/min_level_set);
         }
 
         double& levelset( unsigned int ii, unsigned int jj=0, unsigned int kk=0) {
@@ -28,25 +37,33 @@ class LevelSetGridCartesianCentred : public virtual BaseGridCartesianCentred<dim
             return mLevelSet[this->get_idx(ii,jj,kk)];
         }
 
-        LevelSetGridCartesianCentred get_levelset_workspace(){
-            LevelSetGridCartesianCentred workspace( this->mLs, this->mNs, this->mGhosts);
-            return workspace;
+        double& workspace( unsigned int ii, unsigned int jj=0, unsigned int kk=0) {
+            return mWorkspace[this->get_idx(ii,jj,kk)];
         }
+
+        double workspace( unsigned int ii, unsigned int jj=0, unsigned int kk=0) const {
+            return mWorkspace[this->get_idx(ii,jj,kk)];
+        }
+
 
         void reset_levelset(){
-            mLevelSet.assign( this->total_cells(), 0.0);
+            mLevelSet.assign( this->total_cells(), min_level_set);
         }
 
-        void merge( LevelSetGridCartesianCentred& other){
-            for( int ii=0; ii<this->total_cells(); ii++){
-                mLevelSet[ii] = fmax( mLevelSet[ii], other.mLevelSet[ii]);
+        void reset_workspace(){
+            mWorkspace.assign( this->total_cells(), min_level_set);
+        }
+
+        void merge_levelset(){
+            for( unsigned int ii=0; ii < this->total_cells(); ii++){
+                mLevelSet[ii] = fmax( mLevelSet[ii], mWorkspace[ii]);
             }
         }
 
         // WARNING: THIS IS NOT CORRECT!    
-        void intersect( LevelSetGridCartesianCentred& other){
-            for( int ii=0; ii<this->total_cells(); ii++){
-                mLevelSet[ii] = fmin( mLevelSet[ii], other.mLevelSet[ii]);
+        void intersect_levelset(){
+            for( unsigned int ii=0; ii < this->total_cells(); ii++){
+                mLevelSet[ii] = fmin( mLevelSet[ii], mWorkspace[ii]);
             }
         }
 
@@ -58,6 +75,7 @@ template<>
 double LevelSetGridCartesianCentred<2>::interpolate( double x, double y, double z){
 // Function written some time ago and copied over with minor edits.
 // May be bugged.
+    (void)z;
 
     // Performs bilinear interpolation to determine level set function
     // at arbitrary location.

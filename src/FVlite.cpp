@@ -42,7 +42,22 @@ int main( int argc, char* argv[]){
     std::cout << "Config file read success." << std::endl;
 #endif
 
-    Controller mySolver(cfg);
+    // TODO: Need a better way to build grid.
+    // Intending to separate construction of grid from
+    // the grid itself.
+    // Set up grid
+    std::cout << "Building grid.." << std::endl;
+    Setting& gridCfg = cfg.lookup("Grid");
+    unsigned int Ns[2];
+    double Ls[2];
+    Ns[0] = gridCfg.lookup("cells.x");
+    Ns[1] = gridCfg.lookup("cells.y");
+    Ls[0] = gridCfg.lookup("size.x");
+    Ls[1] = gridCfg.lookup("size.y");
+    int ghosts = 2;
+    Grid grid(Ls,Ns,ghosts);
+
+    Controller mySolver(grid, cfg);
     mySolver.exec();
 
     return EXIT_SUCCESS;
