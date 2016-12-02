@@ -15,6 +15,8 @@
 
 namespace FVlite{
 
+// TODO allow this to be changed using compiler options
+
 #define MY_DIM 2
 
 typedef CartesianGridImplementation<

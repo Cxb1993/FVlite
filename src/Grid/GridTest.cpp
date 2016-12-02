@@ -53,6 +53,8 @@ int main(void){
               << vec3[4] << ' '
               << vec3[5] << std::endl;
 
+    std::cout << grid.position(DIM_X,5) << std::endl;
+    std::cout << grid.position(DIM_Y,5) << std::endl;
 
     return EXIT_SUCCESS;
 }

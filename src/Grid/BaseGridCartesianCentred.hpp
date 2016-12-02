@@ -74,8 +74,9 @@ public:
     }
 
     // Get physical position of location
-    double position( unsigned int s, unsigned int ii) const {
-        return (ii-ghosts()+0.5)*ds(s);
+    // (ii is not unsigned int, as this could cause uint underflow for small ii)
+    double position( unsigned int s, int ii) const {
+        return (ii-(int)ghosts()+0.5)*ds(s);
     }
 
     // Get minimum grid spacing

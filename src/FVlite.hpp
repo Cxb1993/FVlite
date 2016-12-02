@@ -56,6 +56,9 @@ public:
 
 void Controller::init( Config& cfg){ 
 
+    std::cout << "Cells: [" << mGrid.num_cells(0) << ',' << mGrid.num_cells(1) << ']' << std::endl;
+    std::cout << "Length: [" << mGrid.length(0) << ',' << mGrid.length(1) << ']' << std::endl;
+
     std::cout << "Begin Building Solver" << std::endl;
 
 

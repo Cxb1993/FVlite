@@ -45,7 +45,6 @@ void OperatorInitialisationManager::init( Setting& cfg){
 }
 
 void OperatorInitialisationManager::setup_boundary_geometry(Grid& grid){
-    
     // Scan through grid, use level set function to determine geometry at boundaries.
     // Calculation at each cell performed by BoundaryGeometry class.
     // Notation:
