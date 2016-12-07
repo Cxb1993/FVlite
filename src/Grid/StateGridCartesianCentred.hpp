@@ -40,8 +40,8 @@ double StateGridCartesianCentred<2>::max_speed(){
     double local_sound_speed;
     double max_local_speed;
     double total_local_speed;
-    for( int jj=this->start(DIM_Y); jj<this->end(DIM_Y); jj++){
-        for( int ii=this->start(DIM_X); ii<this->end(DIM_X); ii++){
+    for( unsigned int jj=this->start(DIM_Y); jj<this->end(DIM_Y); jj++){
+        for( unsigned int ii=this->start(DIM_X); ii<this->end(DIM_X); ii++){
             max_local_speed = fabs(this->state(ii,jj).ux());
             max_local_speed = (fabs(this->state(ii,jj).uy()) > max_local_speed) ? fabs(this->state(ii,jj).uy()) : max_local_speed; 
             local_sound_speed = this->state(ii,jj).a();

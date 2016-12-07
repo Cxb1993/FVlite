@@ -47,6 +47,4 @@ splot datafile using 1:2:8
 #plot datafile using 1:2:3 with image
 
 #EULER
-#plot datafile using 1:2:3 with image
-#splot datafile using 1:2:3  w l
-#plot datafile using 1:3 with l
+#splot datafile using 1:2:3 w l

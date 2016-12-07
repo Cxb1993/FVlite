@@ -12,15 +12,17 @@
 #include <cmath>
 #include <ctgmath>
 
-#include "FluxSolverAbstract.hpp"
+#include "FluxCalculatorAbstract.hpp"
 #include "HLLCfunctions.hpp"
 
 namespace FVlite{
 
-class FluxCalculatorHLLC : public FluxCalculator{
+class FluxCalculatorHLLC : public FluxCalculator {
 public:
-    virtual FluxVector getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR);  
+    virtual FluxVector exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR);  
 };
+
+REGISTER(FluxCalculator,HLLC)
 
 FluxVector FluxCalculatorHLLC::exec( double ds, double dt, char dim, const StateVector& StateL, const StateVector& StateR){
     // See 'Riemann Solvers & Numerical Methods for Fluid Dynamics',E Toro, section 10.6, for a summary of the HLLC fluxes
