@@ -10,8 +10,7 @@
 
 #include "MathVector.hpp"
 #include "StateVector.hpp"
-#include "constants.hpp"
-#include "Material.hpp"
+#include "MaterialElectromagnetic.hpp"
 
 // constant SIZE defined in StateVector.hpp
 
@@ -23,32 +22,32 @@ public:
     using MathVector<SIZE>::operator=;
 
     FluxVector() : MathVector() {}
-    FluxVector( const StateVector& State, const char dim);
+    FluxVector( const StateVector& state, const Material& mat, const char dim);
 
-    inline void set( const StateVector& State, const char dim);
+    inline void set( const StateVector& state, const Material& mat, const char dim);
 };
 
-FluxVector::FluxVector( const StateVector& State, const char dim){
-    set(State,dim);
+FluxVector::FluxVector( const StateVector& state, const Material& mat, const char dim){
+    set(state,mat,dim);
 }
 
-void FluxVector::set( const StateVector& State, const char dim){
+void FluxVector::set( const StateVector& state, const Material& mat, const char dim){
     switch(dim){
         case 'x' :
-            mX[0] = 0;
-            mX[1] = State.Hz()/c_eps0;
-            mX[2] = -State.Hy()/c_eps0;
-            mX[3] = 0;
-            mX[4] = -State.Ez()/c_mu0;
-            mX[5] = State.Ey()/c_mu0;
+            mX[0] =  0;
+            mX[1] =  state.Hz() * mat.epsilon_reciprocal();
+            mX[2] = -state.Hy() * mat.epsilon_reciprocal();
+            mX[3] =  0;
+            mX[4] = -state.Ez() * mat.mu_reciprocal();
+            mX[5] =  state.Ey() * mat.mu_reciprocal();
             break;
         case 'y' :
-            mX[0] = -State.Hz()/c_eps0;
-            mX[1] = 0;
-            mX[2] = State.Hx()/c_eps0;
-            mX[3] = State.Ez()/c_mu0;
-            mX[4] = 0;
-            mX[5] = -State.Ex()/c_mu0;
+            mX[0] = -state.Hz() * mat.epsilon_reciprocal();
+            mX[1] =  0;
+            mX[2] =  state.Hx() * mat.epsilon_reciprocal();
+            mX[3] =  state.Ez() * mat.mu_reciprocal();
+            mX[4] =  0;
+            mX[5] = -state.Ex() * mat.mu_reciprocal();
             break;
         case 'z' :
             std::cerr << "Error, z direction not implemented" << std::endl;

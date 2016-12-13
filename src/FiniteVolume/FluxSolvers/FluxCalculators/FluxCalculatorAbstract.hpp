@@ -15,10 +15,9 @@ class FluxCalculator {
     public:
     FluxCalculator(){}
     virtual ~FluxCalculator(){}
-    virtual FluxVector exec(
-        double ds, double dt, char dim, 
-        const StateVector& L, const StateVector& R
-    ) = 0;
+    virtual FluxVector exec(double ds, double dt, char dim,
+        const StateVector& UL, const StateVector& UR,
+        const Material& ML, const Material& MR) = 0;
 };
 
 ObjectFactory<FluxCalculator> FluxCalculatorFactory;

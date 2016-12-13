@@ -36,6 +36,7 @@ REGISTER(Reconstructor,MUSCL)
 StatePair ReconstructorMUSCL::exec( Grid& grid, double ds, double dt, char dim, int ii, int jj){
     BoundaryGeometry BoundaryL, BoundaryCL, BoundaryCR, BoundaryR;
     StateVector StateL, StateCL, StateCR, StateR;
+    Material MatCL, MatCR;
     StatePair States;
 
     // Get States
@@ -45,6 +46,8 @@ StatePair ReconstructorMUSCL::exec( Grid& grid, double ds, double dt, char dim, 
             BoundaryCL = grid.boundary(ii,jj);
             BoundaryCR = grid.boundary(ii+1,jj);
             BoundaryR  = grid.boundary(ii+2,jj);
+            MatCL = grid.material(ii,jj);
+            MatCR = grid.material(ii+1,jj);
             StateL  = grid.state(ii-1,jj);
             StateCL = grid.state(ii,jj);
             StateCR = grid.state(ii+1,jj);
@@ -55,6 +58,8 @@ StatePair ReconstructorMUSCL::exec( Grid& grid, double ds, double dt, char dim, 
             BoundaryCL = grid.boundary(ii,jj);
             BoundaryCR = grid.boundary(ii,jj+1);
             BoundaryR  = grid.boundary(ii,jj+2);
+            MatCL = grid.material(ii,jj);
+            MatCR = grid.material(ii,jj+1);
             StateL  = grid.state(ii,jj-1);
             StateCL = grid.state(ii,jj);
             StateCR = grid.state(ii,jj+1);
@@ -91,21 +96,21 @@ StatePair ReconstructorMUSCL::exec( Grid& grid, double ds, double dt, char dim, 
     InterR = StateCL + 0.5*DeltaL;
     //
     // Step 2: Get fluxes
-    FluxL.set(InterL,dim);
-    FluxR.set(InterR,dim);
+    FluxL.set(InterL,MatCL,dim);
+    FluxR.set(InterR,MatCR,dim);
     //
     // Set 3: Evolve half timestep, get boundary state
     StateRbar = InterR + 0.5*(dt/ds)*( FluxL - FluxR);
 
-    // Reconstruction on left
+    // Reconstruction on right
     //
     // Step 1: Data reconstruction
     InterL = StateCR - 0.5*DeltaR;
     InterR = StateCR + 0.5*DeltaR;
     //
     // Step 2: Get Fluxes
-    FluxL.set(InterL,dim);
-    FluxR.set(InterR,dim);
+    FluxL.set(InterL,MatCR,dim);
+    FluxR.set(InterR,MatCR,dim);
     // Set 3: Evolve half timestep, get boundary state
     StateLbar = InterL + 0.5*(dt/ds)*( FluxL - FluxR);
 

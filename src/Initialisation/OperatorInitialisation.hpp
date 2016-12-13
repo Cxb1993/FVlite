@@ -27,6 +27,7 @@ protected:
     bool mSolid;
     bool mInner;
     StateVector mState;
+    Material mMat;
 
     InitialisationModule* mpInitMod;
 
@@ -59,6 +60,11 @@ void OperatorInitialisation::init( Setting& cfg){
             vector[ii] = stateCfg[ii];
         }
         mState.set(vector);
+        // TODO hardcoded for Maxwell. Fix!
+        Setting& matCfg = cfg.lookup("material");
+        double epsilon_rel = matCfg.lookup("epsilon");
+        double mu_rel = matCfg.lookup("mu");
+        mMat.set_relative( epsilon_rel, mu_rel);
     }
     mpInitMod = InitialisationModuleFactory.create(cfg.lookup("type").c_str());
     try{
@@ -98,13 +104,13 @@ void OperatorInitialisation::exec( Grid& grid, Timer& timer){
         for( int ii=0; ii<sizeX; ii++){
             x = grid.position(DIM_X,ii);
             levelset = mpInitMod->exec(x,y);
-
             if( mSolid){
                 grid.workspace(ii,jj) = levelset;
             } else {
                 if( ii>=startX && ii<endX && jj>=startY && jj<endY){
                     if( (mInner && levelset>0) || (!mInner && levelset<0) ){
                         grid.state(ii,jj) = mState;
+                        grid.material(ii,jj) = mMat;
                     }
                 }
             }

@@ -8,25 +8,28 @@
 
 #include "Vectors/StateVector.hpp"
 #include "Vectors/FluxVector.hpp"
+#include "Vectors/MaterialElectromagnetic.hpp"
 
 namespace FVlite{
 namespace BasicFluxes{
 
-FluxVector LaxFriedrichs( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR){
+FluxVector LaxFriedrichs( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const Material& ML, const Material& MR){
     FluxVector FL, FR, result;
-    FL.set(UL,dim);
-    FR.set(UR,dim);
+    FL.set(UL,ML,dim);
+    FR.set(UR,MR,dim);
     result = 0.5*(FL+FR+(ds/dt)*(UL-UR));
     return result;
 }
 
-FluxVector Richtmyer( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR){
+FluxVector Richtmyer( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const Material& ML, const Material& MR){
     FluxVector FL, FR, result;
     StateVector Inter;
-    FL.set(UL,dim);
-    FR.set(UR,dim);
+    FL.set(UL,ML,dim);
+    FR.set(UR,MR,dim);
     Inter = 0.5*(UL+UR+(dt/ds)*(FL-FR));
-    result.set(Inter,dim);
+    // Bias left material
+    // TODO: Fix this!
+    result.set(Inter,ML,dim);
     return result;
 }
 

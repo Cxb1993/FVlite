@@ -20,18 +20,18 @@ public:
     StateVector() : MathVector() {}
     StateVector( double Ex, double Ey, double Ez, double Hx, double Hy, double Hz);
 
-    inline double Ex() const { return mX[0];}
-    inline double Ey() const { return mX[1];}
-    inline double Ez() const { return mX[2];}
-    inline double Hx() const { return mX[3];}
-    inline double Hy() const { return mX[4];}
-    inline double Hz() const { return mX[5];}
-    inline double& Ex(){ return mX[0];}
-    inline double& Ey(){ return mX[1];}
-    inline double& Ez(){ return mX[2];}
-    inline double& Hx(){ return mX[3];}
-    inline double& Hy(){ return mX[4];}
-    inline double& Hz(){ return mX[5];}
+    double Ex() const { return mX[0];}
+    double Ey() const { return mX[1];}
+    double Ez() const { return mX[2];}
+    double Hx() const { return mX[3];}
+    double Hy() const { return mX[4];}
+    double Hz() const { return mX[5];}
+    double& Ex(){ return mX[0];}
+    double& Ey(){ return mX[1];}
+    double& Ez(){ return mX[2];}
+    double& Hx(){ return mX[3];}
+    double& Hy(){ return mX[4];}
+    double& Hz(){ return mX[5];}
 
     inline void set( double Ex, double Ey, double Ez, double Hx, double Hy, double Hz);
     inline void set( MathVector<SIZE> fields);

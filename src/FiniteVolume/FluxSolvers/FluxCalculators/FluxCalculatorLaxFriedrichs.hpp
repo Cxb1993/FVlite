@@ -12,12 +12,14 @@ namespace FVlite{
 
 class FluxCalculatorLaxFriedrichs : public FluxCalculator{
 public:
-    virtual FluxVector exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR);  
+    virtual FluxVector exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const Material& ML, const Material& MR);  
 };
 
-FluxVector FluxCalculatorLaxFriedrichs::exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR){
+REGISTER(FluxCalculator,LaxFriedrichs)
+
+FluxVector FluxCalculatorLaxFriedrichs::exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const Material& ML, const Material& MR){
     FluxVector result;
-    result = BasicFluxes::LaxFriedrichs(ds,dt,dim,UL,UR);
+    result = BasicFluxes::LaxFriedrichs(ds,dt,dim,UL,UR,ML,MR);
     return result; 
 }
 

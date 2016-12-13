@@ -12,14 +12,14 @@ namespace FVlite{
 
 class FluxCalculatorRichtmyer : public FluxCalculator{
 public:
-    virtual FluxVector exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR);  
+    virtual FluxVector exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const Material& ML, const Material& MR);  
 };
 
 REGISTER(FluxCalculator,Richtmyer)
 
-FluxVector FluxCalculatorRichtmyer::exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR){
+FluxVector FluxCalculatorRichtmyer::exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const Material& ML, const Material& MR){
     FluxVector result;
-    result = BasicFluxes::Richtmyer(ds,dt,dim,UL,UR);
+    result = BasicFluxes::Richtmyer(ds,dt,dim,UL,UR,ML,MR);
     return result; 
 }
 

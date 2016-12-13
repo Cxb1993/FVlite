@@ -14,15 +14,16 @@ class FluxCalculatorFORCE : public FluxCalculator{
 public:
     virtual FluxVector exec(
         double ds, double dt, char dim,
-        const StateVector& UL, const StateVector& UR
+        const StateVector& UL, const StateVector& UR,
+        const Material& ML, const Material& MR
     );  
 };
 
 REGISTER(FluxCalculator,FORCE)
 
-FluxVector FluxCalculatorFORCE::exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR){
+FluxVector FluxCalculatorFORCE::exec( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const Material& ML, const Material& MR){
     FluxVector result;
-    result = 0.5*(BasicFluxes::LaxFriedrichs(ds,dt,dim,UL,UR) + BasicFluxes::Richtmyer(ds,dt,dim,UL,UR));
+    result = 0.5*(BasicFluxes::LaxFriedrichs(ds,dt,dim,UL,UR,ML,MR) + BasicFluxes::Richtmyer(ds,dt,dim,UL,UR,ML,MR));
     return result; 
 }
 

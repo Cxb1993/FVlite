@@ -84,7 +84,7 @@ void OperatorExplicitUpdaterCutCells::exec( Grid& grid, Timer& timer){
             if( alpha == 1.){
                 grid.state(ii,jj) = grid.state(ii,jj) + (FluxL-FluxR) * dt/ds;
             }else{
-                BoundaryFlux.set( grid.boundary_state(ii,jj),m_dim);
+                BoundaryFlux.set( grid.boundary_state(ii,jj), grid.material(ii,jj), m_dim);
                 grid.state(ii,jj) += (betaL*FluxL - betaR*FluxR - 
                     (betaL-betaR)*BoundaryFlux) * dt/(ds*alpha);
             }

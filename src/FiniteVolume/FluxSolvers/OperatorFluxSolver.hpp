@@ -42,7 +42,7 @@ public:
 
     void init( Setting& cfg);
     void exec( Grid& grid, Timer& timer);
-    FluxVector getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR);
+    FluxVector getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const Material& ML, const Material& MR);
 
 };
 
@@ -91,8 +91,10 @@ void OperatorFluxSolver::exec( Grid& grid, Timer& timer){
     int startY = grid.start(DIM_Y);
     int endX = grid.end(DIM_X);
     int endY = grid.end(DIM_Y);
-    StatePair States;
-    FluxVector Flux;
+    StatePair states;
+    Material matL;
+    Material matR;
+    FluxVector flux;
     // Account for the fact that a row of N cells has N+1 interfaces which need
     // to be determined (including boundary ghost cells).
     switch(m_dim){
@@ -111,16 +113,28 @@ void OperatorFluxSolver::exec( Grid& grid, Timer& timer){
     // Sweep through grid, calculating each flux in turn
     for( int jj=startY; jj<endY; jj++){
         for( int ii=startX; ii<endX; ii++){
-            States = mpReconstructor->exec( grid, ds, dt, m_dim, ii, jj);
-            Flux = mpFluxCalculator->exec( ds, dt, m_dim, States.first, States.second);
-            grid.flux(ii,jj) = Flux;
+            states = mpReconstructor->exec( grid, ds, dt, m_dim, ii, jj);
+            matL = grid.material(ii,jj); 
+            // TODO Remove switch!
+            switch(m_dim){
+                case 'x' :
+                    matR = grid.material(ii+1,jj);
+                    break;
+                case 'y' :
+                    matR = grid.material(ii,jj+1);
+                    break;
+                default:
+                    matR = grid.material(ii,jj);
+            }
+            flux = mpFluxCalculator->exec( ds, dt, m_dim, states.first, states.second, matL, matR);
+            grid.flux(ii,jj) = flux;
         }
     }
     return;
 }
 
-FluxVector OperatorFluxSolver::getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR){
-    return mpFluxCalculator->exec( ds, dt, dim, UL, UR);
+FluxVector OperatorFluxSolver::getIntercellFlux( double ds, double dt, char dim, const StateVector& UL, const StateVector& UR, const Material& ML, const Material& MR){
+    return mpFluxCalculator->exec( ds, dt, dim, UL, UR, ML, MR);
 }
 
 }// Namespace closure

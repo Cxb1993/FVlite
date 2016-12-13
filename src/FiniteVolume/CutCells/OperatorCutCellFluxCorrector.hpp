@@ -32,6 +32,7 @@ public:
     FluxVector getModifiedFlux( double ds, double dt, char dim,
             const StateVector& UL, const StateVector& UR,
             const StateVector& AuxL, const StateVector& AuxR,
+            const Material& MatL, const Material& MatR,
             const BoundaryGeometry& BL, const BoundaryGeometry& BR);
 };
 
@@ -68,6 +69,7 @@ void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
     double alphaL, alphaR, betaC;
     BoundaryGeometry BoundaryL, BoundaryR;
     StateVector StateL, StateR, StateAuxL, StateAuxR;
+    Material MatL, MatR;
     FluxVector Flux;
     double ds;
     switch(m_dim){
@@ -85,8 +87,11 @@ void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
                     StateR = grid.state(ii+1,jj);
                     StateAuxL = grid.boundary_state(ii,jj);
                     StateAuxR = grid.boundary_state(ii+1,jj);
-                    Flux = getModifiedFlux(ds,dt,m_dim,
-                            StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
+                    MatL = grid.material(ii,jj);
+                    MatR = grid.material(ii+1,jj);
+                    Flux = getModifiedFlux( ds, dt, m_dim,
+                            StateL, StateR, StateAuxL, StateAuxR,
+                            MatL, MatR, BoundaryL, BoundaryR);
 #ifdef DEBUG
                     if( Flux.isnan()){
                         std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
@@ -111,8 +116,11 @@ void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
                     StateR = grid.state(ii,jj+1);
                     StateAuxL = grid.boundary_state(ii,jj);
                     StateAuxR = grid.boundary_state(ii,jj+1);
-                    Flux = getModifiedFlux(ds,dt,m_dim,
-                            StateL,StateR,StateAuxL,StateAuxR,BoundaryL,BoundaryR);
+                    MatL = grid.material(ii,jj);
+                    MatR = grid.material(ii,jj+1);
+                    Flux = getModifiedFlux( ds, dt, m_dim,
+                            StateL, StateR, StateAuxL, StateAuxR,
+                            MatL, MatR, BoundaryL, BoundaryR);
 #ifdef DEBUG
                     if( Flux.isnan()){
                         std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
@@ -124,7 +132,6 @@ void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
         }
         break;
     }
-    return;
 }
 
 double OperatorCutCellFluxCorrector::getAlphaShielded( const BoundaryGeometry& Boundary, char dim){
@@ -181,6 +188,7 @@ double OperatorCutCellFluxCorrector::getAlphaShielded( const BoundaryGeometry& B
 FluxVector OperatorCutCellFluxCorrector::getModifiedFlux( double ds, double dt, char dim,
         const StateVector& UL, const StateVector& UR,
         const StateVector& AuxL, const StateVector& AuxR,
+        const Material& ML, const Material& MR,
         const BoundaryGeometry& BL, const BoundaryGeometry& BR)
 {
     FluxVector Shielded, Unshielded, BoundaryFlux, Modified;
@@ -216,8 +224,8 @@ FluxVector OperatorCutCellFluxCorrector::getModifiedFlux( double ds, double dt, 
     }
 
     //Step 1
-    //Compute 'unshielded flux'. This should be a first order HLLC flux between the two states
-    Unshielded = mpFlux->exec( ds,dt,dim,UL,UR);
+    //Compute 'unshielded flux'. This should be a first order flux between the two states
+    Unshielded = mpFlux->exec( ds,dt,dim,UL,UR,ML,MR);
 #ifdef DEBUG
     if( Unshielded.isnan()){
         std::cerr << "Unshielded Flux is nan" << std::endl;
@@ -266,9 +274,9 @@ FluxVector OperatorCutCellFluxCorrector::getModifiedFlux( double ds, double dt, 
     //First, need to determine, whether left or right boundary flux is needed.
     bool positive_slope = (betaR<betaL) ? true : false;
     if(positive_slope){
-        BoundaryFlux.set(AuxR,dim);
+        BoundaryFlux.set(AuxR,MR,dim);
     } else {
-        BoundaryFlux.set(AuxL,dim);
+        BoundaryFlux.set(AuxL,ML,dim);
     }
 #ifdef DEBUG
     if( BoundaryFlux.isnan()){
