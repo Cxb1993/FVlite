@@ -11,6 +11,7 @@
 
 #include "MathVector.hpp"
 #include "StateVector.hpp"
+#include "Materials/Material.hpp"
 
 // constant SIZE defined in StateVector.hpp
 
@@ -22,34 +23,34 @@ public:
     using MathVector<SIZE>::operator=;
 
     FluxVector() : MathVector() {}
-    FluxVector( const StateVector& State, const char dim);
+    FluxVector( const StateVector& state, const Material& mat, const char dim);
 
-    inline void set( const StateVector& State, const char dim);
+    inline void set( const StateVector& state, const Material& mat, const char dim);
 };
 
-FluxVector::FluxVector( const StateVector& State, const char dim){
-    set(State,dim);
+FluxVector::FluxVector( const StateVector& state, const Material& mat, const char dim){
+    set(state,mat,dim);
 }
 
-void FluxVector::set( const StateVector& State, const char dim){
+void FluxVector::set( const StateVector& state, const Material& mat, const char dim){
     // TODO:
     // This switch-case could be avoided with templates. Fairly
     // important as this is a very frequently called function.
     // Also may be able to optimise algebraic steps.
-    double ux = State.ux();
-    double uy = State.uy();
+    double ux = state.ux();
+    double uy = state.uy();
     switch(dim){
         case 'x' :
-            mX[0] = State.rhoUx();
-            mX[1] = State.rho()*(ux*ux) + State.p();
-            mX[2] = State.rhoUx()*uy;
-            mX[3] = ux*(State.E() + State.p());
+            mX[0] = state.rhoUx();
+            mX[1] = state.rho()*(ux*ux) + mat.pressure(state);
+            mX[2] = state.rhoUx()*uy;
+            mX[3] = ux*(state.E() + mat.pressure(state));
             break;
         case 'y' :
-            mX[0] = State.rhoUy();
-            mX[1] = State.rhoUx()*uy;
-            mX[2] = State.rho()*(uy*uy) + State.p();
-            mX[3] = uy*(State.E() + State.p());
+            mX[0] = state.rhoUy();
+            mX[1] = state.rhoUx()*uy;
+            mX[2] = state.rho()*(uy*uy) + mat.pressure(state);
+            mX[3] = uy*(state.E() + mat.pressure(state));
             break;
         case 'z' :
             std::cerr << "Error, z direction not implemented" << std::endl;

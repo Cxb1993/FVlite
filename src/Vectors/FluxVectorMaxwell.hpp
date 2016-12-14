@@ -10,7 +10,7 @@
 
 #include "MathVector.hpp"
 #include "StateVector.hpp"
-#include "MaterialElectromagnetic.hpp"
+#include "Materials/Material.hpp"
 
 // constant SIZE defined in StateVector.hpp
 

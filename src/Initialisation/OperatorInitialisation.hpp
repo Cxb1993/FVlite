@@ -59,12 +59,18 @@ void OperatorInitialisation::init( Setting& cfg){
         for( int ii=0; ii<SIZE; ii++){
             vector[ii] = stateCfg[ii];
         }
-        mState.set(vector);
-        // TODO hardcoded for Maxwell. Fix!
+        mState = mMat.state_from_primitives(vector);
+        // TODO Get rid of awful #ifdef nonsense
         Setting& matCfg = cfg.lookup("material");
+#ifdef MAXWELL
         double epsilon_rel = matCfg.lookup("epsilon");
         double mu_rel = matCfg.lookup("mu");
         mMat.set_relative( epsilon_rel, mu_rel);
+#endif
+#ifdef EULER
+        double gamma = matCfg.lookup("gamma");
+        mMat.set(gamma);
+#endif
     }
     mpInitMod = InitialisationModuleFactory.create(cfg.lookup("type").c_str());
     try{

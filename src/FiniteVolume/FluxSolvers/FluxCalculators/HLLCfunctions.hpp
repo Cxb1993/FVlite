@@ -12,6 +12,7 @@
 #include "Vectors/StateVector.hpp"
 #include "Vectors/FluxVector.hpp"
 #include "Vectors/Vector3.hpp"
+#include "Materials/MaterialIdealGas.hpp"
 #include "constants.hpp"
 
 #include <cstdlib>
@@ -22,23 +23,23 @@
 namespace FVlite{
 namespace HLLC{
 
-Vector3 getWaveSpeeds( char dim, const StateVector& UL, const StateVector& UR);
-StateVector getHLLCstate( char dim, const StateVector& UL, const StateVector& UR, const Vector3& WaveSpeeds);
-StateVector getHLLCstate( char dim, const StateVector& UL, const StateVector& UR, double SL, double SR, double Sstar);
-FluxVector getHLLCflux( char dim, const StateVector& UL, const StateVector& UR, const StateVector& HLLCstate, const Vector3& WaveSpeeds);
-FluxVector getHLLCflux( char dim, const StateVector& UL, const StateVector& UR, const StateVector& HLLCstate, double SL, double SR, double Sstar);
+Vector3 getWaveSpeeds( char dim, const StateVector& UL, const StateVector& UR, const Material& mat);
+StateVector getHLLCstate( char dim, const StateVector& UL, const StateVector& UR, const Material& mat, const Vector3& WaveSpeeds);
+StateVector getHLLCstate( char dim, const StateVector& UL, const StateVector& UR, const Material& mat, double SL, double SR, double Sstar);
+FluxVector getHLLCflux( char dim, const StateVector& UL, const StateVector& UR, const Material& mat, const StateVector& HLLCstate, const Vector3& WaveSpeeds);
+FluxVector getHLLCflux( char dim, const StateVector& UL, const StateVector& UR, const Material& mat, const StateVector& HLLCstate, double SL, double SR, double Sstar);
 
 
-Vector3 getWaveSpeeds( char dim, const StateVector& StateL, const StateVector& StateR){
+Vector3 getWaveSpeeds( char dim, const StateVector& StateL, const StateVector& StateR, const Material& mat){
 
     // Setup
-    const double gam = c_gamma_ideal;
+    const double gam = mat.gamma();
     double rho_L = StateL.rho();
     double rho_R = StateR.rho();
-    double p_L   = StateL.p();
-    double p_R   = StateR.p();
-    double a_L   = StateL.a();
-    double a_R   = StateR.a();
+    double p_L   = mat.pressure(StateL);
+    double p_R   = mat.pressure(StateR);
+    double a_L   = mat.sound_speed(StateL);
+    double a_R   = mat.sound_speed(StateR);
     double u_L, u_R;
     switch(dim){
         case 'x' :
@@ -94,11 +95,11 @@ Vector3 getWaveSpeeds( char dim, const StateVector& StateL, const StateVector& S
     return result;
 }
 
-StateVector getHLLCstate( char dim, const StateVector& StateL, const StateVector& StateR, const Vector3& WaveSpeeds){
-    return getHLLCstate(dim,StateL,StateR,WaveSpeeds[0],WaveSpeeds[1],WaveSpeeds[2]);
+StateVector getHLLCstate( char dim, const StateVector& StateL, const StateVector& StateR, const Material& mat, const Vector3& WaveSpeeds){
+    return getHLLCstate(dim,StateL,StateR,mat,WaveSpeeds[0],WaveSpeeds[1],WaveSpeeds[2]);
 }
 
-StateVector getHLLCstate( char dim, const StateVector& StateL, const StateVector& StateR, double S_L, double S_R, double S_star){
+StateVector getHLLCstate( char dim, const StateVector& StateL, const StateVector& StateR, const Material& mat, double S_L, double S_R, double S_star){
 
     // Get easy cases out of the way
 
@@ -108,8 +109,8 @@ StateVector getHLLCstate( char dim, const StateVector& StateL, const StateVector
     // Prepare for the harder cases
     double rho_L = StateL.rho();
     double rho_R = StateR.rho();
-    double p_L   = StateL.p();
-    double p_R   = StateR.p();
+    double p_L   = mat.pressure(StateL);
+    double p_R   = mat.pressure(StateR);
     double u_L, u_R;
     int speed_idx;
     switch(dim){
@@ -147,30 +148,30 @@ StateVector getHLLCstate( char dim, const StateVector& StateL, const StateVector
     return State_star;
 }
 
-FluxVector getHLLCflux( char dim, const StateVector& UL, const StateVector& UR, const StateVector& StateHLLC, const Vector3& WaveSpeeds){
-    return getHLLCflux( dim,UL,UR,StateHLLC,WaveSpeeds[0],WaveSpeeds[1],WaveSpeeds[2]);
+FluxVector getHLLCflux( char dim, const StateVector& UL, const StateVector& UR, const Material& mat, const StateVector& StateHLLC, const Vector3& WaveSpeeds){
+    return getHLLCflux( dim,UL,UR,mat,StateHLLC,WaveSpeeds[0],WaveSpeeds[1],WaveSpeeds[2]);
 }
 
-FluxVector getHLLCflux( char dim, const StateVector& StateL, const StateVector& StateR, const StateVector& State_HLLC, double S_L, double S_R, double S_star){
+FluxVector getHLLCflux( char dim, const StateVector& StateL, const StateVector& StateR, const Material& mat, const StateVector& State_HLLC, double S_L, double S_R, double S_star){
     FluxVector Flux;
     FluxVector Flux_HLLC;
 
     if( S_L >= 0.){
-        Flux_HLLC.set(State_HLLC,dim);
+        Flux_HLLC.set(State_HLLC,mat,dim);
         return Flux_HLLC;
     }
 
     if( S_R <= 0.){
-        Flux_HLLC.set(State_HLLC,dim);
+        Flux_HLLC.set(State_HLLC,mat,dim);
         return Flux_HLLC;
     }
 
 
     if( S_star >= 0){ // F_star_L
-        Flux.set(StateL,dim);
+        Flux.set(StateL,mat,dim);
         Flux_HLLC = Flux + S_L*(State_HLLC - StateL);
     } else { // F_star_R
-        Flux.set(StateR,dim);
+        Flux.set(StateR,mat,dim);
         Flux_HLLC = Flux + S_R*(State_HLLC - StateR);
     }
     return Flux_HLLC;

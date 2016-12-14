@@ -8,7 +8,7 @@
 
 #include "Vectors/StateVector.hpp"
 #include "Vectors/FluxVector.hpp"
-#include "Vectors/MaterialElectromagnetic.hpp"
+#include "Materials/Material.hpp"
 
 namespace FVlite{
 namespace BasicFluxes{

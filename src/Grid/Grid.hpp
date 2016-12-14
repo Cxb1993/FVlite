@@ -11,6 +11,7 @@
 #include "StateGridCartesianCentred.hpp"
 #include "FluxGridCartesianCentred.hpp"
 #include "MaterialGridCartesianCentred.hpp"
+#include "MaterialGridConstant.hpp"
 #include "LevelSetGridCartesianCentred.hpp"
 #include "CutCellGrids.hpp"
 
@@ -24,7 +25,12 @@ typedef CartesianGridImplementation<
     MY_DIM,
     StateGridCartesianCentred<MY_DIM>,
     FluxGridCartesianCentred<MY_DIM>,
-    MaterialGridCartesianCentred<MY_DIM>,
+#ifdef MAXWELL
+    MaterialGridCartesianCentred<MY_DIM,Material>,
+#endif
+#ifdef EULER
+    MaterialGridConstant<Material>,
+#endif
     LevelSetGridCartesianCentred<MY_DIM>,
     CutCellBoundaryStateGrid<MY_DIM>,
     CutCellGeometryGrid<MY_DIM>
