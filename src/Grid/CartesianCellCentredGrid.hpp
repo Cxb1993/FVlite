@@ -38,7 +38,6 @@ unsigned int CartesianCellCentredGrid<2>::get_idx( unsigned int ii, unsigned int
 
 template<>
 unsigned int CartesianCellCentredGrid<3>::get_idx( unsigned int ii, unsigned int jj, unsigned int kk) const{
-    (void)kk;
     return ii + size(DIM_X)*(jj + size(DIM_Y)*kk);
 }
 

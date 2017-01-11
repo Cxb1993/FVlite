@@ -99,7 +99,7 @@ public:
 
     // Get total number of cells in grid.
     unsigned int total_cells() const {
-        double total = 1.0;
+        unsigned int total = 1;
         for( unsigned int s=0; s<dim; s++){
             total *= size(s);
         }
