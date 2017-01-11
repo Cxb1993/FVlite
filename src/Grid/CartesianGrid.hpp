@@ -56,17 +56,6 @@ public:
         return mSizes[s];
     }
 
-    // Get start of real grid, in dim s
-    unsigned int start( unsigned int s) const {
-        (void)s;
-        return mGhosts;
-    }
-
-    // Get end of real grid, in dim s
-    unsigned int end( unsigned int s) const {
-        return mGhosts + num_cells(s);
-    }
-
     // Get physical extent of real grid, in dim s
     double length( unsigned int s) const {
         return mLs[s];
@@ -75,12 +64,6 @@ public:
     // Get grid spacing, in dim s
     double ds( unsigned int s) const {
         return mDs[s];
-    }
-
-    // Get physical position of location
-    double position( unsigned int s, unsigned int ii) const {
-        // ii should be turned to signed int to prevent integer underflow
-        return ((int)ii-(int)ghosts()+0.5)*ds(s);
     }
 
     // Get minimum grid spacing

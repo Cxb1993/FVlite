@@ -10,8 +10,24 @@ namespace FVlite{
 
 template<unsigned int dim>
 class CartesianCellCentredGrid : public virtual BaseCartesianGrid<dim> {
+public:
 
-    public:
+    // Get start of real grid, in dim s
+    unsigned int start( unsigned int s) const {
+        (void)s;
+        return this->ghosts();
+    }
+
+    // Get end of real grid, in dim s
+    unsigned int end( unsigned int s) const {
+        return this->ghosts() + this->num_cells(s);
+    }
+
+    // Get physical position of location
+    double position( unsigned int s, unsigned int ii) const {
+        // ii should be turned to signed int to prevent integer underflow
+        return ((int)ii-(int)(this->ghosts())+0.5)*this->ds(s);
+    }
 
     // Get total elements
     unsigned int total_elements() const {

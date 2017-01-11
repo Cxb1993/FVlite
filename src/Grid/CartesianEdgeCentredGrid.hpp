@@ -17,14 +17,31 @@ namespace FVlite{
 
 template<unsigned int dim, unsigned int edge_dim>
 class CartesianEdgeCentredGrid : public virtual BaseCartesianGrid<dim> {
+public:
+    // Get start of real grid, in dim s
+    unsigned int start( unsigned int s) const {
+        (void)s;
+        return this->ghosts();
+    }
 
-    public:
+    // Get end of real grid, in dim s
+    unsigned int end( unsigned int s) const {
+        // Extra element in dimension s, unless s is the edge dimension
+        return this->ghosts() + this->num_cells(s) + (s!=edge_dim);
+    }
+
+    // Get physical position of location
+    double position( unsigned int s, unsigned int ii) const {
+        // ii should be turned to signed int to prevent integer underflow
+        int ii_corrected = (int)ii-(int)(this->ghosts());
+        return this->ds(s) * ( ii_corrected + ( s==edge_dim ? 0.5 : 0.0 )); 
+    }
 
     // Get total elements
     unsigned int total_elements() const {
         unsigned int total = 1;
         for( unsigned int s=0; s<dim; s++){
-            total *= ( s==edge_dim ) ? size(s) : size(s)+1;
+            total *= this->size(s) + ( s!=edge_dim );
         }
         return total;
     }
