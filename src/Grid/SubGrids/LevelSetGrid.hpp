@@ -2,23 +2,23 @@
 //
 // Stores flux vectors for finite volume methods.
 
-#ifndef LEVELSETGRIDCARTESIANCENTRED_HPP
-#define LEVELSETGRIDCARTESIANCENTRED_HPP
+#ifndef LEVELSETGRID_HPP
+#define LEVELSETGRID_HPP
 
-#include "BaseGridCartesianCentred.hpp"
+#include "Grid/CartesianCellCentredGrid.hpp"
 #include <cmath>
 #include <vector>
 
 namespace FVlite{
 
 template<unsigned int dim>
-class LevelSetGridCartesianCentred : public virtual BaseGridCartesianCentred<dim> {
+class LevelSetGrid : public virtual CartesianCellCentredGrid<dim> {
     protected:
         double min_level_set;
         std::vector<double> mLevelSet;
         std::vector<double> mWorkspace;
     public:
-        LevelSetGridCartesianCentred() 
+        LevelSetGrid() 
         {
             double lengths_squared = 0.0;
             for (unsigned int s=0; s<dim; s++){
@@ -72,7 +72,7 @@ class LevelSetGridCartesianCentred : public virtual BaseGridCartesianCentred<dim
 
 // TODO 1D and 3D versions
 template<>
-double LevelSetGridCartesianCentred<2>::interpolate( double x, double y, double z){
+double LevelSetGrid<2>::interpolate( double x, double y, double z){
 // Function written some time ago and copied over with minor edits.
 // May be bugged.
     (void)z;

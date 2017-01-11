@@ -1,10 +1,12 @@
-// BaseCartesianCentredGrid
-//
-// Base class for Cartesian grids, with information stored at cell centres.
+// CartesianGrid
+// 
+// Contains base class for Cartesian grids, with information stored at cell centres.
 // Used extensively for Cartesian Finite Volume implementations.
+//
+// Also contains generic Cartesian grid class.
 
-#ifndef BASEGRIDCARTESIANCENTRED_HPP
-#define BASEGRIDCARTESIANCENTRED_HPP
+#ifndef BASECARTESIANGRID_HPP
+#define BASECARTESIANGRID_HPP
 
 // Define access macros
 // These should be use to access data, but not to specify the maximum dimension!
@@ -22,16 +24,18 @@
 
 namespace FVlite{
 
+// Base Class
+
 template<unsigned int dim>
-class BaseGridCartesianCentred : public BaseGrid {
+class BaseCartesianGrid : public BaseGrid {
 protected:
     unsigned int mSizes[dim]; // Number of cells spanning each direction. Includes ghost cells.
     double mLs[dim];          // Physical length of grid in each direction
     double mDs[dim];          // Grid spacing, L/N
     unsigned int mGhosts;     // Number of ghost cells. Uniform across directions.
 public:
-    BaseGridCartesianCentred(){}
-    BaseGridCartesianCentred( double Ls[dim], unsigned int Ns[dim], unsigned int ghosts) { 
+    BaseCartesianGrid(){}
+    BaseCartesianGrid( double Ls[dim], unsigned int Ns[dim], unsigned int ghosts = 0) { 
         mGhosts = ghosts;
         for(unsigned int s=0; s<dim; s++){
             mSizes[s] = Ns[s] + 2*mGhosts;
@@ -40,7 +44,7 @@ public:
         }
     }
 
-    virtual ~BaseGridCartesianCentred(){}
+    virtual ~BaseCartesianGrid(){}
 
     // Get number of cells in real grid, in dim s 
     unsigned int num_cells( unsigned int s) const {
@@ -74,9 +78,9 @@ public:
     }
 
     // Get physical position of location
-    // (ii is not unsigned int, as this could cause uint underflow for small ii)
-    double position( unsigned int s, int ii) const {
-        return (ii-(int)ghosts()+0.5)*ds(s);
+    double position( unsigned int s, unsigned int ii) const {
+        // ii should be turned to signed int to prevent integer underflow
+        return ((int)ii-(int)ghosts()+0.5)*ds(s);
     }
 
     // Get minimum grid spacing
@@ -102,29 +106,23 @@ public:
         return total;
     }
 
-    // Get 1D array index equivalent to 3D indexing of (i,j,k)
-    unsigned int get_idx( unsigned int ii, unsigned int jj=0, unsigned int kk=0);
-
 };
 
-template<>
-unsigned int BaseGridCartesianCentred<1>::get_idx( unsigned int ii, unsigned int jj, unsigned int kk){
-    (void)jj;
-    (void)kk;
-    return ii;
-}
+// Generic Class
 
-template<>
-unsigned int BaseGridCartesianCentred<2>::get_idx( unsigned int ii, unsigned int jj, unsigned int kk){
-    (void)kk;
-    return ii + size(DIM_X)*jj;
-}
-
-template<>
-unsigned int BaseGridCartesianCentred<3>::get_idx( unsigned int ii, unsigned int jj, unsigned int kk){
-    (void)kk;
-    return ii + size(DIM_X)*(jj + size(DIM_Y)*kk);
-}
+template<unsigned int dim, typename... Subgrids>
+class CartesianGrid :
+    public Subgrids...
+{
+    public:
+    // TODO generalise this. Perhaps demand a Builder, or a clever Factory?
+    CartesianGrid( double Ls[dim], unsigned int Ns[dim], unsigned int ghosts) :
+        // Build base grid first. Subgrids require its parameters to construct themselves.
+        BaseCartesianGrid<dim>(Ls,Ns,ghosts),
+        // Construct all subgrids specified in template params
+        Subgrids()...
+    {}
+};
 
 }
 #endif

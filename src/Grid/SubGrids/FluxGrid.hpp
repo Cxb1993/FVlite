@@ -1,25 +1,24 @@
-// FluxGridCartesianCentred
+// FluxGrid
 //
 // Stores flux vectors for finite volume methods.
 
-#ifndef FLUXGRIDCARTESIANCENTRED_HPP
-#define FLUXGRIDCARTESIANCENTRED_HPP
+#ifndef FLUXGRID_HPP
+#define FLUXGRID_HPP
 
-#include "BaseGridCartesianCentred.hpp"
 #include "Vectors/FluxVector.hpp"
 
 #include <vector>
 
 namespace FVlite{
 
-template<unsigned int dim>
-class FluxGridCartesianCentred : public virtual BaseGridCartesianCentred<dim> {
+template<class GridType>
+class FluxGrid : public virtual GridType {
     protected:
         std::vector<FluxVector> mFluxes;
     public:
-        FluxGridCartesianCentred() 
+        FluxGrid() 
         {
-            mFluxes.resize(this->total_cells());
+            mFluxes.resize(this->total_elements());
         }
 
         FluxVector& flux( unsigned int ii, unsigned int jj=0, unsigned int kk=0) {

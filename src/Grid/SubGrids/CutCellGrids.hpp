@@ -3,21 +3,20 @@
 #ifndef CUTCELLGRIDS_HPP
 #define CUTCELLGRIDS_HPP
 
-#include "BaseGridCartesianCentred.hpp"
-#include "BoundaryGeometry.hpp"
+#include "Grid/BoundaryGeometry.hpp"
 #include "Vectors/StateVector.hpp"
 
 #include <vector>
 
 namespace FVlite{
 
-template<unsigned int dim>
-class CutCellGeometryGrid : public virtual BaseGridCartesianCentred<dim> {
+template<class GridType>
+class CutCellGeometryGrid : public virtual GridType {
     protected:
         std::vector<BoundaryGeometry> mCutCellGeometries;
     public:
         CutCellGeometryGrid() {
-            mCutCellGeometries.resize(this->total_cells());
+            mCutCellGeometries.resize(this->total_elements());
         }
 
         BoundaryGeometry& boundary( unsigned int ii, unsigned int jj=0, unsigned int kk=0) {
@@ -25,13 +24,13 @@ class CutCellGeometryGrid : public virtual BaseGridCartesianCentred<dim> {
         }
 };
 
-template<unsigned int dim>
-class CutCellBoundaryStateGrid : public virtual BaseGridCartesianCentred<dim> {
+template<class GridType>
+class CutCellBoundaryStateGrid : public virtual GridType {
     protected:
         std::vector<StateVector> mCutCellBoundaryStates;
     public:
         CutCellBoundaryStateGrid() {
-            mCutCellBoundaryStates.resize(this->total_cells());
+            mCutCellBoundaryStates.resize(this->total_elements());
         }
 
         StateVector& boundary_state( unsigned int ii, unsigned int jj=0, unsigned int kk=0) {
