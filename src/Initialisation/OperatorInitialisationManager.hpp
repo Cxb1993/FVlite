@@ -60,8 +60,8 @@ void OperatorInitialisationManager::setup_boundary_geometry(Grid& grid){
 
     double x,y; // cell center locations
 
-    int sizeX = grid.size(DIM_X);
-    int sizeY = grid.size(DIM_Y);
+    int sizeX = grid.full_width(DIM_X);
+    int sizeY = grid.full_width(DIM_Y);
     double dx = grid.ds(DIM_X);
     double dy = grid.ds(DIM_Y);
 

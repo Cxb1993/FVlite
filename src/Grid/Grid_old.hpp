@@ -7,10 +7,7 @@
 #ifndef GRIDTYPEDEF_HPP
 #define GRIDTYPEDEF_HPP
 
-// TODO allow this to be changed using compiler options
-#define MY_DIM 2
-
-#include "CartesianSubGrid.hpp"
+#include "CartesianGrid.hpp"
 #include "ConstantGrid.hpp"
 
 #include "SubGrids/StateGrid.hpp"
@@ -21,19 +18,23 @@
 
 namespace FVlite{
 
+// TODO allow this to be changed using compiler options
+
+#define MY_DIM 2
+
 typedef CartesianGrid<
     MY_DIM,
-    StateGrid< CartesianSubGrid<MY_DIM, CellCentred, WithGhosts> >,
-    FluxGrid< CartesianSubGrid<MY_DIM, CellCentred, WithGhosts> >,
+    StateGrid< CartesianCellCentredGrid<MY_DIM> >,
+    FluxGrid< CartesianCellCentredGrid<MY_DIM> >,
 #ifdef MAXWELL
-    MaterialGrid< Material, CartesianSubGrid<MY_DIM, CellCentred, WithGhosts> >,
+    MaterialGrid< Material, CartesianCellCentredGrid<MY_DIM> >,
 #endif
 #ifdef EULER
     MaterialGrid< Material, ConstantGrid>,
 #endif
     LevelSetGrid<MY_DIM>,
-    CutCellBoundaryStateGrid< CartesianSubGrid<MY_DIM, CellCentred, WithGhosts> >,
-    CutCellGeometryGrid< CartesianSubGrid<MY_DIM, CellCentred, WithGhosts> >
+    CutCellBoundaryStateGrid< CartesianCellCentredGrid<MY_DIM> >,
+    CutCellGeometryGrid< CartesianCellCentredGrid<MY_DIM> >
 > Grid;
 
 }

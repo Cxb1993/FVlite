@@ -99,8 +99,8 @@ void OperatorInitialisation::exec( Grid& grid, Timer& timer){
     int startY = grid.start(DIM_Y);
     int endX = grid.end(DIM_X);
     int endY = grid.end(DIM_Y);
-    int sizeX = grid.size(DIM_X);
-    int sizeY = grid.size(DIM_Y);
+    int sizeX = grid.full_width(DIM_X);
+    int sizeY = grid.full_width(DIM_Y);
     double x,y,levelset;
 
     grid.reset_workspace();

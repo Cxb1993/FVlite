@@ -5,14 +5,13 @@
 #ifndef LEVELSETGRID_HPP
 #define LEVELSETGRID_HPP
 
-#include "Grid/CartesianCellCentredGrid.hpp"
 #include <cmath>
 #include <vector>
 
 namespace FVlite{
 
 template<unsigned int dim>
-class LevelSetGrid : public virtual CartesianCellCentredGrid<dim> {
+class LevelSetGrid : public virtual CartesianSubGrid<dim,CellCentred,WithGhosts> {
     protected:
         double min_level_set;
         std::vector<double> mLevelSet;

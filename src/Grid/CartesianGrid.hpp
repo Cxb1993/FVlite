@@ -29,41 +29,50 @@ namespace FVlite{
 template<unsigned int dim>
 class BaseCartesianGrid : public BaseGrid {
 protected:
-    unsigned int mSizes[dim]; // Number of cells spanning each direction. Includes ghost cells.
-    double mLs[dim];          // Physical length of grid in each direction
-    double mDs[dim];          // Grid spacing, L/N
-    unsigned int mGhosts;     // Number of ghost cells. Uniform across directions.
+
+    unsigned int mNumCells[dim]; // Number of cells spanning each direction.
+    double mLengths[dim];        // Physical length of grid in each direction.
+    double mSpacings[dim];       // Grid spacing, L/N.
+    unsigned int mBufSize;       // Thickness of buffer region surrounding the grid.
+
 public:
+
     BaseCartesianGrid(){}
-    BaseCartesianGrid( double Ls[dim], unsigned int Ns[dim], unsigned int ghosts = 0) { 
-        mGhosts = ghosts;
+
+    BaseCartesianGrid( double Ls[dim], unsigned int Ns[dim], unsigned int bufSize = 0) { 
+        mBufSize = bufSize;
         for(unsigned int s=0; s<dim; s++){
-            mSizes[s] = Ns[s] + 2*mGhosts;
-            mLs[s] = Ls[s];
-            mDs[s] = Ls[s]/Ns[s];
+            mNumCells[s] = Ns[s];
+            mLengths[s] = Ls[s];
+            mSpacings[s] = Ls[s]/Ns[s];
         }
     }
 
-    virtual ~BaseCartesianGrid(){}
+    ~BaseCartesianGrid(){}
+
+    // Return dimensionality
+    unsigned int get_dim() const {
+        return dim;
+    }
 
     // Get number of cells in real grid, in dim s 
     unsigned int num_cells( unsigned int s) const {
-        return mSizes[s] - 2*mGhosts;
-    }
-
-    // Get number of cells in grid, including ghost cells, in dim s
-    unsigned int size( unsigned int s) const {
-        return mSizes[s];
+        return mNumCells[s];
     }
 
     // Get physical extent of real grid, in dim s
     double length( unsigned int s) const {
-        return mLs[s];
+        return mLengths[s];
     }
 
     // Get grid spacing, in dim s
     double ds( unsigned int s) const {
-        return mDs[s];
+        return mSpacings[s];
+    }
+
+    // Get width of buffer region
+    unsigned int buffer_size() const {
+        return mBufSize;
     }
 
     // Get minimum grid spacing
@@ -75,19 +84,6 @@ public:
         return min;
     }
 
-    // Get number of 'ghost cells'
-    unsigned int ghosts() const {
-        return mGhosts;
-    }
-
-    // Get total number of cells in grid.
-    unsigned int total_cells() const {
-        unsigned int total = 1;
-        for( unsigned int s=0; s<dim; s++){
-            total *= size(s);
-        }
-        return total;
-    }
 
 };
 
@@ -99,9 +95,9 @@ class CartesianGrid :
 {
     public:
     // TODO generalise this. Perhaps demand a Builder, or a clever Factory?
-    CartesianGrid( double Ls[dim], unsigned int Ns[dim], unsigned int ghosts) :
+    CartesianGrid( double Ls[dim], unsigned int Ns[dim], unsigned int bufSize) :
         // Build base grid first. Subgrids require its parameters to construct themselves.
-        BaseCartesianGrid<dim>(Ls,Ns,ghosts),
+        BaseCartesianGrid<dim>(Ls,Ns,bufSize),
         // Construct all subgrids specified in template params
         Subgrids()...
     {}

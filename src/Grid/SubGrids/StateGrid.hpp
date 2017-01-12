@@ -18,7 +18,6 @@ class StateGrid : public virtual GridType {
     public:
         StateGrid() 
         {
-            std::cerr << "StateGrid elements: " << this->total_elements() << std::endl;
             mStates.resize(this->total_elements());
         }
 

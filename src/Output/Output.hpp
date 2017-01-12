@@ -129,8 +129,8 @@ void Output::print(){
     double alpha;
 //    for( int ii=mpGrid->startX(); ii<mpGrid->endX(); ii++){
 //        for( int jj=mpGrid->startY(); jj<mpGrid->endY(); jj++){
-    for( unsigned int ii=0; ii<mpGrid->size(DIM_X); ii++){
-        for( unsigned int jj=0; jj<mpGrid->size(DIM_Y); jj++){
+    for( unsigned int ii=0; ii<mpGrid->full_width(DIM_X); ii++){
+        for( unsigned int jj=0; jj<mpGrid->full_width(DIM_Y); jj++){
 
             Boundary = mpGrid->boundary(ii,jj);
             alpha = Boundary.alpha();
@@ -200,8 +200,8 @@ void Output::print_geometry(){
     // Print data
 
     BoundaryGeometry Boundary;
-    for( unsigned int ii=0; ii<mpGrid->size(DIM_X); ii++){
-        for( unsigned int jj=0; jj<mpGrid->size(DIM_Y); jj++){
+    for( unsigned int ii=0; ii<mpGrid->full_width(DIM_X); ii++){
+        for( unsigned int jj=0; jj<mpGrid->full_width(DIM_Y); jj++){
 
             // Print grid location
             File << ii  << '\t' << jj << '\t';
