@@ -2,8 +2,12 @@
 # list of things to work on
 
 > KNOWN BUGS
-    - None for now
+    - Error when solving EulerExplosion problem with MUSCL schemes
+    - Seg fault at program completion
 
+> Implement FDTD scheme
+> Overhaul Output. Pass output controller a grid, output file in
+  user-chosen format.
 > Overhaul looping
     - Code could be greatly sped up by replacing double nested
       loops with single nested loops and clever iterators.
