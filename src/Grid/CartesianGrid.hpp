@@ -51,7 +51,7 @@ public:
     ~BaseCartesianGrid(){}
 
     // Return dimensionality
-    unsigned int get_dim() const {
+    static unsigned int get_dim() {
         return dim;
     }
 

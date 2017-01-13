@@ -31,7 +31,7 @@ typedef CartesianGrid<
 #ifdef EULER
     MaterialGrid< Material, ConstantGrid>,
 #endif
-    LevelSetGrid<DIM>,
+    LevelSetGrid< CartesianSubGrid< DIM, CellCentred, WithGhosts> >,
     CutCellBoundaryStateGrid< CartesianSubGrid< DIM, CellCentred, WithGhosts> >,
     CutCellGeometryGrid< CartesianSubGrid< DIM, CellCentred, WithGhosts> >
 > Grid;

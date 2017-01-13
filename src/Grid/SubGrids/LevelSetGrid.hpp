@@ -10,8 +10,8 @@
 
 namespace FVlite{
 
-template<unsigned int dim>
-class LevelSetGrid : public virtual CartesianSubGrid<dim,CellCentred,WithGhosts> {
+template<class T>
+class LevelSetGrid : public virtual T {
     protected:
         double min_level_set;
         std::vector<double> mLevelSet;
@@ -20,7 +20,7 @@ class LevelSetGrid : public virtual CartesianSubGrid<dim,CellCentred,WithGhosts>
         LevelSetGrid() 
         {
             double lengths_squared = 0.0;
-            for (unsigned int s=0; s<dim; s++){
+            for (unsigned int s=0; s< this->get_dim(); s++){
                 lengths_squared += this->length(s) * this->length(s);
             }
             min_level_set = -1.0 * sqrt(lengths_squared);
@@ -54,14 +54,14 @@ class LevelSetGrid : public virtual CartesianSubGrid<dim,CellCentred,WithGhosts>
         }
 
         void merge_levelset(){
-            for( unsigned int ii=0; ii < this->total_cells(); ii++){
+            for( unsigned int ii=0; ii < this->total_elements(); ii++){
                 mLevelSet[ii] = fmax( mLevelSet[ii], mWorkspace[ii]);
             }
         }
 
         // WARNING: THIS IS NOT CORRECT!    
         void intersect_levelset(){
-            for( unsigned int ii=0; ii < this->total_cells(); ii++){
+            for( unsigned int ii=0; ii < this->total_elements(); ii++){
                 mLevelSet[ii] = fmin( mLevelSet[ii], mWorkspace[ii]);
             }
         }
@@ -71,7 +71,7 @@ class LevelSetGrid : public virtual CartesianSubGrid<dim,CellCentred,WithGhosts>
 
 // TODO 1D and 3D versions
 template<>
-double LevelSetGrid<2>::interpolate( double x, double y, double z){
+double LevelSetGrid<CartesianSubGrid<2,CellCentred,WithGhosts>>::interpolate( double x, double y, double z){
 // Function written some time ago and copied over with minor edits.
 // May be bugged.
     (void)z;
