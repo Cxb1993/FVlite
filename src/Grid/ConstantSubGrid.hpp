@@ -1,4 +1,4 @@
-// ConstantGrid
+// ConstantSubGrid
 // 
 // Contains base class for constant grids.
 // These are used to specify constant parameters across the grid
@@ -11,10 +11,10 @@
 
 namespace FVlite{
 
-class ConstantGrid : public BaseGrid {
+class ConstantSubGrid : public BaseGrid {
 public:
-    ConstantGrid(){}
-    virtual ~ConstantGrid(){}
+    ConstantSubGrid(){}
+    virtual ~ConstantSubGrid(){}
 
     unsigned int total_elements(){
         return 1;
