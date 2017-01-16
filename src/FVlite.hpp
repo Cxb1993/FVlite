@@ -101,6 +101,7 @@ void Controller::init( Config& cfg){
     // Build objects on grid
     OperatorInitialisationManager init_manager;
     init_manager.init(initCfg);
+    std::cout << "Initialising..." << std::endl;
     init_manager.exec( mGrid, mTimer);
     init_manager.setup_boundary_geometry(mGrid);
     // Build and use temporary TimerCalibrate Operator

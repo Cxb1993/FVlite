@@ -71,8 +71,8 @@ class LevelSetGrid : public virtual GridType {
         double approx_central_levelset( unsigned int ii, unsigned int jj=0, unsigned int kk=0){
             double total_levelset = 0.0;
             unsigned int total_cells = 0;
-            for( unsigned int s3=0; s3 < (this->get_dim() >= 3) ? 2 : 1; s3++){
-                for( unsigned int s2=0; s2 < (this->get_dim() >= 2) ? 2 : 1; s2++){
+            for( unsigned int s3=0; s3 < ((this->get_dim() >= 3) ? 2 : 1); s3++){
+                for( unsigned int s2=0; s2 < ((this->get_dim() >= 2) ? 2 : 1); s2++){
                     for( unsigned int s1=0; s1<2; s1++){
                         total_levelset += levelset(ii+s1,jj+s2,kk+s3);
                         total_cells++;
@@ -85,8 +85,8 @@ class LevelSetGrid : public virtual GridType {
         double approx_central_workspace( unsigned int ii, unsigned int jj=0, unsigned int kk=0){
             double total_levelset = 0.0;
             unsigned int total_cells = 0;
-            for( unsigned int s3=0; s3 < (this->get_dim() >= 3) ? 2 : 1; s3++){
-                for( unsigned int s2=0; s2 < (this->get_dim() >= 2) ? 2 : 1; s2++){
+            for( unsigned int s3=0; s3 < ((this->get_dim() >= 3) ? 2 : 1); s3++){
+                for( unsigned int s2=0; s2 < ((this->get_dim() >= 2) ? 2 : 1); s2++){
                     for( unsigned int s1=0; s1<2; s1++){
                         total_levelset += workspace(ii+s1,jj+s2,kk+s3);
                         total_cells++;
