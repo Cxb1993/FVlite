@@ -58,24 +58,25 @@ void OperatorInitialisationManager::setup_boundary_geometry(Grid& grid){
     double levelset_tl;
     double levelset_tr;
 
-    double x,y; // cell center locations
-
-    int sizeX = grid.full_width(DIM_X);
-    int sizeY = grid.full_width(DIM_Y);
     double dx = grid.ds(DIM_X);
     double dy = grid.ds(DIM_Y);
 
+    unsigned int startX = grid.state_start(DIM_X);
+    unsigned int startY = grid.state_start(DIM_Y);
+    unsigned int endX = grid.state_end(DIM_X);
+    unsigned int endY = grid.state_end(DIM_Y);
+    unsigned int ls_startX = grid.levelset_start(DIM_X);
+    unsigned int ls_startY = grid.levelset_start(DIM_Y);
+
     BoundaryGeometry Boundary;
 
-    for( int jj=1; jj<sizeY-1; jj++){
-        y = grid.position(DIM_Y,jj);
-        for( int ii=1; ii<sizeX-1; ii++){
-            x = grid.position(DIM_X,ii);
+    for( unsigned int jj=startY, jjL = ls_startY; jj<endY; jj++, jjL++){
+        for( unsigned int ii=startX, iiL = ls_startX; ii<endX; ii++, iiL++){
             // Get level set at corners
-            levelset_bl = grid.interpolate(x-0.5*dx,y-0.5*dy);
-            levelset_br = grid.interpolate(x+0.5*dx,y-0.5*dy);
-            levelset_tl = grid.interpolate(x-0.5*dx,y+0.5*dy);
-            levelset_tr = grid.interpolate(x+0.5*dx,y+0.5*dy);
+            levelset_bl = grid.levelset(iiL,jjL);
+            levelset_br = grid.levelset(iiL+1,jjL);
+            levelset_tl = grid.levelset(iiL,jjL+1);
+            levelset_tr = grid.levelset(iiL+1,jjL+1);
             // Calculate geometry parameters
             Boundary.set( dx, dy, levelset_bl, levelset_br, levelset_tl, levelset_tr);
             grid.boundary(ii,jj) = Boundary;
@@ -89,17 +90,17 @@ void OperatorInitialisationManager::fix_edges( Grid& grid){
     // Errors are introduced if attempting to allow any solid to extend into edge boundaries.
     // This function fixes that.
 
-    int startX = grid.start(DIM_X);
-    int startY = grid.start(DIM_Y);
-    int endX   = grid.end(DIM_X);
-    int endY   = grid.end(DIM_Y);
+    unsigned int startX = grid.state_start(DIM_X);
+    unsigned int startY = grid.state_start(DIM_Y);
+    unsigned int endX   = grid.state_end(DIM_X);
+    unsigned int endY   = grid.state_end(DIM_Y);
 
     BoundaryGeometry BoundaryL, BoundaryR;
     double temp;
     Vector3 Nb;
 
     // Left/right boundary
-    for( int jj=startY; jj<endY; jj++){
+    for( unsigned int jj=startY; jj<endY; jj++){
         BoundaryL = grid.boundary(startX,jj);
         BoundaryR = grid.boundary(endX-1,jj);
 
@@ -123,7 +124,7 @@ void OperatorInitialisationManager::fix_edges( Grid& grid){
 
 
     // Top/bottom boundary
-    for( int ii=startX; ii<endX; ii++){
+    for( unsigned int ii=startX; ii<endX; ii++){
         BoundaryL = grid.boundary(ii,startY);
         BoundaryR = grid.boundary(ii,endY-1);
 

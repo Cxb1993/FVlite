@@ -86,46 +86,45 @@ void OperatorInitialisation::init( Setting& cfg){
 void OperatorInitialisation::exec( Grid& grid, Timer& timer){
     (void)timer;
 
-    // Scan through grid, determine level set function.
-    // If fluid:
-    //  inner  -> positive level set -> draw mState here
-    //  !inner -> negative level set -> draw mState here
-    // If solid:
-    //  Write level set to workspace.
-    //  inner  -> merge()
-    //  !inner -> intersect()
-
-    int startX = grid.start(DIM_X);
-    int startY = grid.start(DIM_Y);
-    int endX = grid.end(DIM_X);
-    int endY = grid.end(DIM_Y);
-    int sizeX = grid.full_width(DIM_X);
-    int sizeY = grid.full_width(DIM_Y);
-    double x,y,levelset;
+    // Build level set workspace
+    // Sweep over all points, including ghost cells
 
     grid.reset_workspace();
+    double x,y,levelset;
 
-    for( int jj=0; jj<sizeY; jj++){
-        y = grid.position(DIM_Y,jj);
-        for( int ii=0; ii<sizeX; ii++){
-            x = grid.position(DIM_X,ii);
+    for( unsigned int jj=0; jj < grid.full_levelsets(DIM_Y); jj++){
+        y = grid.levelset_position(DIM_Y,jj);
+        for( unsigned int ii=0; ii < grid.full_levelsets(DIM_X); ii++){
+            x = grid.levelset_position(DIM_X,ii);
             levelset = mpInitMod->exec(x,y);
-            if( mSolid){
-                grid.workspace(ii,jj) = levelset;
-            } else {
-                if( ii>=startX && ii<endX && jj>=startY && jj<endY){
-                    if( (mInner && levelset>0) || (!mInner && levelset<0) ){
-                        grid.state(ii,jj) = mState;
-                        grid.material(ii,jj) = mMat;
-                    }
+            grid.workspace(ii,jj) = levelset;
+        }
+    }
+
+    // If intending to write states and materials, use this
+    // to calculate approximate central levelsets
+    if( !mSolid ){
+        unsigned int startX = grid.state_start(DIM_X);
+        unsigned int startY = grid.state_start(DIM_Y);
+        unsigned int endX = grid.state_end(DIM_X);
+        unsigned int endY = grid.state_end(DIM_Y);
+        unsigned int ls_startX = grid.levelset_start(DIM_X);
+        unsigned int ls_startY = grid.levelset_start(DIM_Y);
+        for( unsigned int jj = startY, jjL = ls_startY; jj<endY; jj++, jjL++){
+            for( unsigned int ii = startX, iiL = ls_startX; ii<endX; ii++, iiL++){
+                levelset = grid.approx_central_workspace(iiL,jjL);
+                if( (mInner && levelset>0) || (!mInner && levelset<0) ){
+                    grid.state(ii,jj) = mState;
+                    grid.material(ii,jj) = mMat;
                 }
             }
         }
     }
 
-    if(mSolid){
+    // If intending to write a 'solid' boundary, merge workspace and levelset
+    if( mSolid ){
         if(mInner) grid.merge_levelset();
-        else grid.intersect_levelset();
+        //else grid.intersect_levelset() // NOTE: CURRENTLY BROKEN
     }
 
     return;

@@ -15,6 +15,7 @@
 
 #include "SubGrids/StateGrid.hpp"
 #include "SubGrids/FluxGrid.hpp"
+#include "SubGrids/Flux1DGrid.hpp"
 #include "SubGrids/LevelSetGrid.hpp"
 #include "SubGrids/MaterialGrid.hpp"
 #include "SubGrids/CutCellGrids.hpp"
@@ -26,16 +27,16 @@ typedef CartesianSubGrid<DIM,CellCentred,WithGhosts> MainGrid;
 typedef CartesianGrid<
     DIM,
     StateGrid< MainGrid >,
-    FluxGrid< MainGrid >,
+    Flux1DGrid< DIM >,
 #ifdef MAXWELL
     MaterialGrid< Material, MainGrid >,
 #endif
 #ifdef EULER
     MaterialGrid< Material, ConstantSubGrid>,
 #endif
-    LevelSetGrid< MainGrid >,
     CutCellBoundaryStateGrid< MainGrid >,
-    CutCellGeometryGrid< MainGrid >
+    CutCellGeometryGrid< MainGrid >,
+    LevelSetGrid< CartesianSubGrid<DIM,VertexCentred,WithGhosts> >
 > Grid;
 
 }

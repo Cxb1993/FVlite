@@ -28,8 +28,8 @@ void OperatorTimerCalibrate::exec( Grid& grid, Timer& timer){
     double local_speed;
     Material mat;
     StateVector state;
-    for( unsigned int jj= grid.start(DIM_Y); jj<grid.end(DIM_Y); jj++){
-        for( unsigned int ii=grid.start(DIM_X); ii<grid.end(DIM_X); ii++){
+    for( unsigned int jj= grid.state_start(DIM_Y); jj<grid.state_end(DIM_Y); jj++){
+        for( unsigned int ii=grid.state_start(DIM_X); ii<grid.state_end(DIM_X); ii++){
             mat = grid.material(ii,jj);
             state = grid.state(ii,jj);
             local_speed = mat.local_speed(state);
