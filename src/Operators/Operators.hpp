@@ -15,8 +15,7 @@
 #include "Timer/OperatorTimerCalibrate.hpp"
 
 // Initialisation
-#include "Initialisation/OperatorInitialisation.hpp"
-#include "Initialisation/OperatorInitialisationManager.hpp"
+#include "Initialisation/Initialisers.hpp"
 
 // Boundaries
 #include "Boundaries/OperatorBoundary.hpp"
