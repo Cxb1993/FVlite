@@ -10,8 +10,8 @@
 
 namespace FVlite{
 
-template<class T>
-class LevelSetGrid : public virtual T {
+template<class GridType>
+class LevelSetGrid : public virtual GridType {
     protected:
         double min_level_set;
         std::vector<double> mLevelSet;
@@ -20,12 +20,12 @@ class LevelSetGrid : public virtual T {
         LevelSetGrid() 
         {
             double lengths_squared = 0.0;
-            for (unsigned int s=0; s< this->get_dim(); s++){
+            for (unsigned int s=0; s<this->get_dim(); s++){
                 lengths_squared += this->length(s) * this->length(s);
             }
             min_level_set = -1.0 * sqrt(lengths_squared);
-            mLevelSet.resize( this->total_cells(), /*val=*/min_level_set);
-            mWorkspace.resize( this->total_cells(), /*val=*/min_level_set);
+            mLevelSet.resize( this->total_elements(), /*val=*/min_level_set);
+            mWorkspace.resize( this->total_elements(), /*val=*/min_level_set);
         }
 
         double& levelset( unsigned int ii, unsigned int jj=0, unsigned int kk=0) {
@@ -44,13 +44,20 @@ class LevelSetGrid : public virtual T {
             return mWorkspace[this->get_idx(ii,jj,kk)];
         }
 
+        unsigned int levelset_start( unsigned int dim) const { return this->start(dim);}
+        unsigned int levelset_end( unsigned int dim) const { return this->end(dim);}
+        unsigned int num_levelsets( unsigned int dim) const { return this->num_elements(dim);}
+        unsigned int full_levelsets( unsigned int dim) const { return this->full_elements(dim);}
+        unsigned int total_levelsets() const { return this->total_elements();}
+        double levelset_position( unsigned int dim, unsigned int ii) const { return this->position(dim,ii);}
+
 
         void reset_levelset(){
-            mLevelSet.assign( this->total_cells(), min_level_set);
+            mLevelSet.assign( this->total_elements(), min_level_set);
         }
 
         void reset_workspace(){
-            mWorkspace.assign( this->total_cells(), min_level_set);
+            mWorkspace.assign( this->total_elements(), min_level_set);
         }
 
         void merge_levelset(){
@@ -59,12 +66,36 @@ class LevelSetGrid : public virtual T {
             }
         }
 
-        // WARNING: THIS IS NOT CORRECT!    
-        void intersect_levelset(){
-            for( unsigned int ii=0; ii < this->total_elements(); ii++){
-                mLevelSet[ii] = fmin( mLevelSet[ii], mWorkspace[ii]);
+        // Assuming vertex centred, at cell (i,j,k), average vertices to approximate the 
+        // levelset at the cell centre
+        double approx_central_levelset( unsigned int ii, unsigned int jj=0, unsigned int kk=0){
+            double total_levelset = 0.0;
+            unsigned int total_cells = 0;
+            for( unsigned int s3=0; s3 < ((this->get_dim() >= 3) ? 2 : 1); s3++){
+                for( unsigned int s2=0; s2 < ((this->get_dim() >= 2) ? 2 : 1); s2++){
+                    for( unsigned int s1=0; s1<2; s1++){
+                        total_levelset += levelset(ii+s1,jj+s2,kk+s3);
+                        total_cells++;
+                    }
+                }
             }
+            return  total_levelset / total_cells;
         }
+
+        double approx_central_workspace( unsigned int ii, unsigned int jj=0, unsigned int kk=0){
+            double total_levelset = 0.0;
+            unsigned int total_cells = 0;
+            for( unsigned int s3=0; s3 < ((this->get_dim() >= 3) ? 2 : 1); s3++){
+                for( unsigned int s2=0; s2 < ((this->get_dim() >= 2) ? 2 : 1); s2++){
+                    for( unsigned int s1=0; s1<2; s1++){
+                        total_levelset += workspace(ii+s1,jj+s2,kk+s3);
+                        total_cells++;
+                    }
+                }
+            }
+            return  total_levelset / total_cells;
+        }
+
 
         double interpolate( double x, double y=0.0, double z=0.0);
 };

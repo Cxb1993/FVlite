@@ -62,75 +62,46 @@ void OperatorCutCellFluxCorrector::exec( Grid& grid, Timer& timer){
     DecoratorOperator<OperatorFluxSolver>::exec(grid,timer);
     // Perform correction
     double dt = timer.dt() * m_dt_ratio;
-    int startX=grid.start(DIM_X);
-    int startY=grid.start(DIM_Y);
-    int endX=grid.end(DIM_X);
-    int endY=grid.end(DIM_Y);
+    unsigned int sweep_dim = (m_dim=='x') ? DIM_X : DIM_Y;
+    unsigned int startX = grid.flux_start( DIM_X );
+    unsigned int startY = grid.flux_start( DIM_Y );
+    unsigned int endX = grid.flux_end( DIM_X, sweep_dim);
+    unsigned int endY = grid.flux_end( DIM_Y, sweep_dim);
+    unsigned int s_startX = grid.state_start(DIM_X);
+    unsigned int s_startY = grid.state_start(DIM_Y);
+    double ds = grid.ds(sweep_dim);
     double alphaL, alphaR, betaC;
     BoundaryGeometry BoundaryL, BoundaryR;
     StateVector StateL, StateR, StateAuxL, StateAuxR;
     Material MatL, MatR;
     FluxVector Flux;
-    double ds;
-    switch(m_dim){
-        case 'x':
-        ds = grid.ds(DIM_X);
-        for( int jj=startY; jj<endY; jj++){
-            for( int ii=startX-1; ii<endX; ii++){
-                BoundaryL = grid.boundary(ii,jj);
-                BoundaryR = grid.boundary(ii+1,jj);
-                alphaL = BoundaryL.alpha();
-                alphaR = BoundaryR.alpha();
-                betaC  = BoundaryL.betaR();
-                if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
-                    StateL = grid.state(ii,jj);
-                    StateR = grid.state(ii+1,jj);
-                    StateAuxL = grid.boundary_state(ii,jj);
-                    StateAuxR = grid.boundary_state(ii+1,jj);
-                    MatL = grid.material(ii,jj);
-                    MatR = grid.material(ii+1,jj);
-                    Flux = getModifiedFlux( ds, dt, m_dim,
-                            StateL, StateR, StateAuxL, StateAuxR,
-                            MatL, MatR, BoundaryL, BoundaryR);
+    for( unsigned int jj=startY, jjS=s_startY; jj<endY; jj++, jjS++){
+        for( unsigned int ii=startX, iiS=s_startX; ii<endX; ii++, iiS++){
+            unsigned int iiSL = iiS-(sweep_dim==DIM_X);
+            unsigned int jjSL = jjS-(sweep_dim==DIM_Y);
+            BoundaryR = grid.boundary(iiS,jjS);
+            BoundaryL = grid.boundary(iiSL,jjSL);
+            alphaL = BoundaryL.alpha();
+            alphaR = BoundaryR.alpha();
+            betaC  = BoundaryL.betaR();
+            if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
+                StateL = grid.state(iiSL,jjSL);
+                StateR = grid.state(iiS,jjS);
+                StateAuxL = grid.boundary_state(iiSL,jjSL);
+                StateAuxR = grid.boundary_state(iiS,jjS);
+                MatL = grid.material(iiSL,jjSL);
+                MatR = grid.material(iiS,jjS);
+                Flux = getModifiedFlux( ds, dt, m_dim,
+                        StateL, StateR, StateAuxL, StateAuxR,
+                        MatL, MatR, BoundaryL, BoundaryR);
 #ifdef DEBUG
-                    if( Flux.isnan()){
-                        std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
-                    }
-#endif
-                    grid.flux(ii,jj) = Flux;
+                if( Flux.isnan()){
+                    std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
                 }
+#endif
+                grid.flux(ii,jj) = Flux;
             }
         }
-        break;
-        case 'y':
-        ds = grid.ds(DIM_Y);
-        for( int jj=startY-1; jj<endY; jj++){
-            for( int ii=startX; ii<endX; ii++){
-                BoundaryL = grid.boundary(ii,jj);
-                BoundaryR = grid.boundary(ii,jj+1);
-                alphaL = BoundaryL.alpha();
-                alphaR = BoundaryR.alpha();
-                betaC  = BoundaryL.betaT();
-                if( (alphaL>0. && alphaR>0.) && (alphaL<1. || alphaR<1.) && (betaC > 0.) ){
-                    StateL = grid.state(ii,jj);
-                    StateR = grid.state(ii,jj+1);
-                    StateAuxL = grid.boundary_state(ii,jj);
-                    StateAuxR = grid.boundary_state(ii,jj+1);
-                    MatL = grid.material(ii,jj);
-                    MatR = grid.material(ii,jj+1);
-                    Flux = getModifiedFlux( ds, dt, m_dim,
-                            StateL, StateR, StateAuxL, StateAuxR,
-                            MatL, MatR, BoundaryL, BoundaryR);
-#ifdef DEBUG
-                    if( Flux.isnan()){
-                        std::cerr << "Modified Flux("<<ii<<","<<jj<<") is nan" << std::endl;
-                    }
-#endif
-                    grid.flux(ii,jj) = Flux;
-                }
-            }
-        }
-        break;
     }
 }
 

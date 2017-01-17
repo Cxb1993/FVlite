@@ -129,15 +129,15 @@ void Output::print(){
     double alpha;
 //    for( int ii=mpGrid->startX(); ii<mpGrid->endX(); ii++){
 //        for( int jj=mpGrid->startY(); jj<mpGrid->endY(); jj++){
-    for( unsigned int ii=0; ii<mpGrid->full_width(DIM_X); ii++){
-        for( unsigned int jj=0; jj<mpGrid->full_width(DIM_Y); jj++){
+    for( unsigned int ii=0; ii<mpGrid->full_states(DIM_X); ii++){
+        for( unsigned int jj=0; jj<mpGrid->full_states(DIM_Y); jj++){
 
             Boundary = mpGrid->boundary(ii,jj);
             alpha = Boundary.alpha();
             if( !mPrintCutCells || (alpha!=0. && alpha!=1.)){
 
                 // Print position
-                File << mpGrid->position(DIM_X,ii)  << '\t' << mpGrid->position(DIM_Y,jj)  << '\t';
+                File << mpGrid->state_position(DIM_X,ii)  << '\t' << mpGrid->state_position(DIM_Y,jj)  << '\t';
 
                 // Print conserved data
                 State = mpGrid->state(ii,jj);
@@ -200,14 +200,14 @@ void Output::print_geometry(){
     // Print data
 
     BoundaryGeometry Boundary;
-    for( unsigned int ii=0; ii<mpGrid->full_width(DIM_X); ii++){
-        for( unsigned int jj=0; jj<mpGrid->full_width(DIM_Y); jj++){
+    for( unsigned int ii=0; ii<mpGrid->full_states(DIM_X); ii++){
+        for( unsigned int jj=0; jj<mpGrid->full_states(DIM_Y); jj++){
 
             // Print grid location
             File << ii  << '\t' << jj << '\t';
 
             // Print position
-            File << mpGrid->position(DIM_X,ii)  << '\t' << mpGrid->position(DIM_Y,jj)  << '\t';
+            File << mpGrid->state_position(DIM_X,ii)  << '\t' << mpGrid->state_position(DIM_Y,jj)  << '\t';
 
             // Print boundary data
             Boundary = mpGrid->boundary(ii,jj); 

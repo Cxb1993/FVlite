@@ -33,10 +33,10 @@ void OperatorCutCellNewCycle::exec( Grid& grid, Timer& timer){
 #ifdef DEBUG
     std::cout << "NEW TIME STEP" << std::endl;
 #endif
-    int startX=grid.start(DIM_X);
-    int startY=grid.start(DIM_Y);
-    int endX=grid.end(DIM_X);
-    int endY=grid.end(DIM_Y);
+    unsigned int startX=grid.state_start(DIM_X);
+    unsigned int startY=grid.state_start(DIM_Y);
+    unsigned int endX=grid.state_end(DIM_X);
+    unsigned int endY=grid.state_end(DIM_Y);
     StateVector State;
     StateVector BoundaryState;
     Material mat;
@@ -53,8 +53,8 @@ void OperatorCutCellNewCycle::exec( Grid& grid, Timer& timer){
     Normal[2]=0;
     double angle;
     BoundaryGeometry Boundary;
-    for( int jj=startY; jj<endY; jj++){
-        for( int ii=startX; ii<endX; ii++){
+    for( unsigned int jj=startY; jj<endY; jj++){
+        for( unsigned int ii=startX; ii<endX; ii++){
             Boundary = grid.boundary(ii,jj);
             if(Boundary.alpha() == 1. || Boundary.alpha() == 0.) continue;
             

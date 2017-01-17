@@ -86,46 +86,24 @@ void OperatorFluxSolver::init( Setting& cfg){
 
 void OperatorFluxSolver::exec( Grid& grid, Timer& timer){
     double dt = timer.dt() * m_dt_ratio;
-    double ds;
-    int startX = grid.start(DIM_X);
-    int startY = grid.start(DIM_Y);
-    int endX = grid.end(DIM_X);
-    int endY = grid.end(DIM_Y);
+    unsigned int sweep_dim = (m_dim=='x') ? DIM_X : DIM_Y;
+    unsigned int startX = grid.flux_start( DIM_X );
+    unsigned int startY = grid.flux_start( DIM_Y );
+    unsigned int endX = grid.flux_end( DIM_X, sweep_dim);
+    unsigned int endY = grid.flux_end( DIM_Y, sweep_dim);
+    unsigned int s_startX = grid.state_start(DIM_X);
+    unsigned int s_startY = grid.state_start(DIM_Y);
+    double ds = grid.ds(sweep_dim);
     StatePair states;
     Material matL;
     Material matR;
     FluxVector flux;
-    // Account for the fact that a row of N cells has N+1 interfaces which need
-    // to be determined (including boundary ghost cells).
-    switch(m_dim){
-        case 'x' :
-            ds = grid.ds(DIM_X);
-            startX -= 1;
-            break;
-        case 'y' :
-            ds = grid.ds(DIM_Y);
-            startY -= 1;
-            break;
-        case 'z' :
-        default:
-            ds = grid.ds(DIM_X);
-    }
     // Sweep through grid, calculating each flux in turn
-    for( int jj=startY; jj<endY; jj++){
-        for( int ii=startX; ii<endX; ii++){
-            states = mpReconstructor->exec( grid, ds, dt, m_dim, ii, jj);
-            matL = grid.material(ii,jj); 
-            // TODO Remove switch!
-            switch(m_dim){
-                case 'x' :
-                    matR = grid.material(ii+1,jj);
-                    break;
-                case 'y' :
-                    matR = grid.material(ii,jj+1);
-                    break;
-                default:
-                    matR = grid.material(ii,jj);
-            }
+    for( unsigned int jj=startY, jjS=s_startY; jj<endY; jj++, jjS++){
+        for( unsigned int ii=startX, iiS=s_startX; ii<endX; ii++, iiS++){
+            states = mpReconstructor->exec( grid, ds, dt, m_dim, iiS-(sweep_dim==DIM_X), jjS-(sweep_dim==DIM_Y));
+            matL = grid.material( iiS-(sweep_dim==DIM_X), jjS-(sweep_dim==DIM_Y)); 
+            matR = grid.material(iiS,jjS);
             flux = mpFluxCalculator->exec( ds, dt, m_dim, states.first, states.second, matL, matR);
             grid.flux(ii,jj) = flux;
         }

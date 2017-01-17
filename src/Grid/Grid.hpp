@@ -15,25 +15,28 @@
 
 #include "SubGrids/StateGrid.hpp"
 #include "SubGrids/FluxGrid.hpp"
+#include "SubGrids/Flux1DGrid.hpp"
 #include "SubGrids/LevelSetGrid.hpp"
 #include "SubGrids/MaterialGrid.hpp"
 #include "SubGrids/CutCellGrids.hpp"
 
 namespace FVlite{
 
+typedef CartesianSubGrid<DIM,CellCentred,WithGhosts> MainGrid;
+
 typedef CartesianGrid<
     DIM,
-    StateGrid< CartesianSubGrid< DIM, CellCentred, WithGhosts> >,
-    FluxGrid< CartesianSubGrid< DIM, CellCentred, WithGhosts> >,
+    StateGrid< MainGrid >,
+    Flux1DGrid< DIM >,
 #ifdef MAXWELL
-    MaterialGrid< Material, CartesianSubGrid<DIM,CellCentred, WithGhosts> >,
+    MaterialGrid< Material, MainGrid >,
 #endif
 #ifdef EULER
-    MaterialGrid< Material, ConstantGrid>,
+    MaterialGrid< Material, ConstantSubGrid>,
 #endif
-    LevelSetGrid< CartesianSubGrid< DIM, CellCentred, WithGhosts> >,
-    CutCellBoundaryStateGrid< CartesianSubGrid< DIM, CellCentred, WithGhosts> >,
-    CutCellGeometryGrid< CartesianSubGrid< DIM, CellCentred, WithGhosts> >
+    CutCellBoundaryStateGrid< MainGrid >,
+    CutCellGeometryGrid< MainGrid >,
+    LevelSetGrid< CartesianSubGrid<DIM,VertexCentred,WithGhosts> >
 > Grid;
 
 }

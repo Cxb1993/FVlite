@@ -33,54 +33,28 @@ REGISTER( Operator, ExplicitUpdaterCutCells)
 
 void OperatorExplicitUpdaterCutCells::exec( Grid& grid, Timer& timer){
     double dt = timer.dt() * m_dt_ratio;
-    double ds;
-    int startX = grid.start(DIM_X);
-    int startY = grid.start(DIM_Y);
-    int endX = grid.end(DIM_X);
-    int endY = grid.end(DIM_Y);
-    // get offset start points
-    int startXL = startX;
-    int startYL = startY;
-    switch(m_dim){
-        case 'x' :
-            ds = grid.ds(DIM_X);
-            startXL -= 1;
-            break;
-        case 'y' :
-            ds = grid.ds(DIM_Y);
-            startYL -= 1;
-            break;
-        case 'z' :
-        default:
-            ds = grid.ds(DIM_X);
-            startXL -= 1;
-    }
+    unsigned int sweep_dim = (m_dim=='x') ? DIM_X : DIM_Y;
+    unsigned int startX = grid.state_start(DIM_X);
+    unsigned int startY = grid.state_start(DIM_Y);
+    unsigned int endX = grid.state_end(DIM_X);
+    unsigned int endY = grid.state_end(DIM_Y);
+    unsigned int f_startX = grid.flux_start(DIM_X);
+    unsigned int f_startY = grid.flux_start(DIM_Y);
+    double ds = grid.ds(sweep_dim);
     // Update
     StateVector State;
     BoundaryGeometry Boundary;
     FluxVector FluxL,FluxR,BoundaryFlux;
     double alpha, betaL, betaR;
-    for( int jj = startY, jjL = startYL ; jj<endY; ++jj, ++jjL){
-        for( int ii = startX, iiL = startXL; ii<endX; ++ii, ++iiL){
+    for( unsigned int jj = startY, jjF = f_startY ; jj<endY; ++jj, ++jjF){
+        for( unsigned int ii = startX, iiF = f_startX; ii<endX; ++ii, ++iiF){
             Boundary = grid.boundary(ii,jj);
             alpha = Boundary.alpha();
             if( alpha == 0.) continue;
-            // TODO get this switch out of here!
-            switch( m_dim){
-                case 'x':
-                    betaL = Boundary.betaL();
-                    betaR = Boundary.betaR();
-                    break;
-                case 'y':
-                    betaL = Boundary.betaB();
-                    betaR = Boundary.betaT();
-                    break;
-                default:
-                    betaL = Boundary.betaL();
-                    betaR = Boundary.betaR();
-            }
-            FluxL = grid.flux(iiL,jjL);
-            FluxR = grid.flux(ii,jj);
+            betaL = (m_dim==DIM_X) ? Boundary.betaL() : Boundary.betaB();
+            betaR = (m_dim==DIM_X) ? Boundary.betaR() : Boundary.betaT();
+            FluxL = grid.flux(iiF,jjF);
+            FluxR = grid.flux(iiF+(sweep_dim==DIM_X),jjF+(sweep_dim==DIM_Y));
             if( alpha == 1.){
                 grid.state(ii,jj) = grid.state(ii,jj) + (FluxL-FluxR) * dt/ds;
             }else{
