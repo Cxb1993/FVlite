@@ -22,8 +22,8 @@ public:
 template<class T>
 Composite<T>::~Composite(){
     typename std::vector<T*>::iterator iter;
-    for( iter = m_elements.begin(); iter != m_elements.end(); iter++){
-        delete *iter;
+    for( iter = m_elements.begin(); iter != m_elements.end(); ){
+        iter = m_elements.erase(iter);
     }
 }
 

@@ -3,7 +3,6 @@
 
 > KNOWN BUGS
     - Error when solving EulerExplosion problem with MUSCL schemes
-    - Seg fault at program completion
 
 > Implement FDTD scheme
 > Overhaul Output. Pass output controller a grid, output file in
