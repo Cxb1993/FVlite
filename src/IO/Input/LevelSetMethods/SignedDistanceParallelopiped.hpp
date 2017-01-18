@@ -1,41 +1,45 @@
-// BoundaryModuleRectangle.hpp
+// SignedDistanceParallelepiped.hpp
 //
-// Initialises with a rectangular pattern.
-// Alligns with grid.
+// Returns signed distance from a parallelepiped.
+// Though a bit messy, it may be used to determine the distance
+// from simpler shapes like rectanlges and cubes.
+//
+// Vector r refers to a corner.
+// Vectors b and c define a parallelogram from that corner
+// Vector a makes a parallelepiped.
+// Area given by a.(bxc)
 
-#ifndef INITIALISATIONMODULERECTANGLE_HPP
-#define INITIALISATIONMODULERECTANGLE_HPP
+#ifndef SIGNEDDISTANCEPARALLELEPIPED_HPP
+#define SIGNEDDISTANCEPARALLELEPIPED_HPP
 
-#include <cmath>
-#include <libconfig.h++>
-
-#include "InitialisationModuleAbstract.hpp"
+#include "SignedDistanceAbstract.hpp"
 
 using libconfig::Setting;
 
 namespace FVlite{
 
-class InitialisationModuleRectangle : public InitialisationModule{
+class SignedDistanceParallelepiped : public SignedDistance {
 
 protected:
 
-    double mLowerLeftX;
-    double mLowerLeftY;
-    double mUpperRightX;
-    double mUpperRightY;
+    Vector3 m_r;
+    Vector3 m_a;
+    Vector3 m_b;
+    Vector3 m_c;
 
 public:
 
-    InitialisationModuleRectangle(){}
+    SignedDistanceParallelepiped(){}
     virtual void init( Setting& cfg);
-    virtual double exec( double x, double y);
+    virtual double get_distance( const Vector3& pos) const;
 
 };
 
-REGISTER(InitialisationModule,Rectangle)
+REGISTER(SignedDistance,Parallelepiped)
 
 
-void InitialisationModuleRectangle::init( Setting& cfg){
+void SignedDistanceParallelepiped::init( Setting& cfg){
+    Vector3 r( 0., 0., 0.,), a( 0., 0., 0.), b(0., 0., 0.), c( 0., 0., 0.);
     mLowerLeftX = cfg.lookup("lowerleft.x");
     mLowerLeftY = cfg.lookup("lowerleft.y");
     mUpperRightX = cfg.lookup("upperright.x");
