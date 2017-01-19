@@ -46,7 +46,7 @@ void SignedDistanceSphere::init( Setting& cfg){
 
 
 double SignedDistanceSphere::get_distance( const Vector3& pos) const{
-    return mRadius - Geometry::distance_point_point(m_center,pos);
+    return m_radius - Geometry::distance_point_point(m_center,pos);
 }
 
 }

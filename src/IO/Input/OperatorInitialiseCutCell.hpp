@@ -1,38 +1,38 @@
-// CutCellInitialisation.hpp
+// InitialiseCutCell.hpp
 //
-// Wraps InitialisationManager
+// Wraps OperatorInitialise
 // Uses levelset values to determine cut cell boundary
 // geometry.
 
 #ifndef CUTCELLINITIALISATION_HPP
 #define CUTCELLINITIALISATION_HPP
 
-#include <list>
 #include <libconfig.h++>
 
-#include "Utils/Decorator.hpp"
-#include "OperatorInitialisationManager.hpp"
+#include "OperatorInitialise.hpp"
+#include "Operators/DecoratorOperator.hpp"
 
-using std::string;
 using libconfig::Setting;
 
 namespace FVlite{
 
-class OperatorCutCellInitialisation : public DecoratorOperator<OperatorInitialisationManager>{
+class OperatorInitialiseCutCell : public DecoratorOperator<OperatorInitialise>{
 public:
     using DecoratorOperator::DecoratorOperator;
-    void exec( Grid& grid, Timer& timer);
+    virtual void init( Setting& cfg){ (void)cfg; }
+    virtual void exec( Grid& grid, Timer& timer);
+    
     void setup_boundary_geometry( Grid& grid);
     void fix_edges( Grid& grid);
 };
 
-void OperatorCutCellInitialisation::exec( Grid& grid, Timer& timer){
-    DecoratorOperator<OperatorInitialisationManager>::exec(grid,timer);
+void OperatorInitialiseCutCell::exec( Grid& grid, Timer& timer){
+    DecoratorOperator<OperatorInitialise>::exec(grid,timer);
     setup_boundary_geometry(grid);
     fix_edges(grid);
 }
 
-void OperatorCutCellInitialisation::setup_boundary_geometry(Grid& grid){
+void OperatorInitialiseCutCell::setup_boundary_geometry(Grid& grid){
     // Scan through grid, use level set function to determine geometry at boundaries.
     // Calculation at each cell performed by BoundaryGeometry class.
     // Notation:
@@ -72,9 +72,10 @@ void OperatorCutCellInitialisation::setup_boundary_geometry(Grid& grid){
     }
 }
 
-void OperatorCutCellInitialisation::fix_edges( Grid& grid){
+void OperatorInitialiseCutCell::fix_edges( Grid& grid){
     // Errors are introduced if attempting to allow any solid to extend into edge boundaries.
     // This function fixes that.
+    // TODO Generalise this
 
     unsigned int startX = grid.state_start(DIM_X);
     unsigned int startY = grid.state_start(DIM_Y);
@@ -133,5 +134,5 @@ void OperatorCutCellInitialisation::fix_edges( Grid& grid){
     }
 }
 
-}// Namespace closure
-#endif /* OPERATORINITIALISATIONMANAGER_HPP */
+}
+#endif

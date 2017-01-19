@@ -17,18 +17,15 @@
 
 namespace FVlite{
 
-template<class DerivedOperator>
-class CompositeOperator : public Composite<DerivedOperator> {
+class CompositeOperator : public Composite<Operator> {
 protected:
-    using Composite<DerivedOperator>::m_elements;
+    using Composite<Operator>::m_elements;
 public:
     void exec( Grid& grid, Timer& timer);
 };
 
-template<class DerivedOperator>
-void CompositeOperator<DerivedOperator>::exec( Grid& grid, Timer& timer){
-    typename std::vector<DerivedOperator*>::iterator iter;
-    for( iter = m_elements.begin(); iter != m_elements.end(); iter++){
+void CompositeOperator::exec( Grid& grid, Timer& timer){
+    for( auto iter = m_elements.begin(); iter != m_elements.end(); iter++){
         (*iter)->exec(grid,timer);
     }
 }

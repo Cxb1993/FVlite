@@ -21,7 +21,7 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class OperatorFiniteVolume1D : public CompositeOperator<Operator> {
+class OperatorFiniteVolume1D : public CompositeOperator {
 public:
     virtual void init( Setting& cfg);
 };

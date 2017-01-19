@@ -17,7 +17,7 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class OperatorBoundaryManager : public CompositeOperator<OperatorBoundary>{
+class OperatorBoundaryManager : public CompositeOperator {
 public:
     OperatorBoundaryManager(){}
     virtual void init( Setting& cfg);
@@ -33,7 +33,7 @@ void OperatorBoundaryManager::init( Setting& cfg){
         dim = 'x';
     }
     int nMods = cfg.getLength();
-    OperatorBoundary* pOperator;
+    Operator* pOperator;
     string modType;
     for( int count=0; count<nMods; count++){
         Setting& modCfg = cfg[count];
@@ -44,8 +44,9 @@ void OperatorBoundaryManager::init( Setting& cfg){
             continue;
         }
         pOperator = new OperatorBoundary;
-        pOperator->init( dim, modCfg);
-        add_element( pOperator);
+        OperatorBoundary* p_op_bound = static_cast<OperatorBoundary*>(pOperator);
+        p_op_bound->init( dim, modCfg);
+        add_element( p_op_bound);
     }
     return;
 }

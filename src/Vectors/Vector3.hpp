@@ -26,11 +26,6 @@ public:
     inline double& x(){ return mX[0];}
     inline double& y(){ return mX[1];}
     inline double& z(){ return mX[2];}
-
-    inline double norm();
-
-    friend double operator*( const Vector3& lhs, const Vector3& rhs); // Dot operator
-    friend Vector3 operator^( const Vector3& lhs, const Vector3& rhs); // Curl operator
 };
 
 Vector3::Vector3( double x, double y, double z){
@@ -43,23 +38,6 @@ void Vector3::set( double x, double y, double z){
     mX[2] = z;
     return;
 }
-
-double Vector3::norm(){
-    return sqrt(x()*x() + y()*y() + z()*z());
-}
-
-double operator*( const Vector3& lhs, const Vector3& rhs){
-    return lhs.x()*rhs.x() + lhs.y()*rhs.y() + lhs.z()*rhs.z();
-}
-
-Vector3 operator^( const Vector3& lhs, const Vector3& rhs){
-    Vector3 result;
-    result.x() = lhs.y()*rhs.z() - lhs.z()*rhs.y();
-    result.y() = lhs.z()*rhs.x() - lhs.x()*rhs.z();
-    result.z() = lhs.x()*rhs.y() - lhs.y()*rhs.x();
-    return result;
-}
-
 
 }// Namespace closure
 #endif /* VECTORTHREE_HPP */

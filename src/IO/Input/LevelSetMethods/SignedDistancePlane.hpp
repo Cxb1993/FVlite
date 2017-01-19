@@ -13,7 +13,7 @@ using libconfig::Setting;
 
 namespace FVlite{
 
-class SignedDistancePlane : public SignedDistancePlane {
+class SignedDistancePlane : public SignedDistance {
 
 protected:
 

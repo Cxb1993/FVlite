@@ -17,7 +17,7 @@
 #include "Grid/Grid.hpp"
 #include "Timer/Timer.hpp"
 #include "Operators/Operators.hpp"
-#include "Output/Output.hpp"
+#include "IO/Output/Output.hpp"
 
 using std::string;
 using libconfig::Config;
@@ -33,7 +33,7 @@ private:
     Timer  mTimer;
     Output mOutput;
 
-    CompositeOperator<Operator> mSolver;
+    CompositeOperator mSolver;
 
 public:
 
@@ -99,11 +99,11 @@ void Controller::init( Config& cfg){
     std::cout << "Building initialiser..." << std::endl;
     Setting& initCfg = cfg.lookup("Initialisation");
     // Build objects on grid
-    OperatorInitialisationManager init_manager;
-    init_manager.init(initCfg);
-    OperatorCutCellInitialisation* pInit = new OperatorCutCellInitialisation(&init_manager);
+    OperatorInitialise initialiser;
+    initialiser.init(initCfg);
+    OperatorInitialiseCutCell* p_wrapped_initialise = new OperatorInitialiseCutCell( &initialiser);
     std::cout << "Initialising..." << std::endl;
-    pInit->exec( mGrid, mTimer);
+    p_wrapped_initialise->exec( mGrid, mTimer);
     // Build and use temporary TimerCalibrate Operator
     OperatorTimerCalibrate init_calibration;
     init_calibration.exec( mGrid, mTimer);
